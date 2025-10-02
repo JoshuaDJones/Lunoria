@@ -8,11 +8,16 @@ namespace Eldoria.Infrastructure.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<CharacterSpell> builder)
         {
-            builder.HasKey(s => s.Id);
+            builder.HasKey(cs => cs.Id);
 
-            builder.HasOne(s => s.Spell)
+            builder.HasOne(cs => cs.Character)
+                   .WithMany(c => c.CharacterSpells)
+                   .HasForeignKey(cs => cs.CharacterId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(cs => cs.Spell)
                    .WithMany(s => s.CharacterSpells)
-                   .HasForeignKey(s => s.SpellId)
+                   .HasForeignKey(cs => cs.SpellId)
                    .OnDelete(DeleteBehavior.Restrict);
         }
     }

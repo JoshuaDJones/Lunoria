@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Eldoria.Application.Dtos
+﻿namespace Eldoria.Application.Dtos
 {
     public class JourneyDto
     {
@@ -13,5 +7,6 @@ namespace Eldoria.Application.Dtos
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;
         public DateTime CreateDate { get; set; }
+        public List<JourneyCharacterDto>? JourneyCharacters { get; set; } = [];
     }
 }

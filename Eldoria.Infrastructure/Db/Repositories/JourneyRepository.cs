@@ -24,5 +24,28 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Take(take)
                 .ToListAsync(ct);
         }
+
+        public async Task<Journey?> GetJourneyWithPlayers(int journeyId, CancellationToken ct)
+        {
+            return await _dbContext.Journeys
+                .AsNoTracking()
+                .Include(j => j.Scenes)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.Character)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.Character)
+                        .ThenInclude(c => c.AlternateForm)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.Character)
+                        .ThenInclude(c => c.CharacterSpells)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.Character)
+                        .ThenInclude(c => c.CharacterSpells)
+                            .ThenInclude(ch => ch.Spell)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.JourneyCharacterItems)
+                        .ThenInclude(jci => jci.Item)
+                .FirstOrDefaultAsync(j => j.Id == journeyId, ct);
+        }
     }
 }

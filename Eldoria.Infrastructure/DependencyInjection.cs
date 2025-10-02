@@ -3,11 +3,6 @@ using Eldoria.Infrastructure.Db;
 using Eldoria.Infrastructure.Db.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Eldoria.Infrastructure
 {
@@ -20,7 +15,13 @@ namespace Eldoria.Infrastructure
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ISceneRepository, SceneRepository>();
+            services.AddScoped<IJourneyRepository, JourneyRepository>();
+            services.AddScoped<ICharacterSpellRepository, CharacterSpellRepository>();
+            services.AddScoped<ICharacterRepository, CharacterRepository>();
+            services.AddScoped<ISpellRepository, SpellRepository>();
 
             return services;
         }

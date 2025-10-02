@@ -35,7 +35,7 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<JourneyDto>> GetByIdAsync(int userId, int id, CancellationToken ct)
         {
-            var journey = await _journeyRepository.GetByIdAsync(id, ct);
+            var journey = await _journeyRepository.GetJourneyWithPlayers(id, ct);
 
             if (journey is null)
                 return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
@@ -50,6 +50,7 @@ namespace Eldoria.Application.Services
                 Description = journey.Description,
                 PhotoUrl = journey.PhotoUrl,
                 CreateDate = journey.CreateDate,
+                JourneyCharacters = journey.JourneyCharacters.Select(jc => jc.ToDto()).ToList(),
             };
 
             return Result<JourneyDto>.Ok(journeyDto);            
@@ -106,7 +107,7 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<JourneyDto>> UpdateAsync(int id, int userId, string name, string description, IFormFile? photo, CancellationToken ct)
         {
-            var journey = await _journeyRepository.GetByIdAsync(id);
+            var journey = await _journeyRepository.GetByIdAsync(id, ct);
 
             if (journey is null)
                 return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));

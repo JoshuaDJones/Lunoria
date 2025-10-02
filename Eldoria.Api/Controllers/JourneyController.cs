@@ -80,7 +80,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromForm] UpdateJourneyRequest req, CancellationToken ct)
         {
             var userId = User.GetUserId();
-            var result = await _journeyService.UpdateAsync(userId, id, req.Name, req.Description, req.Photo, ct);
+            var result = await _journeyService.UpdateAsync(id, userId, req.Name, req.Description, req.Photo, ct);
 
             if (result.Success)
                 return Ok(result.Value);

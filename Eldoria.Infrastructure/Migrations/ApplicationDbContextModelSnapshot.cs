@@ -111,6 +111,8 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CharacterId");
+
                     b.HasIndex("SpellId");
 
                     b.ToTable("CharacterSpells");
@@ -540,7 +542,7 @@ namespace Eldoria.Infrastructure.Migrations
                 {
                     b.HasOne("Eldoria.Core.Entities.Character", "Character")
                         .WithMany("CharacterSpells")
-                        .HasForeignKey("SpellId")
+                        .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

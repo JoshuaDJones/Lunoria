@@ -11,6 +11,13 @@ namespace Eldoria.Application
         this IServiceCollection services)
         {
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICharacterService, CharacterService>();
+            services.AddScoped<ICharacterSpellService, CharacterSpellService>();
+            services.AddScoped<ISpellService, SpellService>();
+            services.AddScoped<IItemService, ItemService>();
+            services.AddScoped<IJourneyService, JourneyService>();
+            services.AddScoped<ISceneService, SceneService>();
+            services.AddScoped<IJourneyCharacterService, JourneyCharacterService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IAzureStorageBlob, AzureStorageBlob>();
 
