@@ -6,11 +6,11 @@ import AppButton, {
   AppButtonVariant,
 } from "../buttons/AppButton";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import ConfirmationModal from "../Modal/ConfirmationModal";
+import ConfirmationModal from "../modals/ConfirmationModal";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 import { ItemDto } from "../../types/item";
-import AddEditItemModal from "../Modal/AddEditItemModal";
+import AddEditItemModal from "../modals/AddEditItemModal";
 import ListItemRow from "./ListItemRow";
 
 interface ItemListProps {

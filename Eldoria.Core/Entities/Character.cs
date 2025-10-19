@@ -24,6 +24,7 @@
 
 
         public ICollection<CharacterSpell> CharacterSpells { get; set; } = [];
+        public ICollection<DialogPageSection> DialogPageSections { get; set; } = [];
 
     }
 }

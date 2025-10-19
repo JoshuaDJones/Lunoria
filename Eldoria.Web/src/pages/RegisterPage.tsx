@@ -3,15 +3,15 @@ import * as Yup from "yup";
 import { Field, Formik } from "formik";
 import { useAuth } from "../providers/AuthProvider";
 import InputError from "../components/InputError";
-import AppPage from "../components/Layout/AppPage";
-import PageContent from "../components/Layout/PageContent";
+import AppPage from "../components/layout/AppPage";
+import PageContent from "../components/layout/PageContent";
 import Title, { TitleColor, TitleSize } from "../components/typography/Title";
 import AppInput from "../components/inputs/AppInput";
 import AppButton, {
   AppButtonSize,
   AppButtonVariant,
 } from "../components/buttons/AppButton";
-import FormContent from "../components/Layout/FormContent";
+import FormContent from "../components/layout/FormContent";
 import { ToastType, useToast } from "../providers/ToastProvider";
 import { BASE_URL, useApi } from "../hooks/useApi";
 
@@ -84,70 +84,72 @@ const RegisterPage = () => {
   return (
     <AppPage backgroundImage="/Landing_Page.png">
       <PageContent>
-        <Formik<RegisterForm>
-          initialValues={{
-            email: "",
-            password: "",
-            confirmPassword: "",
-          }}
-          validationSchema={RegisterSchema}
-          onSubmit={handleSubmit}
-        >
-          {({ isSubmitting }) => (
-            <FormContent>
-              <Title size={TitleSize.large} color={TitleColor.stone800}>
-                Register
-              </Title>
+        <div className="flex items-center justify-center">
+          <Formik<RegisterForm>
+            initialValues={{
+              email: "",
+              password: "",
+              confirmPassword: "",
+            }}
+            validationSchema={RegisterSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ isSubmitting }) => (
+              <FormContent>
+                <Title size={TitleSize.large} color={TitleColor.stone800}>
+                  Register
+                </Title>
 
-              <Field
-                name="email"
-                type="email"
-                as={AppInput}
-                title="Email"
-                containerClassName="mt-8"
-              />
-              <InputError name="email" />
-
-              <Field
-                name="password"
-                type="password"
-                as={AppInput}
-                title="Password"
-                containerClassName="mt-6"
-              />
-              <InputError name="password" />
-
-              <Field
-                name="confirmPassword"
-                type="password"
-                as={AppInput}
-                title="Confirm Password"
-                containerClassName="mt-6"
-              />
-              <InputError name="confirmPassword" />
-
-              <div className="mt-16 flex justify-center items-center gap-4">
-                <AppButton
-                  title="Register"
-                  variant={
-                    !isSubmitting
-                      ? AppButtonVariant.primary
-                      : AppButtonVariant.disabled
-                  }
-                  size={AppButtonSize.lg}
-                  disabled={isSubmitting}
-                  type="submit"
+                <Field
+                  name="email"
+                  type="email"
+                  as={AppInput}
+                  title="Email"
+                  containerClassName="mt-8"
                 />
-                <AppButton
-                  title="Back to Login"
-                  variant={AppButtonVariant.secondary}
-                  size={AppButtonSize.lg}
-                  onClick={() => navigate("/login")}
+                <InputError name="email" />
+
+                <Field
+                  name="password"
+                  type="password"
+                  as={AppInput}
+                  title="Password"
+                  containerClassName="mt-6"
                 />
-              </div>
-            </FormContent>
-          )}
-        </Formik>
+                <InputError name="password" />
+
+                <Field
+                  name="confirmPassword"
+                  type="password"
+                  as={AppInput}
+                  title="Confirm Password"
+                  containerClassName="mt-6"
+                />
+                <InputError name="confirmPassword" />
+
+                <div className="mt-16 flex justify-center items-center gap-4">
+                  <AppButton
+                    title="Register"
+                    variant={
+                      !isSubmitting
+                        ? AppButtonVariant.primary
+                        : AppButtonVariant.disabled
+                    }
+                    size={AppButtonSize.lg}
+                    disabled={isSubmitting}
+                    type="submit"
+                  />
+                  <AppButton
+                    title="Back to Login"
+                    variant={AppButtonVariant.secondary}
+                    size={AppButtonSize.lg}
+                    onClick={() => navigate("/login")}
+                  />
+                </div>
+              </FormContent>
+            )}
+          </Formik>
+        </div>
       </PageContent>
     </AppPage>
   );

@@ -10,18 +10,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(sd => sd.Id);
 
-            builder.Property(sd => sd.OrderNum)
+            builder.Property(sd => sd.Title)
                 .IsRequired();
-
-            builder.Property(sd => sd.PhotoUrl)
-                .HasMaxLength(2048);
-
-            builder.Property(sd => sd.FileName)
-                .HasMaxLength(250);
-
-            builder.Property(sd => sd.Dialog)
-                    .IsRequired()
-                    .HasMaxLength(500);
 
             builder.Property(sd => sd.CreateDate)
                     .IsRequired();
@@ -29,10 +19,10 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(sd => sd.UpdateDate)
                     .IsRequired();
 
-            builder.HasOne(sd => sd.Character)
-                   .WithMany()
-                   .HasForeignKey(sd => sd.CharacterId)
-                   .OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(sd => sd.DialogPages)
+                   .WithOne(dp => dp.SceneDialog)
+                   .HasForeignKey(sd => sd.SceneDialogId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

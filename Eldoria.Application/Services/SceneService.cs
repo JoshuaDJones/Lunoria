@@ -4,6 +4,7 @@ using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using System.Threading.Tasks.Dataflow;
 
 namespace Eldoria.Application.Services
 {
@@ -12,12 +13,14 @@ namespace Eldoria.Application.Services
         private readonly IAzureStorageBlob _azureStorageBlob;
         private readonly ISceneRepository _sceneRepository;
         private readonly IJourneyRepository _journeyRepository;
+        private readonly IJourneyCharacterRepository _journeyCharacterRepository;
 
-        public SceneService(IAzureStorageBlob azureStorageBlob, ISceneRepository sceneRepository, IJourneyRepository journeyRepository)
+        public SceneService(IAzureStorageBlob azureStorageBlob, ISceneRepository sceneRepository, IJourneyRepository journeyRepository, IJourneyCharacterRepository journeyCharacterRepository)
         {
             _azureStorageBlob = azureStorageBlob;
             _sceneRepository = sceneRepository;
             _journeyRepository = journeyRepository;
+            _journeyCharacterRepository = journeyCharacterRepository;
         }
 
         public async Task<Result<SceneDto>> CreateAsync(int userId, int journeyId, string name, string description, IFormFile photo, string gridUrl, CancellationToken ct)
@@ -90,6 +93,33 @@ namespace Eldoria.Application.Services
             var dtos = scenes.Select(s => s.ToDto()).ToList();
 
             return Result<List<SceneDto>>.Ok(dtos);            
+        }
+
+        public async Task<Result<SceneDashboardDto>> GetSceneDashboardAsync(int userId, int id, int journeyId, CancellationToken ct)
+        {
+            var journey = await _journeyRepository.GetByIdAsync(journeyId, ct);
+
+            if(journey is null)
+                return Result<SceneDashboardDto>.Fail(new Error("Journey.NotFound", "The associated journey does not exist."));
+
+            if(journey.UserId != userId)
+                return Result<SceneDashboardDto>.Fail(new Error("Auth.Forbidden", "You do have the permission to this journey."));
+
+            var scene = await _sceneRepository.GetSceneDetails(id, ct);
+
+            if(scene is null)
+                return Result<SceneDashboardDto>.Fail(new Error("Scene.NotFound", "Scene does not exist."));
+
+            var journeyCharacters = await _journeyCharacterRepository.GetJourneyCharacters(journeyId, ct);
+
+            var journeyCharactersDtos = journeyCharacters.Select(jc => jc.ToDto()).ToList();
+            var sceneDto = scene.ToDto();
+
+            return Result<SceneDashboardDto>.Ok(new SceneDashboardDto
+            {
+                Scene = sceneDto,
+                Players = journeyCharactersDtos
+            });
         }
 
         public async Task<Result<SceneDto>> UpdateAsync(int userId, int journeyId, int id, string name, string description, IFormFile? photo, string gridUrl, CancellationToken ct)

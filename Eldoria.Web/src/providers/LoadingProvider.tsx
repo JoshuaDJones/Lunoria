@@ -1,5 +1,5 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react";
-import LoadingModal from "../components/Modal/LoadingModal";
+import LoadingModal from "../components/modals/LoadingModal";
 
 interface ILoadingContext {
   showLoading: () => void;

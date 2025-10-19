@@ -50,6 +50,7 @@ namespace Eldoria.Application.Services
                 Description = journey.Description,
                 PhotoUrl = journey.PhotoUrl,
                 CreateDate = journey.CreateDate,
+                Scenes = journey.Scenes.Select(jc => jc.ToDto()).ToList(),
                 JourneyCharacters = journey.JourneyCharacters.Select(jc => jc.ToDto()).ToList(),
             };
 

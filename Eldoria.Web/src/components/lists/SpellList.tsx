@@ -6,12 +6,12 @@ import AppButton, {
   AppButtonVariant,
 } from "../buttons/AppButton";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import ConfirmationModal from "../Modal/ConfirmationModal";
+import ConfirmationModal from "../modals/ConfirmationModal";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 import ListItemRow from "./ListItemRow";
 import { SpellDto } from "../../types/spell";
-import AddEditSpellModal from "../Modal/AddEditSpellModal";
+import AddEditSpellModal from "../modals/AddEditSpellModal";
 import BoolListItemRow from "./BoolListItemRow";
 
 interface SpellListProps {

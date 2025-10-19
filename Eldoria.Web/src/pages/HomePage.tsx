@@ -1,4 +1,4 @@
-import AppPage from "../components/Layout/AppPage";
+import AppPage from "../components/layout/AppPage";
 import Title, { TitleColor, TitleSize } from "../components/typography/Title";
 import AppButton, {
   AppButtonSize,

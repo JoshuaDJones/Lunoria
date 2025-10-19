@@ -16,6 +16,8 @@ namespace Eldoria.Application.Common
                 PhotoUrl = scene.PhotoUrl,
                 GridUrl = scene.GridUrl,
                 CreateDate = scene.CreateDate,
+                SceneDialogs = scene.SceneDialogs.Select(s => s.ToDto()).ToList(),
+                SceneCharacters = scene.SceneCharacters.Select(sc => sc.ToDto()).ToList()
             };
         }
     }

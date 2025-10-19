@@ -118,6 +118,83 @@ namespace Eldoria.Infrastructure.Migrations
                     b.ToTable("CharacterSpells");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.DialogPage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderNum")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhotoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SceneDialogId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SceneDialogId");
+
+                    b.ToTable("DialogPage");
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.DialogPageSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CharacterId1")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DialogPageId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsNarrator")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderNum")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReadingText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("CharacterId1");
+
+                    b.HasIndex("DialogPageId");
+
+                    b.ToTable("DialogPageSection");
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.Item", b =>
                 {
                     b.Property<int>("Id")
@@ -261,6 +338,8 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ItemId");
+
                     b.HasIndex("JourneyCharacterId");
 
                     b.ToTable("JourneyCharacterItems");
@@ -369,6 +448,8 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ItemId");
+
                     b.HasIndex("SceneCharacterId");
 
                     b.ToTable("SceneCharacterItems");
@@ -382,37 +463,20 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Dialog")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("FileName")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int>("OrderNum")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PhotoUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
-
                     b.Property<int>("SceneId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdateDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CharacterId");
 
                     b.HasIndex("SceneId");
 
@@ -557,6 +621,39 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("Spell");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.DialogPage", b =>
+                {
+                    b.HasOne("Eldoria.Core.Entities.SceneDialog", "SceneDialog")
+                        .WithMany("DialogPages")
+                        .HasForeignKey("SceneDialogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SceneDialog");
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.DialogPageSection", b =>
+                {
+                    b.HasOne("Eldoria.Core.Entities.Character", "Character")
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Eldoria.Core.Entities.Character", null)
+                        .WithMany("DialogPageSections")
+                        .HasForeignKey("CharacterId1");
+
+                    b.HasOne("Eldoria.Core.Entities.DialogPage", "DialogPage")
+                        .WithMany("DialogPageSections")
+                        .HasForeignKey("DialogPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+
+                    b.Navigation("DialogPage");
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.Journey", b =>
                 {
                     b.HasOne("Eldoria.Core.Entities.User", "User")
@@ -591,7 +688,7 @@ namespace Eldoria.Infrastructure.Migrations
                 {
                     b.HasOne("Eldoria.Core.Entities.Item", "Item")
                         .WithMany("JourneyCharacterItems")
-                        .HasForeignKey("JourneyCharacterId")
+                        .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -640,7 +737,7 @@ namespace Eldoria.Infrastructure.Migrations
                 {
                     b.HasOne("Eldoria.Core.Entities.Item", "Item")
                         .WithMany("SceneCharacterItems")
-                        .HasForeignKey("SceneCharacterId")
+                        .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -657,19 +754,11 @@ namespace Eldoria.Infrastructure.Migrations
 
             modelBuilder.Entity("Eldoria.Core.Entities.SceneDialog", b =>
                 {
-                    b.HasOne("Eldoria.Core.Entities.Character", "Character")
-                        .WithMany()
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Eldoria.Core.Entities.Scene", "Scene")
                         .WithMany("SceneDialogs")
                         .HasForeignKey("SceneId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Character");
 
                     b.Navigation("Scene");
                 });
@@ -677,6 +766,13 @@ namespace Eldoria.Infrastructure.Migrations
             modelBuilder.Entity("Eldoria.Core.Entities.Character", b =>
                 {
                     b.Navigation("CharacterSpells");
+
+                    b.Navigation("DialogPageSections");
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.DialogPage", b =>
+                {
+                    b.Navigation("DialogPageSections");
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.Item", b =>
@@ -708,6 +804,11 @@ namespace Eldoria.Infrastructure.Migrations
             modelBuilder.Entity("Eldoria.Core.Entities.SceneCharacter", b =>
                 {
                     b.Navigation("SceneCharacterItems");
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.SceneDialog", b =>
+                {
+                    b.Navigation("DialogPages");
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.Spell", b =>

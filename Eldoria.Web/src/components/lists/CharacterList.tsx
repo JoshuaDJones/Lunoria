@@ -10,9 +10,9 @@ import { ToastType, useToast } from "../../providers/ToastProvider";
 import { CharacterDto, CharacterSpellDto } from "../../types/character";
 import ListItemRow, { RowTextSize } from "./ListItemRow";
 import BoolListItemRow from "./BoolListItemRow";
-import AddEditCharacterModal from "../Modal/AddEditCharacterModal";
-import ConfirmationModal from "../Modal/ConfirmationModal";
-import CharacterSpellsModal from "../Modal/CharacterSpellsModal";
+import AddEditCharacterModal from "../modals/AddEditCharacterModal";
+import ConfirmationModal from "../modals/ConfirmationModal";
+import CharacterSpellsModal from "../modals/CharacterSpellsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowCircleDown,
@@ -188,7 +188,9 @@ interface CharacterSpellsSectionProps {
   spells: CharacterSpellDto[] | null;
 }
 
-const CharacterSpellsSection = ({ spells }: CharacterSpellsSectionProps) => {
+export const CharacterSpellsSection = ({
+  spells,
+}: CharacterSpellsSectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

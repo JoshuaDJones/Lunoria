@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import AppPage from "../../components/Layout/AppPage";
-import PageContent from "../../components/Layout/PageContent";
+import AppPage from "../../components/layout/AppPage";
+import PageContent from "../../components/layout/PageContent";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { useLoading } from "../../providers/LoadingProvider";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import { ItemDto } from "../../types/item";
-import AddEditItemModal from "../../components/Modal/AddEditItemModal";
-import SectionTitleWithAdd from "../../components/Layout/SectionTitleWithAdd";
+import AddEditItemModal from "../../components/modals/AddEditItemModal";
+import SectionTitleWithAdd from "../../components/layout/SectionTitleWithAdd";
 import ItemList from "../../components/lists/ItemList";
 
 const ItemsPage = () => {

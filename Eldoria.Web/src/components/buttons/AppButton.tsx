@@ -60,7 +60,7 @@ const AppButton = ({
           "text-lg px-4 py-2": size === AppButtonSize.md,
           "text-2xl px-6 py-3": size === AppButtonSize.lg,
           "text-4xl px-8 py-4": size === AppButtonSize.xl,
-          "rounded-xl": !noRounded
+          "rounded-xl": !noRounded,
         },
         className,
       )}

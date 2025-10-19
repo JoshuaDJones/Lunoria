@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import AppPage from "../../components/Layout/AppPage";
-import PageContent from "../../components/Layout/PageContent";
-import SectionTitleWithAdd from "../../components/Layout/SectionTitleWithAdd";
+import AppPage from "../../components/layout/AppPage";
+import PageContent from "../../components/layout/PageContent";
+import SectionTitleWithAdd from "../../components/layout/SectionTitleWithAdd";
 import { CharacterDto } from "../../types/character";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import CharacterList from "../../components/lists/CharacterList";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import AddEditCharacterModal from "../../components/Modal/AddEditCharacterModal";
+import AddEditCharacterModal from "../../components/modals/AddEditCharacterModal";
 import { useLoading } from "../../providers/LoadingProvider";
 
 const CharactersPage = () => {

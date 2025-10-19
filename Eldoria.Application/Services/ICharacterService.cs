@@ -1,5 +1,6 @@
 ﻿using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
+using Eldoria.Core.Enums;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 
@@ -7,7 +8,7 @@ namespace Eldoria.Application.Services
 {
     public interface ICharacterService
     {
-        Task<Result<List<CharacterDto>>> GetListAsync(int skip, int take, CancellationToken ct);
+        Task<Result<List<CharacterDto>>> GetListAsync(int skip, int take, CharacterType characterType, CancellationToken ct);
         Task<Result<CharacterDto>> GetByIdAsync(int id, CancellationToken ct);
         Task<Result> DeleteAsync(int id, CancellationToken ct);
 

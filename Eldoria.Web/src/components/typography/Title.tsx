@@ -6,6 +6,7 @@ export enum TitleSize {
   medium = "medium",
   large = "large",
   xlarge = "xlarge",
+  custom = "custom",
 }
 
 export enum TitleColor {
@@ -32,6 +33,7 @@ const Title = ({
     [TitleSize.medium]: "text-5xl",
     [TitleSize.large]: "text-7xl",
     [TitleSize.xlarge]: "text-9xl",
+    [TitleSize.custom]: "",
   };
 
   const colorClasses: Record<TitleColor, string> = {

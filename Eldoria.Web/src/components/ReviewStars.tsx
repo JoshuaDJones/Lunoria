@@ -19,10 +19,10 @@ const ReviewStars = ({ reviewAverage, reviewCount }: ReviewStarsProps) => {
   const [stars, setStars] = useState<StarType[]>([]);
 
   useEffect(() => {
-    let starsArr = [...stars];
+    const starsArr = [...stars];
 
     for (let i = 0; i < 5; i++) {
-      let remainder = reviewAverage - i;
+      const remainder = reviewAverage - i;
 
       if (remainder > 0.75) starsArr[i] = StarType.full;
 

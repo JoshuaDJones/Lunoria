@@ -6,8 +6,8 @@ import AppButton, {
   AppButtonVariant,
 } from "../buttons/AppButton";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import AddEditJourneyModal from "../Modal/AddEditJourneyModal";
-import ConfirmationModal from "../Modal/ConfirmationModal";
+import AddEditJourneyModal from "../modals/AddEditJourneyModal";
+import ConfirmationModal from "../modals/ConfirmationModal";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 import { useNavigate } from "react-router";
@@ -58,7 +58,7 @@ const JourneyListItem = ({
 
   const navigateJourney = () => {
     navigate(`/JourneyDetails/${journey.id}`);
-  }
+  };
 
   const openEditModal = () => {
     modalRouter.push(

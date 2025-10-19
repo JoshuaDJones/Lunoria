@@ -15,8 +15,13 @@ namespace Eldoria.Infrastructure.Db.Configurations
 
             builder.HasOne(c => c.Item)
                    .WithMany(i => i.SceneCharacterItems)
-                   .HasForeignKey(i => i.SceneCharacterId)
+                   .HasForeignKey(i => i.ItemId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(c => c.SceneCharacter)
+                .WithMany(sc => sc.SceneCharacterItems)
+                .HasForeignKey(c => c.SceneCharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

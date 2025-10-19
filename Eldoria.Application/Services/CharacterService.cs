@@ -1,6 +1,7 @@
 ﻿using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Enums;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using static System.Formats.Asn1.AsnWriter;
@@ -90,9 +91,9 @@ namespace Eldoria.Application.Services
             return Result<CharacterDto>.Ok(characterDto);
         }
 
-        public async Task<Result<List<CharacterDto>>> GetListAsync(int skip, int take, CancellationToken ct)
+        public async Task<Result<List<CharacterDto>>> GetListAsync(int skip, int take, CharacterType characterType, CancellationToken ct)
         {
-            var characters = await _characterRepository.GetCharacters(skip, take, ct);
+            var characters = await _characterRepository.GetCharacters(skip, take, characterType, ct);
 
             List<CharacterDto> characterDtos = [];
 

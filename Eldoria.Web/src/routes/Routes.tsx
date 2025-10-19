@@ -10,6 +10,7 @@ import ItemsPage from "../pages/authenticated/ItemsPage";
 import SpellsPage from "../pages/authenticated/SpellsPage";
 import CharactersPage from "../pages/authenticated/CharactersPage";
 import JourneyDetailsPage from "../pages/authenticated/JourneyDetailsPage";
+import SceneDashboard from "../pages/authenticated/SceneDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
       {
         path: "JourneyDetails/:id",
         element: <ProtectedRoute element={<JourneyDetailsPage />} />,
+      },
+      {
+        path: "SceneDashboard/:id",
+        element: <ProtectedRoute element={<SceneDashboard />} />,
       },
     ],
   },

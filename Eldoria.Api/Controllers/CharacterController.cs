@@ -1,6 +1,7 @@
 ﻿using Eldoria.Api.Requests;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
+using Eldoria.Core.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
@@ -20,9 +21,10 @@ namespace Eldoria.Api.Controllers
         public async Task<ActionResult<List<CharacterDto>>> List(
             [FromQuery] int skip = 0,
             [FromQuery] int take = 500,
+            [FromQuery] CharacterType typeFilter = CharacterType.Any,
             CancellationToken ct = default)
         {
-            var result = await _characterService.GetListAsync(skip, take, ct);
+            var result = await _characterService.GetListAsync(skip, take, typeFilter, ct);
 
             if (result.Success)
                 return Ok(result.Value);

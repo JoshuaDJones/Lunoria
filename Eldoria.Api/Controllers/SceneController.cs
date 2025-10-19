@@ -50,6 +50,24 @@ namespace Eldoria.Api.Controllers
             };
         }
 
+        [HttpGet("{id:int}/dashboard")]
+        public async Task<ActionResult<SceneDashboardDto>> GetDashboard(int id, [FromQuery] int journeyId, CancellationToken ct)
+        {
+            var userId = User.GetUserId();
+            var result = await _sceneService.GetSceneDashboardAsync(userId, id, journeyId, ct);
+
+            if (result.Success)
+                return Ok(result.Value);
+
+            return result.Error?.Code switch
+            {
+                "Scene.NotFound" => BadRequest(result.Error),
+                "Journey.NotFound" => BadRequest(result.Error),
+                "Auth.Forbidden" => Forbid(),
+                _ => BadRequest(result.Error)
+            };
+        }
+
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] int journeyId, CancellationToken ct)
         {
@@ -73,6 +91,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Create([FromForm] CreateSceneRequest req, CancellationToken ct)
         {
             var userId = User.GetUserId();
+
             var result = await _sceneService.CreateAsync(
                 userId,
                 req.JourneyId,

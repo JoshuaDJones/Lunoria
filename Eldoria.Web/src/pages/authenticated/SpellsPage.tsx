@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import AppPage from "../../components/Layout/AppPage";
-import PageContent from "../../components/Layout/PageContent";
+import AppPage from "../../components/layout/AppPage";
+import PageContent from "../../components/layout/PageContent";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import { SpellDto } from "../../types/spell";
-import AddEditSpellModal from "../../components/Modal/AddEditSpellModal";
-import SectionTitleWithAdd from "../../components/Layout/SectionTitleWithAdd";
+import AddEditSpellModal from "../../components/modals/AddEditSpellModal";
+import SectionTitleWithAdd from "../../components/layout/SectionTitleWithAdd";
 import SpellList from "../../components/lists/SpellList";
 
 const SpellsPage = () => {

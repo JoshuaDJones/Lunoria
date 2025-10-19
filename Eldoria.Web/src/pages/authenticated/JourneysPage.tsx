@@ -1,8 +1,8 @@
-import AppPage from "../../components/Layout/AppPage";
-import PageContent from "../../components/Layout/PageContent";
+import AppPage from "../../components/layout/AppPage";
+import PageContent from "../../components/layout/PageContent";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import SectionTitleWithAdd from "../../components/Layout/SectionTitleWithAdd";
-import AddEditJourneyModal from "../../components/Modal/AddEditJourneyModal";
+import SectionTitleWithAdd from "../../components/layout/SectionTitleWithAdd";
+import AddEditJourneyModal from "../../components/modals/AddEditJourneyModal";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { JourneyDto } from "../../types/journey";
 import { useEffect, useState } from "react";

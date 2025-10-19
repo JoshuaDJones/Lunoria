@@ -11,12 +11,17 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasKey(c => c.Id);
 
             builder.Property(c => c.IsUsed)
-                .IsRequired();
+                   .IsRequired();
 
             builder.HasOne(c => c.Item)
                    .WithMany(i => i.JourneyCharacterItems)
-                   .HasForeignKey(i => i.JourneyCharacterId)
+                   .HasForeignKey(c => c.ItemId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(c => c.JourneyCharacter)
+                   .WithMany(jc => jc.JourneyCharacterItems)
+                   .HasForeignKey(c => c.JourneyCharacterId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
