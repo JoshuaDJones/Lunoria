@@ -11,6 +11,7 @@ interface PageContentProps extends PropsWithChildren {
   useBackButton?: boolean;
   leftPane?: ReactElement;
   rightPane?: ReactElement;
+  noHorizontalSpacing?: boolean;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ const PageContent = ({
   useBackButton = false,
   leftPane,
   rightPane,
+  noHorizontalSpacing = false,
   className,
 }: PageContentProps) => {
   return (
@@ -36,11 +38,15 @@ const PageContent = ({
         className,
       )}
     >
-      <div className="flex w-[150px] h-full">{leftPane}</div>
+      {!noHorizontalSpacing && (
+        <div className="flex w-[150px] h-full">{leftPane}</div>
+      )}
 
       <div className="flex flex-1 flex-col">{children}</div>
 
-      <div className="flex w-[150px] h-full">{rightPane}</div>
+      {!noHorizontalSpacing && (
+        <div className="flex w-[150px] h-full">{rightPane}</div>
+      )}
 
       <div className="absolute left-5">
         {useBackButton && <BackIconButton />}

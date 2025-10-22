@@ -4,12 +4,14 @@ import AppButton, {
   AppButtonSize,
   AppButtonVariant,
 } from "../buttons/AppButton";
+import clsx from "clsx";
 
 interface AppPageProps {
   hasNav?: boolean;
   hasBackButton?: boolean;
   backgroundImage?: string;
   pane?: ReactElement;
+  noBottomPadding?: boolean;
 }
 
 const AppPage = ({
@@ -18,6 +20,7 @@ const AppPage = ({
   backgroundImage,
   pane,
   children,
+  noBottomPadding,
 }: PropsWithChildren<AppPageProps>) => {
   return (
     <div className="bg-slate-800 h-screen w-screen relative overflow-hidden">
@@ -30,7 +33,14 @@ const AppPage = ({
 
       {pane}
 
-      <div className="absolute inset-0 flex flex-col pb-20 overflow-y-auto scrollbar-hide z-10">
+      <div
+        className={clsx(
+          "absolute inset-0 flex flex-col overflow-y-auto scrollbar-hide z-10",
+          {
+            "pb-20": !noBottomPadding,
+          },
+        )}
+      >
         {children}
       </div>
 

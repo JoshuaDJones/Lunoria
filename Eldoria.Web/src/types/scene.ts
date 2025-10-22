@@ -22,12 +22,22 @@ export interface SceneDashboardDto {
 
 export interface SceneDialogDto {
   id: number;
-  sceneId: number;
+  title: string;
+  dialogPages: DialogPageDto[];
+}
+
+export interface DialogPageDto {
+  id: number;
   orderNum: number;
   photoUrl: string;
-  dialog: string;
-  createDate: string;
-  characterId: number;
+  dialogPageSections: DialogPageSectionDto[];
+}
+
+export interface DialogPageSectionDto {
+  id: number;
+  orderNum: number;
+  readText: string;
+  isNarrator: boolean;
   character: CharacterDto;
 }
 

@@ -14,6 +14,7 @@ import AppButton, {
   AppButtonVariant,
 } from "../buttons/AppButton";
 import { useNavigate } from "react-router";
+import EditSceneDialogModal from "../modals/EditSceneDialogModal";
 
 interface SceneListProps {
   journeyId: number;
@@ -83,8 +84,16 @@ const SceneListItem = ({
     );
   };
 
+  const openDialogModal = () => {
+    modalRouter.push(<EditSceneDialogModal dialogs={scene.sceneDialogs} />);
+  };
+
   const navigateScene = () => {
     navigate(`/SceneDashboard/${scene.id}?journeyId=${journeyId}`);
+  };
+
+  const navigateSceneDialogs = () => {
+    navigate(`/SceneDialogsPage/${scene.id}`);
   };
 
   return (
@@ -111,6 +120,12 @@ const SceneListItem = ({
           title={"Play Scene"}
           onClick={navigateScene}
           variant={AppButtonVariant.go}
+          size={AppButtonSize.sm}
+        />
+        <AppButton
+          title={"View Dialog"}
+          onClick={navigateSceneDialogs}
+          variant={AppButtonVariant.primary}
           size={AppButtonSize.sm}
         />
         <AppButton

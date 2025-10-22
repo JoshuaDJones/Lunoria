@@ -56,8 +56,9 @@ namespace Eldoria.Infrastructure.Db.Repositories
                     .ThenInclude(sc => sc.SceneCharacterItems)
                 .Include(s => s.SceneCharacters)
                     .ThenInclude(sc => sc.SceneCharacterItems)
-                        .ThenInclude(sci => sci.Item).Where(s => s.Id == sceneId)
-                 .FirstOrDefaultAsync(ct);
+                        .ThenInclude(sci => sci.Item)
+                .Where(s => s.Id == sceneId)
+                .FirstOrDefaultAsync(ct);
         }
     }
 }

@@ -19,6 +19,9 @@ namespace Eldoria.Application
             services.AddScoped<ISceneService, SceneService>();
             services.AddScoped<ISceneCharacterService, SceneCharacterService>();
             services.AddScoped<ISceneCharacterItemService, SceneCharacterItemService>();
+            services.AddScoped<ISceneDialogService, SceneDialogService>();
+            services.AddScoped<IDialogPageService, DialogPageService>();
+            services.AddScoped<IDialogPageSectionService, DialogPageSectionService>();
             services.AddScoped<IJourneyCharacterService, JourneyCharacterService>();
             services.AddScoped<IJourneyCharacterItemService, JourneyCharacterItemService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

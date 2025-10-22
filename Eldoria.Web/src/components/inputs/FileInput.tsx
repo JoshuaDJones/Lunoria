@@ -11,15 +11,17 @@ interface FileInputProps {
   title: string;
   theme?: FileInputTheme;
   onFileSelect: (file: File | undefined) => void;
+  className?: string;
 }
 
 const FileInput = ({
   title,
   theme = FileInputTheme.light,
   onFileSelect,
+  className
 }: FileInputProps) => {
   return (
-    <div className="flex flex-col">
+    <div className={clsx("flex flex-col", className)}>
       <Text
         size={TextSize.xl}
         textColor={
