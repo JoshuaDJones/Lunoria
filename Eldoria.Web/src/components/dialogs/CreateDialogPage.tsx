@@ -2,17 +2,17 @@ import React, { useState } from "react";
 import AppButton, {
   AppButtonSize,
   AppButtonVariant,
-} from "./buttons/AppButton";
-import AppInput from "./inputs/AppInput";
-import DialogInputError from "./inputs/DialogInputError";
-import FileInput from "./inputs/FileInput";
-import CancelIconButton from "./buttons/CancelIconButton";
-import SaveIconButton from "./buttons/SaveIconButton";
+} from "../buttons/AppButton";
+import AppInput from "../inputs/AppInput";
+import DialogInputError from "../inputs/DialogInputError";
+import FileInput from "../inputs/FileInput";
+import CancelIconButton from "../buttons/CancelIconButton";
+import SaveIconButton from "../buttons/SaveIconButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { canBeNumber } from "../utils/numberUtils";
-import { BASE_URL, useApi } from "../hooks/useApi";
-import { ToastType, useToast } from "../providers/ToastProvider";
+import { canBeNumber } from "../../utils/numberUtils";
+import { BASE_URL, useApi } from "../../hooks/useApi";
+import { ToastType, useToast } from "../../providers/ToastProvider";
 
 interface InputValues {
   orderNum?: string;
@@ -29,10 +29,13 @@ interface CreateDialogPageProps {
   onRefreshRequest: () => void;
 }
 
-const CreateDialogPage = ({ sceneDialogId, onRefreshRequest }: CreateDialogPageProps) => {
-  const {postForm} = useApi();
-  const {showToast} = useToast();
-  
+const CreateDialogPage = ({
+  sceneDialogId,
+  onRefreshRequest,
+}: CreateDialogPageProps) => {
+  const { postForm } = useApi();
+  const { showToast } = useToast();
+
   const [isCreateInputOpen, setIsCreateInputOpen] = useState(false);
 
   const [inputValues, setInputValues] = useState<InputValues>({
@@ -48,27 +51,26 @@ const CreateDialogPage = ({ sceneDialogId, onRefreshRequest }: CreateDialogPageP
   const save = async () => {
     const isValid = validate();
 
-    if(!isValid)
-      return;
+    if (!isValid) return;
 
     const formData = new FormData();
 
     formData.append("OrderNum", inputValues.orderNum ?? "");
     formData.append("Photo", inputValues.photo ?? "");
-    
-    try { 
+
+    try {
       await postForm(`${BASE_URL}/DialogPage/${sceneDialogId}`, formData);
 
       setInputValues({
         orderNum: undefined,
-        photo: undefined
+        photo: undefined,
       });
 
       setInputErrors({
         orderNum: undefined,
-        photo: undefined
+        photo: undefined,
       });
-      
+
       setIsCreateInputOpen(false);
       showToast("Success", "Dialog page created.", ToastType.success, 3000);
       onRefreshRequest();
@@ -81,25 +83,25 @@ const CreateDialogPage = ({ sceneDialogId, onRefreshRequest }: CreateDialogPageP
   const validate = (): boolean => {
     const canParse = canBeNumber(inputValues.orderNum ?? "");
 
-    if(!canParse){
+    if (!canParse) {
       setInputErrors((prev) => ({
-    ...prev,
-    orderNum: "Order must be a valid number."
-    }))
-    return false;
+        ...prev,
+        orderNum: "Order must be a valid number.",
+      }));
+      return false;
     }
 
-    if(!inputValues.photo){
+    if (!inputValues.photo) {
       setInputErrors((prev) => ({
-    ...prev,
-    photo: "Photo can not be empty."
-    }))
-    return false;
+        ...prev,
+        photo: "Photo can not be empty.",
+      }));
+      return false;
     }
-    
+
     setInputErrors({
       orderNum: undefined,
-      photo: undefined
+      photo: undefined,
     });
 
     return true;
@@ -137,18 +139,23 @@ const CreateDialogPage = ({ sceneDialogId, onRefreshRequest }: CreateDialogPageP
           <DialogInputError message={inputErrors.orderNum} />
 
           <FileInput
-              title={"Photo"}
-              onFileSelect={(file) => setInputValues((prev) => ({
+            title={"Photo"}
+            onFileSelect={(file) =>
+              setInputValues((prev) => ({
                 ...prev,
-                photo: file
-              }))}
-              className="mt-4"/>
-          <DialogInputError message={inputErrors.photo} />      
+                photo: file,
+              }))
+            }
+            className="mt-4"
+          />
+          <DialogInputError message={inputErrors.photo} />
 
           <div className="flex items-end justify-end mt-2 gap-2">
-            <CancelIconButton onCancelClick={() => setIsCreateInputOpen(false)} />
+            <CancelIconButton
+              onCancelClick={() => setIsCreateInputOpen(false)}
+            />
             <SaveIconButton onSaveClick={async () => await save()} />
-          </div>    
+          </div>
         </div>
       )}
     </div>

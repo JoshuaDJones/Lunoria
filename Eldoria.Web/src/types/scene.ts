@@ -36,7 +36,7 @@ export interface DialogPageDto {
 export interface DialogPageSectionDto {
   id: number;
   orderNum: number;
-  readText: string;
+  readingText: string;
   isNarrator: boolean;
   character: CharacterDto;
 }

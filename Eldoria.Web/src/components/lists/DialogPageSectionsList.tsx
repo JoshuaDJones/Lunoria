@@ -1,8 +1,10 @@
-import React from "react";
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 import { DialogPageDto } from "../../types/scene";
+import CreatePageSection from "../dialogs/CreatePageSection";
+import DialogPageSectionCard from "../cards/DialogPageSectionCard";
+import DialogListTitle from "../dialogs/DialogListTitle";
 
-interface DialogPageSectionListProps{
+interface DialogPageSectionListProps {
   selectedDialogPageSectionId?: number;
   selectedDialogPage?: DialogPageDto;
   onDialogPageSectionSelect: (dialogPageSectionId: number) => void;
@@ -13,26 +15,30 @@ const DialogPageSectionsList = ({
   selectedDialogPageSectionId,
   selectedDialogPage,
   onDialogPageSectionSelect,
-  onRefreshRequest
+  onRefreshRequest,
 }: DialogPageSectionListProps) => {
   const pageSections = selectedDialogPage?.dialogPageSections;
-  
+
   return (
     <div className="flex flex-col flex-1">
-      <Title
-        className="self-center border-b-2 text-3xl"
-        color={TitleColor.white}
-        size={TitleSize.custom}
-      >
-        Sections
-      </Title>
+      <DialogListTitle title="Sections" />
       <div className="flex-1 flex-col mt-5 p-5">
         {selectedDialogPage && (
-          <></>
+          <CreatePageSection
+            pageDialogId={selectedDialogPage.id}
+            onRefreshRequest={onRefreshRequest}
+          />
         )}
-        {pageSections && pageSections.map((s) => (
-          <></>
-        ))}
+        {pageSections &&
+          pageSections.map((s) => (
+            <DialogPageSectionCard
+              dialogPageSection={s}
+              selectedPageSectionId={selectedDialogPageSectionId}
+              onSelect={(pageSectionId) =>
+                onDialogPageSectionSelect(pageSectionId)
+              }
+            />
+          ))}
       </div>
     </div>
   );

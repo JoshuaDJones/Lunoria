@@ -4,11 +4,13 @@ import { cn } from "../../utils/cn";
 
 interface LeftModalContentProps {
   title: string;
+  useCustomWidth?: boolean;
   className?: string;
 }
 
 const LeftModalContent = ({
   title,
+  useCustomWidth = false,
   className,
   children,
 }: PropsWithChildren<LeftModalContentProps>) => {
@@ -26,10 +28,11 @@ const LeftModalContent = ({
     <div
       className={cn(
         "flex flex-col bg-stone-800 p-5 rounded-tr-3xl rounded-br-3xl",
-        "absolute left-0 top-0 w-[40%] h-full overflow-y-auto",
+        "absolute left-0 top-0 h-full overflow-y-auto",
         "transform transition-transform duration-500 ease-in-out",
         open ? "translate-x-0" : "-translate-x-full",
         className,
+        !useCustomWidth ? "w-[40%]" : "",
       )}
       onClick={handleContentClick}
     >

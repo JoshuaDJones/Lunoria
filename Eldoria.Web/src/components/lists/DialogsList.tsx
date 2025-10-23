@@ -1,7 +1,8 @@
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 import { SceneDialogDto } from "../../types/scene";
-import CreateSceneDialog from "../CreateSceneDialog";
+import CreateSceneDialog from "../dialogs/CreateSceneDialog";
 import SceneDialogCard from "../cards/SceneDialogCard";
+import DialogListTitle from "../dialogs/DialogListTitle";
 
 interface DialogListProps {
   sceneId: number;
@@ -18,19 +19,11 @@ const DialogsList = ({
   onSceneDialogSelect,
   onDialogCreated,
 }: DialogListProps) => {
-  console.log(sceneDialogs);
-
   return (
     <div className="flex flex-col flex-1">
-      <Title
-        className="self-center border-b-2 text-3xl"
-        color={TitleColor.white}
-        size={TitleSize.custom}
-      >
-        Dialogs
-      </Title>
+      <DialogListTitle title="Dialogs" />
       <div className="flex-1 flex-col mt-5 p-5">
-                <CreateSceneDialog
+        <CreateSceneDialog
           onDialogCreated={onDialogCreated}
           sceneId={sceneId}
         />

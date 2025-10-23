@@ -18,7 +18,7 @@ const FileInput = ({
   title,
   theme = FileInputTheme.light,
   onFileSelect,
-  className
+  className,
 }: FileInputProps) => {
   return (
     <div className={clsx("flex flex-col", className)}>

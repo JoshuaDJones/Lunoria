@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { BASE_URL, useApi } from "../hooks/useApi";
-import { ToastType, useToast } from "../providers/ToastProvider";
+import { BASE_URL, useApi } from "../../hooks/useApi";
+import { ToastType, useToast } from "../../providers/ToastProvider";
 import AppButton, {
   AppButtonSize,
   AppButtonVariant,
-} from "./buttons/AppButton";
-import CancelIconButton from "./buttons/CancelIconButton";
-import SaveIconButton from "./buttons/SaveIconButton";
-import AppInput from "./inputs/AppInput";
-import DialogInputError from "./inputs/DialogInputError";
+} from "../buttons/AppButton";
+import CancelIconButton from "../buttons/CancelIconButton";
+import SaveIconButton from "../buttons/SaveIconButton";
+import AppInput from "../inputs/AppInput";
+import DialogInputError from "../inputs/DialogInputError";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 

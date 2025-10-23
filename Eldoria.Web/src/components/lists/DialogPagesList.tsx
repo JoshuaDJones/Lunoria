@@ -1,7 +1,8 @@
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 import { SceneDialogDto } from "../../types/scene";
-import CreateDialogPage from "../CreateDialogPage";
+import CreateDialogPage from "../dialogs/CreateDialogPage";
 import DialogPageCard from "../cards/DialogPageCard";
+import DialogListTitle from "../dialogs/DialogListTitle";
 
 interface DialogPagesListProps {
   selectedDialogPageId?: number;
@@ -10,28 +11,31 @@ interface DialogPagesListProps {
   onRefreshRequest: () => void;
 }
 
-const DialogPagesList = ({ selectedDialogPageId, selectedDialog, onDialogPageSelect, onRefreshRequest }: DialogPagesListProps) => {
+const DialogPagesList = ({
+  selectedDialogPageId,
+  selectedDialog,
+  onDialogPageSelect,
+  onRefreshRequest,
+}: DialogPagesListProps) => {
   const dialogPages = selectedDialog?.dialogPages;
 
   return (
     <div className="flex flex-col flex-1">
-      <Title
-        className="self-center border-b-2 text-3xl"
-        color={TitleColor.white}
-        size={TitleSize.custom}
-      >
-        Pages
-      </Title>
+      <DialogListTitle title="Pages" />
       <div className="flex-1 flex-col mt-5 p-5">
-                {selectedDialog && (
-          <CreateDialogPage sceneDialogId={selectedDialog.id} onRefreshRequest={onRefreshRequest}/>
+        {selectedDialog && (
+          <CreateDialogPage
+            sceneDialogId={selectedDialog.id}
+            onRefreshRequest={onRefreshRequest}
+          />
         )}
         {dialogPages &&
           dialogPages.map((p) => (
-            <DialogPageCard 
-            dialogPage={p} 
-            selectedDialogPageId={selectedDialogPageId} 
-            onSelect={(dialogPageId) => onDialogPageSelect(dialogPageId)} />
+            <DialogPageCard
+              dialogPage={p}
+              selectedDialogPageId={selectedDialogPageId}
+              onSelect={(dialogPageId) => onDialogPageSelect(dialogPageId)}
+            />
           ))}
       </div>
     </div>

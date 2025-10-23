@@ -1,21 +1,20 @@
-import React from 'react'
-import { DialogPageDto } from '../../types/scene'
-import Text, { TextColor, TextSize } from '../typography/Text';
-import clsx from 'clsx';
+import { DialogPageDto } from "../../types/scene";
+import Text, { TextColor, TextSize } from "../typography/Text";
+import clsx from "clsx";
 
-interface DialogPageCardProps{
-    dialogPage: DialogPageDto;
-    selectedDialogPageId?: number;
-    onSelect: (dialogPageId: number) => void;
+interface DialogPageCardProps {
+  dialogPage: DialogPageDto;
+  selectedDialogPageId?: number;
+  onSelect: (dialogPageId: number) => void;
 }
 
 const DialogPageCard = ({
-    dialogPage,
-    selectedDialogPageId,
-    onSelect
+  dialogPage,
+  selectedDialogPageId,
+  onSelect,
 }: DialogPageCardProps) => {
-    const isSelected = dialogPage.id === selectedDialogPageId;
-    
+  const isSelected = dialogPage.id === selectedDialogPageId;
+
   return (
     <button
       onClick={() => onSelect(dialogPage.id)}
@@ -23,19 +22,17 @@ const DialogPageCard = ({
         "outline outline-blue-400": isSelected,
       })}
     >
-        <img src={dialogPage.photoUrl} className='h-[100px]'/>
-        <div className='justify-center items-end flex flex-col flex-1'>
-            <Text className='' size={TextSize.lg} textColor={TextColor.white}>
-                    Order: {dialogPage.orderNum}
-            </Text>
-            <Text className='' size={TextSize.lg} textColor={TextColor.white}>
-                    Sections: {dialogPage.dialogPageSections.length}
-            </Text>
-        </div>
-      
-      
+      <img src={dialogPage.photoUrl} className="h-[100px]" />
+      <div className="justify-center items-end flex flex-col flex-1">
+        <Text className="" size={TextSize.lg} textColor={TextColor.white}>
+          Order: {dialogPage.orderNum}
+        </Text>
+        <Text className="" size={TextSize.lg} textColor={TextColor.white}>
+          Sections: {dialogPage.dialogPageSections.length}
+        </Text>
+      </div>
     </button>
-  )
-}
+  );
+};
 
-export default DialogPageCard
+export default DialogPageCard;
