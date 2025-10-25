@@ -7,5 +7,7 @@ namespace Eldoria.Application.Services
     {
         Task<Result> CreateSceneDialogAsync(int sceneId, string sceneDialogTitle, CancellationToken ct);
         Task<Result<List<SceneDialogDto>>> GetSceneDialogsAsync(int sceneId, CancellationToken ct);
+        Task<Result> DeleteSceneDialogAsync(int sceneDialogId, CancellationToken ct);
+        Task<Result> EditSceneDialogAsync(int sceneDialogId, string title, CancellationToken ct);
     }
 }

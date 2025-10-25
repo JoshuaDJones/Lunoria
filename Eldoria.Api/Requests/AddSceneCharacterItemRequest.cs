@@ -1,8 +1,13 @@
-﻿namespace Eldoria.Api.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Eldoria.Api.Requests
 {
     public class AddSceneCharacterItemRequest
     {
-        public int SceneCharacterId { get; set; }
-        public int ItemId { get; set; }
+        [Required]
+        public int? SceneCharacterId { get; set; }
+
+        [Required]
+        public int? ItemId { get; set; }
     }
 }

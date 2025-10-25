@@ -2,9 +2,9 @@
 
 namespace Eldoria.Api.Requests
 {
-    public class UseSceneCharacterItemRequest
+    public class UpdateSceneDialogRequest
     {
         [Required]
-        public int? SceneCharacterItemId { get; set; }
+        public string Title { get; set; } = string.Empty;
     }
 }

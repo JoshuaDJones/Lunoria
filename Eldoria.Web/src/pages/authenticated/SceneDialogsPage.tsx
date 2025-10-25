@@ -12,7 +12,6 @@ import DialogPagesList from "../../components/lists/DialogPagesList";
 import DialogsList from "../../components/lists/DialogsList";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
-import AppButton from "../../components/buttons/AppButton";
 
 const SceneDialogsPage = () => {
   const { showToast } = useToast();
@@ -59,8 +58,6 @@ const SceneDialogsPage = () => {
             </Title>
           </div>
           <div className="flex flex-1 bg-stone-700/50 p-5 overflow-hidden">
-            {" "}
-            {/* ✅ prevent double scroll */}
             <DialogsList
               sceneId={sceneId}
               sceneDialogs={sceneDialogs}

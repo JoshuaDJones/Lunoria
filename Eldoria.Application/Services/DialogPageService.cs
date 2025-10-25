@@ -43,6 +43,19 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
+        public async Task<Result> DeleteDialogPageAsync(int dialogPageId, CancellationToken ct)
+        {
+            var dialogPage = await _dialogPageRepository.GetByIdAsync(dialogPageId, ct);
+
+            if (dialogPage is null)
+                return Result.Fail(new Error("DialogPage.NotFound", "Dialog page does not exist."));
+
+            _dialogPageRepository.Remove(dialogPage);
+            await _dialogPageRepository.SaveChangesAsync(ct);
+
+            return Result.Ok();
+        }
+
         public async Task<Result> EditDialogPageAsync(int dialogPageId, int? orderNum, IFormFile? photo, CancellationToken ct)
         {
             var dialogPage = await _dialogPageRepository.GetByIdAsync(dialogPageId, ct);

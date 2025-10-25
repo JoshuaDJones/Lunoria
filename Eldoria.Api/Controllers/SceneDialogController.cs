@@ -45,5 +45,35 @@ namespace Eldoria.Api.Controllers
                 _ => BadRequest(result.Error)
             };
         }
+
+        [HttpDelete("{sceneDialogId:int}")]
+        public async Task<IActionResult> Delete(int sceneDialogId, CancellationToken ct)
+        {
+            var result = await _sceneDialogService.DeleteSceneDialogAsync(sceneDialogId, ct);
+
+            if (result.Success)
+                return Ok(result);
+
+            return result.Error?.Code switch
+            {
+                "SceneDialog.NotFound" => BadRequest(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
+
+        [HttpPatch("{sceneDialogId:int}")]
+        public async Task<IActionResult> Edit(int sceneDialogId, [FromBody] UpdateSceneDialogRequest req, CancellationToken ct)
+        {
+            var result = await _sceneDialogService.EditSceneDialogAsync(sceneDialogId, req.Title, ct);
+
+            if (result.Success) 
+                return Ok(result);
+
+            return result.Error?.Code switch
+            {
+                "SceneDialog.NotFound" => BadRequest(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
     }
 }

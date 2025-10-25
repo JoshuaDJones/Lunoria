@@ -1,7 +1,10 @@
-﻿namespace Eldoria.Api.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Eldoria.Api.Requests
 {
     public class UseJourneyCharacterItemRequest
     {
-        public int JourneyCharacterItemId { get; set; }
+        [Required]
+        public int? JourneyCharacterItemId { get; set; }
     }
 }

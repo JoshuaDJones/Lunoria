@@ -17,14 +17,14 @@ namespace Eldoria.Application.Services
             _characterRepository = characterRepository;
         }
 
-        public async Task<Result> CreateDialogPageSectionAsync(int dialogPageId, int characterId, int orderNum, string readingText, bool isNarrator, CancellationToken ct)
+        public async Task<Result> CreateDialogPageSectionAsync(int dialogPageId, int? characterId, int orderNum, string readingText, bool isNarrator, CancellationToken ct)
         {
             var dialogPage = await _dialogPageRepository.GetByIdAsync(dialogPageId, ct);
 
             if (dialogPage is null)
                 return Result.Fail(new Error("DialogPage.NotFound", "Dialog page does not exist."));
 
-            var character = await _characterRepository.GetByIdAsync(characterId, ct);
+            var character = characterId is not null ? await _characterRepository.GetByIdAsync((int)characterId, ct) : null;
 
             if (character is null && isNarrator is false)
                 return Result.Fail(new Error("Character.NotFound", "Character does not exist."));
@@ -46,6 +46,19 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
+        public async Task<Result> DeleteDialogPageSectionAsync(int dialogPageSectionId, CancellationToken ct)
+        {
+            var dialogPageSection = await _dialogPageSectionRepository.GetByIdAsync(dialogPageSectionId, ct);
+
+            if (dialogPageSection is null)
+                return Result.Fail(new Error("DialogPageSection.NotFound", "Dialog page section not found."));
+
+            _dialogPageSectionRepository.Remove(dialogPageSection);
+            await _dialogPageSectionRepository.SaveChangesAsync(ct);
+
+            return Result.Ok();
+        }
+
         public async Task<Result> EditDialogPageSectionAsync(int dialogPageSectionId, int? characterId, int? orderNum, string? readingText, bool? isNarrator, CancellationToken ct)
         {
             var dialogPageSection = await _dialogPageSectionRepository.GetByIdAsync(dialogPageSectionId, ct);
@@ -53,8 +66,7 @@ namespace Eldoria.Application.Services
             if (dialogPageSection is null)
                 return Result.Fail(new Error("DialogPageSection.NotFound", "Dialog page section does not exist."));
 
-            if(characterId is not null)
-                dialogPageSection.CharacterId = characterId;
+            dialogPageSection.CharacterId = characterId;
 
             if (orderNum is not null)
                 dialogPageSection.OrderNum = (int)orderNum;

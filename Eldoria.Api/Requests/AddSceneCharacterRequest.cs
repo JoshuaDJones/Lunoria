@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Eldoria.Api.Requests
 {
     public class AddSceneCharacterRequest
     {
-        public int SceneId { get; set; }
-        public int CharacterId { get; set; }        
+        [Required]
+        public int? SceneId { get; set; }
+
+        [Required]
+        public int? CharacterId { get; set; }
     }
 }

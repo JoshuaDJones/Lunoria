@@ -1,8 +1,13 @@
-﻿namespace Eldoria.Api.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Eldoria.Api.Requests
 {
     public class CreateDialogPageRequest
     {
-        public int OrderNum { get; set; }
-        public IFormFile Photo { get; set; } = null!;                
+        [Required]
+        public int? OrderNum { get; set; }
+
+        [Required]
+        public IFormFile Photo { get; set; } = null!;
     }
 }

@@ -1,9 +1,5 @@
 import { PropsWithChildren, ReactElement } from "react";
 import NavBar from "./NavBar";
-import AppButton, {
-  AppButtonSize,
-  AppButtonVariant,
-} from "../buttons/AppButton";
 import clsx from "clsx";
 
 interface AppPageProps {
@@ -22,7 +18,7 @@ const AppPage = ({
   pane,
   children,
   noBottomPadding,
-  useScrolling,
+  useScrolling = true,
 }: PropsWithChildren<AppPageProps>) => {
   return (
     <div className="bg-slate-800 h-screen w-screen relative overflow-hidden">

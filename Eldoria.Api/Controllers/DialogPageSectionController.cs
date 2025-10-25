@@ -45,5 +45,20 @@ namespace Eldoria.Api.Controllers
                 _ => BadRequest(result.Error)
             };
         }
+
+        [HttpDelete("{dialogPageSectionId:int}")]
+        public async Task<IActionResult> Delete(int dialogPageSectionId, CancellationToken ct)
+        {
+            var result = await _dialogPageSectionService.DeleteDialogPageSectionAsync(dialogPageSectionId, ct);
+
+            if (result.Success)
+                return Ok();
+
+            return result.Error?.Code switch
+            {
+                "DialogPageSection.NotFound" => BadRequest(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
     }
 }

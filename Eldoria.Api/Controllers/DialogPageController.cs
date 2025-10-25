@@ -31,10 +31,26 @@ namespace Eldoria.Api.Controllers
             };
         }
 
-        [HttpPatch("{dialogPageId:int}")]
-        public async Task<IActionResult> Update(int dialogPageId, [FromBody] UpdateDialogPageRequest req, CancellationToken ct)
+        [HttpPut("{dialogPageId:int}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update(int dialogPageId, [FromForm] UpdateDialogPageRequest req, CancellationToken ct)
         {
             var result = await _dialogPageService.EditDialogPageAsync(dialogPageId, req.OrderNum, req.Photo, ct);
+
+            if (result.Success)
+                return Ok();
+
+            return result.Error?.Code switch
+            {
+                "DialogPage.NotFound" => BadRequest(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
+
+        [HttpDelete("{dialogPageId:int}")]
+        public async Task<IActionResult> Delete(int dialogPageId, CancellationToken ct)
+        {
+            var result = await _dialogPageService.DeleteDialogPageAsync(dialogPageId, ct);
 
             if (result.Success)
                 return Ok();

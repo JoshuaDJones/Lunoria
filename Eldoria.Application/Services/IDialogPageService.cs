@@ -7,5 +7,6 @@ namespace Eldoria.Application.Services
     {
         Task<Result> CreateDialogPageAsync(int sceneDialogId, int orderNum, IFormFile photo, CancellationToken ct);
         Task<Result> EditDialogPageAsync(int dialogPageId, int? orderNum, IFormFile? photo, CancellationToken ct);
+        Task<Result> DeleteDialogPageAsync(int dialogPageId, CancellationToken ct);
     }
 }
