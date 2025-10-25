@@ -22,7 +22,7 @@ const AppPage = ({
   pane,
   children,
   noBottomPadding,
-  useScrolling
+  useScrolling,
 }: PropsWithChildren<AppPageProps>) => {
   return (
     <div className="bg-slate-800 h-screen w-screen relative overflow-hidden">
@@ -36,13 +36,10 @@ const AppPage = ({
       {pane}
 
       <div
-        className={clsx(
-          "absolute inset-0 flex flex-col z-10",
-          {
-            "pb-20": !noBottomPadding,
-            "overflow-y-auto scrollbar-hide": useScrolling
-          },
-        )}
+        className={clsx("absolute inset-0 flex flex-col z-10", {
+          "pb-20": !noBottomPadding,
+          "overflow-y-auto scrollbar-hide": useScrolling,
+        })}
       >
         {children}
       </div>

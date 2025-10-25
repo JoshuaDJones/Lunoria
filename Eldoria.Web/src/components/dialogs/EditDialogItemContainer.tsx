@@ -19,7 +19,12 @@ const EditDialogItemContainer = ({
   children,
 }: PropsWithChildren<EditDialogItemContainerProps>) => {
   return (
-    <div className={clsx("flex flex-col p-5 border-t-4 border-stone-600", className)}>
+    <div
+      className={clsx(
+        "flex flex-col p-5 border-t-4 border-stone-600",
+        className,
+      )}
+    >
       <Text
         textColor={TextColor.white}
         size={TextSize.xl}

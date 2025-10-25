@@ -87,6 +87,7 @@ const SceneDashboard = () => {
       pane={
         <SceneEditorPane
           sceneId={Number(id)}
+          sceneDialogs={scene?.sceneDialogs ?? []}
           players={players}
           enemies={scene?.sceneCharacters.filter((c) => c.character.isEnemy)}
           npcs={scene?.sceneCharacters.filter((c) => c.character.isNPC)}

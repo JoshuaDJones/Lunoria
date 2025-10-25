@@ -51,10 +51,9 @@ const CreateDialogPage = ({
   });
 
   const save = async () => {
-
     const isValid = validate();
 
-    if (!isValid) return;    
+    if (!isValid) return;
 
     const formData = new FormData();
 
@@ -63,7 +62,7 @@ const CreateDialogPage = ({
 
     try {
       showLoading();
-      
+
       await postForm(`${BASE_URL}/DialogPage/${sceneDialogId}`, formData);
 
       setInputValues({

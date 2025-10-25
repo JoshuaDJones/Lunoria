@@ -70,7 +70,7 @@ const CreatePageSection = ({
 
     try {
       showLoading();
-      
+
       await post(`${BASE_URL}/DialogPageSection/${pageDialogId}`, {
         CharacterId: inputValues.characterId,
         OrderNum: inputValues.orderNum,

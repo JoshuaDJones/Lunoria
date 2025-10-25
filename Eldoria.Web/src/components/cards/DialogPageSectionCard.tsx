@@ -19,28 +19,27 @@ const DialogPageSectionCard = ({
   dialogPageSection,
   selectedPageSectionId,
   onSelect,
-  onRefreshRequest
+  onRefreshRequest,
 }: DialogPageSectionCardProps) => {
-  const {del} = useApi();
-  const {showError, showSuccess} = useToast();
+  const { del } = useApi();
+  const { showError, showSuccess } = useToast();
   const isSelected = dialogPageSection.id === selectedPageSectionId;
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
-    if(!isSelected)
-      setEditOpen(false);
-  }, [isSelected])
+    if (!isSelected) setEditOpen(false);
+  }, [isSelected]);
 
   const handleDelete = async () => {
     try {
       await del(`${BASE_URL}/DialogPageSection/${dialogPageSection.id}`);
-      showSuccess('Section deleted.');
+      showSuccess("Section deleted.");
       onRefreshRequest();
-    } catch(err) {
+    } catch (err) {
       console.error(err);
-      showError('Section not deleted.')
+      showError("Section not deleted.");
     }
-  }
+  };
 
   return (
     <DialogCardContainer isActive={isSelected}>
@@ -81,7 +80,12 @@ const DialogPageSectionCard = ({
         onEditClick={() => setEditOpen(true)}
         onDeleteClick={async () => await handleDelete()}
       />
-      <EditPageSection isOpen={editOpen} dialogPageSection={dialogPageSection} onRefreshRequest={onRefreshRequest} onCloseClick={() => setEditOpen(false)} />
+      <EditPageSection
+        isOpen={editOpen}
+        dialogPageSection={dialogPageSection}
+        onRefreshRequest={onRefreshRequest}
+        onCloseClick={() => setEditOpen(false)}
+      />
     </DialogCardContainer>
   );
 };

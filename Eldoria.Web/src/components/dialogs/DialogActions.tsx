@@ -13,7 +13,7 @@ const DialogActions = ({
   isOpen,
   onEditClick,
   onDeleteClick,
-  additionalActions
+  additionalActions,
 }: DialogActionsProps) => {
   if (!isOpen) return null;
 

@@ -2,13 +2,14 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 import { JourneyCharacterDto } from "../../types/journey";
-import { SceneCharacterDto } from "../../types/scene";
+import { SceneCharacterDto, SceneDialogDto } from "../../types/scene";
 import PlayersAdjustmentsList from "../lists/PlayersAdjustmentsList";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowCircleRight } from "@fortawesome/free-solid-svg-icons";
 import EnemiesAdjustmentsList from "../lists/EnemiesAdjustmentsList";
 import EnemyNPCActivationList from "../lists/EnemyNPCActivationList";
 import NpcAdjustmentsList from "../lists/NpcAdjustmentsList";
+import DashboardDialogList from "../lists/DashboardDialogList";
 
 enum AdjustmentPaneState {
   players,
@@ -20,6 +21,7 @@ enum AdjustmentPaneState {
 
 interface SceneEditorPaneProps {
   sceneId: number;
+  sceneDialogs: SceneDialogDto[]
   players?: JourneyCharacterDto[];
   npcs?: SceneCharacterDto[];
   enemies?: SceneCharacterDto[];
@@ -28,6 +30,7 @@ interface SceneEditorPaneProps {
 
 const SceneEditorPane = ({
   sceneId,
+  sceneDialogs,
   players,
   npcs,
   enemies,
@@ -66,6 +69,7 @@ const SceneEditorPane = ({
     );
   } else if (paneState === AdjustmentPaneState.dialog) {
     title = "Dialog";
+    characterList = (<DashboardDialogList sceneDialogs={sceneDialogs} />)
   } else {
     title = "Activation";
     characterList = (

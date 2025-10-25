@@ -26,7 +26,7 @@ const SceneDialogCard = ({
 }: SceneDialogCardProps) => {
   const { del } = useApi();
   const { showToast } = useToast();
-  const modalRouter = useModalRouter(); 
+  const modalRouter = useModalRouter();
 
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -64,7 +64,15 @@ const SceneDialogCard = ({
         isOpen={isSelected && !isEditOpen}
         onEditClick={() => setIsEditOpen(true)}
         onDeleteClick={async () => await handleDelete()}
-        additionalActions={<ViewIconButton onViewClick={() => modalRouter.push(<ViewSceneDialogModal sceneDialog={sceneDialog} />)} />}
+        additionalActions={
+          <ViewIconButton
+            onViewClick={() =>
+              modalRouter.push(
+                <ViewSceneDialogModal sceneDialog={sceneDialog} />,
+              )
+            }
+          />
+        }
       />
       <EditSceneDialog
         isOpen={isEditOpen && isSelected}
