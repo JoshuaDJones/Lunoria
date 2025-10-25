@@ -12,6 +12,7 @@ import DialogPagesList from "../../components/lists/DialogPagesList";
 import DialogsList from "../../components/lists/DialogsList";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
+import AppButton from "../../components/buttons/AppButton";
 
 const SceneDialogsPage = () => {
   const { showToast } = useToast();
@@ -41,14 +42,16 @@ const SceneDialogsPage = () => {
   }, []);
 
   return (
-    <AppPage backgroundImage="/Stone_Background.png" noBottomPadding>
+    <AppPage backgroundImage="/Stone_Background.png" noBottomPadding useScrolling={false}>
       <PageContent noHorizontalSpacing noTopMargin noCentering>
+        <div className="flex flex-col h-screen">
+
         <div className="py-6 pl-20 pr-5 bg-stone-800/90 flex justify-between items-center">
-          <Title color={TitleColor.white} size={TitleSize.medium}>
+          <Title className="text-3xl flex-1" color={TitleColor.white} size={TitleSize.custom}>
             Scene Dialogs
           </Title>
         </div>
-        <div className="flex flex-1 bg-stone-700/50 p-5">
+      <div className="flex flex-1 bg-stone-700/50 p-5 overflow-hidden"> {/* ✅ prevent double scroll */}
           <DialogsList
             sceneId={sceneId}
             sceneDialogs={sceneDialogs}
@@ -58,7 +61,7 @@ const SceneDialogsPage = () => {
               setSelectedDialogPageId(undefined);
               setSelectedDialogPageSectionId(undefined);
             }}
-            onDialogCreated={async () => await getSceneDialogs()}
+            onRefreshRequest={async () => await getSceneDialogs()}
           />
           <DialogPagesList
             selectedDialogPageId={selectedDialogPageId}
@@ -79,6 +82,7 @@ const SceneDialogsPage = () => {
             }
             onRefreshRequest={async () => await getSceneDialogs()}
           />
+        </div>
         </div>
       </PageContent>
     </AppPage>

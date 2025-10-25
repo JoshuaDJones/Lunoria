@@ -29,6 +29,8 @@ interface IToastContext {
     type: ToastType,
     duration: ToastDuration,
   ) => void;
+  showError: (message: string) => void;
+  showSuccess: (message: string) => void;
 }
 
 const ToastContext = createContext<IToastContext | undefined>(undefined);
@@ -55,12 +57,40 @@ const ToastProvider = ({ children }: PropsWithChildren) => {
     ]);
   };
 
+  const showError = (message: string) => {
+    setToasts((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        title: "Error",
+        message,
+        type: ToastType.error,
+        duration: 3000,
+        hidden: false,
+      },
+    ]);
+  };
+
+  const showSuccess = (message: string) => {
+    setToasts((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        title: "Success",
+        message,
+        type: ToastType.success,
+        duration: 3000,
+        hidden: false,
+      },
+    ]);
+  };
+
   const dismissToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showError, showSuccess }}>
       {children}
       <div className="fixed bottom-20 left-20 flex flex-col gap-4 z-50">
         {toasts

@@ -13,6 +13,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { canBeNumber } from "../../utils/numberUtils";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
+import { useLoading } from "../../providers/LoadingProvider";
 
 interface InputValues {
   orderNum?: string;
@@ -35,6 +36,7 @@ const CreateDialogPage = ({
 }: CreateDialogPageProps) => {
   const { postForm } = useApi();
   const { showToast } = useToast();
+  const { showLoading, closeLoading } = useLoading();
 
   const [isCreateInputOpen, setIsCreateInputOpen] = useState(false);
 
@@ -49,9 +51,10 @@ const CreateDialogPage = ({
   });
 
   const save = async () => {
+
     const isValid = validate();
 
-    if (!isValid) return;
+    if (!isValid) return;    
 
     const formData = new FormData();
 
@@ -59,6 +62,8 @@ const CreateDialogPage = ({
     formData.append("Photo", inputValues.photo ?? "");
 
     try {
+      showLoading();
+      
       await postForm(`${BASE_URL}/DialogPage/${sceneDialogId}`, formData);
 
       setInputValues({
@@ -77,6 +82,8 @@ const CreateDialogPage = ({
     } catch (err) {
       showToast("Error", "Dialog page not created.", ToastType.error, 3000);
       console.error(err);
+    } finally {
+      closeLoading();
     }
   };
 
@@ -146,6 +153,7 @@ const CreateDialogPage = ({
                 photo: file,
               }))
             }
+            useClear={false}
             className="mt-4"
           />
           <DialogInputError message={inputErrors.photo} />

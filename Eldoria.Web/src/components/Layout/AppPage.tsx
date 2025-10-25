@@ -12,6 +12,7 @@ interface AppPageProps {
   backgroundImage?: string;
   pane?: ReactElement;
   noBottomPadding?: boolean;
+  useScrolling?: boolean;
 }
 
 const AppPage = ({
@@ -21,6 +22,7 @@ const AppPage = ({
   pane,
   children,
   noBottomPadding,
+  useScrolling
 }: PropsWithChildren<AppPageProps>) => {
   return (
     <div className="bg-slate-800 h-screen w-screen relative overflow-hidden">
@@ -35,9 +37,10 @@ const AppPage = ({
 
       <div
         className={clsx(
-          "absolute inset-0 flex flex-col overflow-y-auto scrollbar-hide z-10",
+          "absolute inset-0 flex flex-col z-10",
           {
             "pb-20": !noBottomPadding,
+            "overflow-y-auto scrollbar-hide": useScrolling
           },
         )}
       >

@@ -6,11 +6,9 @@ import AppButton, {
 } from "../components/buttons/AppButton";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { useAuth } from "../providers/AuthProvider";
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
 
   useEffect(() => {}, []);
 
@@ -22,7 +20,7 @@ const HomePage = () => {
           color={TitleColor.stone800}
           className="self-center"
         >
-          Eldoria
+          Lunoria
         </Title>
         <AppButton
           className="self-center mt-10"

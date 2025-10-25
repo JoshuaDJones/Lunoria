@@ -17,6 +17,7 @@ import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 import { canBeNumber } from "../../utils/numberUtils";
 import DialogInputError from "../inputs/DialogInputError";
+import { useLoading } from "../../providers/LoadingProvider";
 
 interface InputValues {
   characterId?: number;
@@ -44,6 +45,7 @@ const CreatePageSection = ({
   const modalRouter = useModalRouter();
   const { post } = useApi();
   const { showToast } = useToast();
+  const { showLoading, closeLoading } = useLoading();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedCharacterPhoto, setSelectedCharacterPhoto] = useState("");
@@ -67,6 +69,8 @@ const CreatePageSection = ({
     if (!isValid) return;
 
     try {
+      showLoading();
+      
       await post(`${BASE_URL}/DialogPageSection/${pageDialogId}`, {
         CharacterId: inputValues.characterId,
         OrderNum: inputValues.orderNum,
@@ -87,6 +91,8 @@ const CreatePageSection = ({
       );
 
       console.error(err);
+    } finally {
+      closeLoading();
     }
   };
 
