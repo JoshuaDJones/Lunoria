@@ -12,7 +12,6 @@ namespace Eldoria.Api.Requests
         [Required]
         public string ReadingText { get; set; } = string.Empty;
 
-        [Required]
-        public bool? IsNarrator { get; set; }
+        public bool IsNarrator { get; set; }
     }
 }

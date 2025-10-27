@@ -28,7 +28,7 @@ const DashboardItemCard = ({
     if (!journeyCharacterItem && !sceneCharacterItem) return;
 
     try {
-      if (!!journeyCharacterItem) {
+      if (journeyCharacterItem) {
         await patch(`${BASE_URL}/JourneyCharacterItem`, {
           JourneyCharacterItemId: journeyCharacterItem.id,
         });

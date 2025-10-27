@@ -1,18 +1,24 @@
 ﻿using Azure.Storage;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Eldoria.Application.Services
 {
     public class AzureStorageBlob : IAzureStorageBlob
     {
-        private readonly string _storageAccount = "jdjstorageaccount";
-        private readonly string _recipeContainerName = "recipe-photos";
-        private readonly string _accessKey = "j5SNLNjk5raMzuh9etqJ/2RqsaymVNEhAXcaaZxaCMaGP1bhxfBptBufkaE9EEFhFNTziCdlLhSG+ASt2PROkA==";
+        private readonly string _storageAccount;
+        private readonly string _containerName;
+        private readonly string _accessKey;
+
         private readonly BlobServiceClient _blobServiceClient;
 
-        public AzureStorageBlob()
+        public AzureStorageBlob(IConfiguration config)
         {
+            _storageAccount = config["AzureStorage:AccountName"] ?? "";
+            _containerName = config["AzureStorage:ContainerName"] ?? "";
+            _accessKey = config["AzureStorage:AccessKey"] ?? "";
+
             var credential = new StorageSharedKeyCredential(_storageAccount, _accessKey);
             var blobUri = $"https://{_storageAccount}.blob.core.windows.net";
 
@@ -21,7 +27,7 @@ namespace Eldoria.Application.Services
 
         public async Task<(string, string)> UploadPhoto(IFormFile photo)
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(_recipeContainerName);
+            var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var ext = Path.GetExtension(photo.FileName);
             var newFileName = $"{Guid.NewGuid()}{ext}";
             var blobClient = containerClient.GetBlobClient(newFileName);

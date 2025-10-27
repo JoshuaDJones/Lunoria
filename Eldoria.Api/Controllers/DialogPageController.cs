@@ -19,7 +19,7 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create(int sceneDialogId, [FromForm] CreateDialogPageRequest req, CancellationToken ct)
         {
-            var result = await _dialogPageService.CreateDialogPageAsync(sceneDialogId, req.OrderNum, req.Photo, ct);
+            var result = await _dialogPageService.CreateDialogPageAsync(sceneDialogId, req.OrderNum!.Value, req.Photo, ct);
 
             if (result.Success)
                 return Ok();

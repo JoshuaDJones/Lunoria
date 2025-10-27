@@ -19,7 +19,7 @@ namespace Eldoria.Api.Controllers
         [HttpPost("{dialogPageId:int}")]
         public async Task<IActionResult> Create(int dialogPageId, [FromBody] CreateDialogPageSectionRequest req, CancellationToken ct)
         {
-            var result = await _dialogPageSectionService.CreateDialogPageSectionAsync(dialogPageId, req.CharacterId, req.OrderNum, req.ReadingText, req.IsNarrator, ct);
+            var result = await _dialogPageSectionService.CreateDialogPageSectionAsync(dialogPageId, req.CharacterId, req.OrderNum!.Value, req.ReadingText, req.IsNarrator, ct);
 
             if (result.Success)
                 return Ok(result);

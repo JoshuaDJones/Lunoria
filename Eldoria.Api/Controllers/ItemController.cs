@@ -68,8 +68,8 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.Description,
                 req.Photo,
-                req.HpEffect,
-                req.MpEffect,
+                req.HpEffect!.Value,
+                req.MpEffect!.Value,
                 ct);
 
             if (result.Success)
@@ -87,8 +87,8 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.Description,
                 req.Photo,
-                req.HpEffect,
-                req.MpEffect,
+                req.HpEffect!.Value,
+                req.MpEffect!.Value,
                 ct);
 
             if (result.Success)

@@ -187,7 +187,7 @@ const CharacterMenuItemsList = ({
 
   const addItem = async (itemId: number) => {
     try {
-      if (!!journeyCharacterId) {
+      if (journeyCharacterId) {
         await post(`${BASE_URL}/JourneyCharacterItem`, {
           JourneyCharacterId: journeyCharacterId,
           ItemId: itemId,

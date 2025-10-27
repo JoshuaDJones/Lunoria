@@ -52,7 +52,7 @@ const EditDialogPage = ({
 
     formData.append("OrderNum", inputValues?.orderNum ?? "");
 
-    if (!!inputValues.photo) formData.append("Photo", inputValues?.photo ?? "");
+    if (inputValues.photo) formData.append("Photo", inputValues?.photo ?? "");
 
     try {
       await putForm(`${BASE_URL}/DialogPage/${dialogPage.id}`, formData);

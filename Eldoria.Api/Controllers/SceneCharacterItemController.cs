@@ -18,7 +18,7 @@ namespace Eldoria.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> AddItem([FromBody] AddSceneCharacterItemRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterItemService.AddItem(req.SceneCharacterId, req.ItemId, ct);
+            var result = await _sceneCharacterItemService.AddItem(req.SceneCharacterId!.Value, req.ItemId!.Value, ct);
 
             if(result.Success) 
                 return Ok();
@@ -34,7 +34,7 @@ namespace Eldoria.Api.Controllers
         [HttpPatch]
         public async Task<IActionResult> UseItem([FromBody] UseSceneCharacterItemRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterItemService.UseItem(req.SceneCharacterItemId, ct); 
+            var result = await _sceneCharacterItemService.UseItem(req.SceneCharacterItemId!.Value, ct); 
 
             if(result.Success) 
                 return Ok();

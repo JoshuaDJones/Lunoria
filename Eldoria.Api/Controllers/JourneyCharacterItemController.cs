@@ -18,7 +18,7 @@ namespace Eldoria.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddJourneyCharacterItemRequest req, CancellationToken ct)
         {
-            var result = await _journeyCharacterItemService.AddJourneyCharacterItem(req.JourneyCharacterId, req.ItemId, ct);
+            var result = await _journeyCharacterItemService.AddJourneyCharacterItem(req.JourneyCharacterId!.Value, req.ItemId!.Value, ct);
 
             if (result.Success)
                 return Ok(result);
@@ -34,7 +34,7 @@ namespace Eldoria.Api.Controllers
         [HttpPatch]
         public async Task<IActionResult> Use([FromBody] UseJourneyCharacterItemRequest req, CancellationToken ct)
         {
-            var result = await _journeyCharacterItemService.UseJourneyCharacterItem(req.JourneyCharacterItemId, ct);
+            var result = await _journeyCharacterItemService.UseJourneyCharacterItem(req.JourneyCharacterItemId!.Value, ct);
 
             if (result.Success)
                 return Ok();

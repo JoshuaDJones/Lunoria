@@ -94,7 +94,7 @@ namespace Eldoria.Api.Controllers
 
             var result = await _sceneService.CreateAsync(
                 userId,
-                req.JourneyId,
+                req.JourneyId!.Value,
                 req.Name,
                 req.Description,
                 req.Photo,
@@ -114,7 +114,7 @@ namespace Eldoria.Api.Controllers
             var userId = User.GetUserId();
             var result = await _sceneService.UpdateAsync(
                 userId,
-                req.JourneyId,
+                req.JourneyId!.Value,
                 id,
                 req.Name,
                 req.Description,

@@ -18,7 +18,7 @@ namespace Eldoria.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> AddSceneCharacter([FromBody] AddSceneCharacterRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterService.AddSceneCharacterAsync(req.SceneId, req.CharacterId, ct);
+            var result = await _sceneCharacterService.AddSceneCharacterAsync(req.SceneId!.Value, req.CharacterId!.Value, ct);
 
             if (result.Success)
                 return Ok(result);
