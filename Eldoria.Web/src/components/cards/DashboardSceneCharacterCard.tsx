@@ -43,6 +43,7 @@ const DashboardSceneCharacterCard = ({
         }
       />
       <CharacterMenu
+        hasAlternate={false}
         onDropAdded={(text, type) => {
           setNotifications((prev) => [
             ...prev,

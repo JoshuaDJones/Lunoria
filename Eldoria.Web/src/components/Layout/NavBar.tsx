@@ -12,7 +12,7 @@ interface NavBarProps {
 const NavBar = ({ hasBackButton = false }: NavBarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {setAuthToken} = useAuth();
+  const { setAuthToken } = useAuth();
 
   return (
     <div className="absolute top-0 right-0 left-0 flex items-center bg-stone-800/90 h-28 w-full z-20 border-b-4 border-stone-800 px-5">
@@ -55,7 +55,11 @@ const NavBar = ({ hasBackButton = false }: NavBarProps) => {
           isSelected={location.pathname === "/Items"}
           onClick={() => navigate("/Items")}
         />
-        <NavButton title={"Logout"} isSelected={false} onClick={() => setAuthToken(undefined)} />
+        <NavButton
+          title={"Logout"}
+          isSelected={false}
+          onClick={() => setAuthToken(undefined)}
+        />
       </div>
     </div>
   );

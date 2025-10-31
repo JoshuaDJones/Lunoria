@@ -55,8 +55,8 @@ const EnemyNPCActivationList = ({
   }, [characterSelection]);
 
   return (
-    <div className="flex-1 flex flex-col gap-2">
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto scrollbar-hide p-5">
+    <div className="flex flex-col h-full p-5">
+      <div className="flex-1 flex flex-col gap-2 overflow-y-auto scrollbar-hide ">
         {availableCharacters.map((c) => (
           <EnemyNPCActivationCard
             sceneId={sceneId}

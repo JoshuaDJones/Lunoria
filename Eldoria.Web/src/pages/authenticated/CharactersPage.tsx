@@ -7,7 +7,6 @@ import { BASE_URL, useApi } from "../../hooks/useApi";
 import CharacterList from "../../components/lists/CharacterList";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import AddEditCharacterModal from "../../components/modals/AddEditCharacterModal";
-import { useLoading } from "../../providers/LoadingProvider";
 
 const CharactersPage = () => {
   const { get } = useApi();

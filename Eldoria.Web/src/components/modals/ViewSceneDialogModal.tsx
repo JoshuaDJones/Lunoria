@@ -91,11 +91,11 @@ const ViewSceneDialogModal = ({ sceneDialog }: ViewSceneDialogModalProps) => {
               className="self-center rounded-3xl h-full w-full object-contain"
             />
           </div>
-          
+
           <div className="absolute top-0 right-0 left-0 bottom-0 flex flex-col items-center justify-center gap-10">
             {currentPage?.dialogPageSections.map((s) => (
-            <ViewDialogSection pageSection={s} />
-          ))}
+              <ViewDialogSection pageSection={s} />
+            ))}
           </div>
 
           <button

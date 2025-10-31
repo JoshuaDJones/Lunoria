@@ -21,7 +21,7 @@ enum AdjustmentPaneState {
 
 interface SceneEditorPaneProps {
   sceneId: number;
-  sceneDialogs: SceneDialogDto[]
+  sceneDialogs: SceneDialogDto[];
   players?: JourneyCharacterDto[];
   npcs?: SceneCharacterDto[];
   enemies?: SceneCharacterDto[];
@@ -69,7 +69,7 @@ const SceneEditorPane = ({
     );
   } else if (paneState === AdjustmentPaneState.dialog) {
     title = "Dialog";
-    characterList = (<DashboardDialogList sceneDialogs={sceneDialogs} />)
+    characterList = <DashboardDialogList sceneDialogs={sceneDialogs} />;
   } else {
     title = "Activation";
     characterList = (

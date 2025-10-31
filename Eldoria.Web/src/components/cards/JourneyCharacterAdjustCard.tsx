@@ -27,6 +27,7 @@ const JourneyCharacterAdjustmentCard = ({
       await patch(`${BASE_URL}/JourneyCharacter/${journeyCharacter.id}`, {
         Hp: hp,
         Mp: mp,
+        IsAlternateForm: journeyCharacter.isAlternateForm,
       });
 
       onRefreshRequest();

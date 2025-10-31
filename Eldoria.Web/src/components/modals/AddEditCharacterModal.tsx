@@ -19,6 +19,7 @@ import CharacterTypeSelect, {
   ToCharacterType,
 } from "../inputs/CharacterTypeSelect";
 import { useLoading } from "../../providers/LoadingProvider";
+import AlternateFormSelection from "../AlternateFormSelection";
 
 interface CharacterForm {
   name: string;
@@ -33,6 +34,7 @@ interface CharacterForm {
   isPlayer: boolean;
   isNPC: boolean;
   isEnemy: boolean;
+  alternateFormId: number | null;
 }
 
 interface AddEditCharacterModalProps {
@@ -49,6 +51,8 @@ const AddEditCharacterModal = ({
   const { showToast } = useToast();
   const { showLoading, closeLoading } = useLoading();
   const { postForm, putForm } = useApi();
+
+  console.log(character);
 
   const CharacterSchema = Yup.object().shape({
     name: Yup.string().required("Name is required."),
@@ -79,6 +83,7 @@ const AddEditCharacterModal = ({
     isPlayer: Yup.bool().required("Is Player is required."),
     isNPC: Yup.bool().required("Is NPC is required."),
     isEnemy: Yup.bool().required("Is Enemy is required."),
+    alternateFormId: Yup.number().nullable(),
   });
 
   const handleCreateSubmit = async (values: CharacterForm) => {
@@ -110,6 +115,9 @@ const AddEditCharacterModal = ({
       formData.append("IsPlayer", values.isPlayer.toString());
       formData.append("IsNPC", values.isNPC.toString());
       formData.append("IsEnemy", values.isEnemy.toString());
+
+      if (values.alternateFormId)
+        formData.append("AlternateFormId", values.alternateFormId.toString());
 
       await postForm(`${BASE_URL}/Character`, formData);
 
@@ -155,6 +163,9 @@ const AddEditCharacterModal = ({
       formData.append("IsNPC", values.isNPC.toString());
       formData.append("IsEnemy", values.isEnemy.toString());
 
+      if (values.alternateFormId)
+        formData.append("AlternateFormId", values.alternateFormId.toString());
+
       await putForm(`${BASE_URL}/Character/${character?.id}`, formData);
 
       showToast("Success:", "Character Edited.", ToastType.success, 3000);
@@ -190,6 +201,7 @@ const AddEditCharacterModal = ({
                   isPlayer: character.isPlayer,
                   isNPC: character.isNPC,
                   isEnemy: character.isEnemy,
+                  alternateFormId: character.alternateFormId,
                 }
               : {
                   name: "",
@@ -204,6 +216,7 @@ const AddEditCharacterModal = ({
                   isPlayer: false,
                   isNPC: true,
                   isEnemy: false,
+                  alternateFormId: null,
                 }
           }
           validationSchema={CharacterSchema}
@@ -330,6 +343,16 @@ const AddEditCharacterModal = ({
                 <InputError name="isPlayer" />
                 <InputError name="isNPC" />
                 <InputError name="isEnemy" />
+
+                <AlternateFormSelection
+                  selectedAlternateFormId={character?.alternateForm?.id ?? null}
+                  selectedAlternateFormPhotoUrl={
+                    character?.alternateForm?.photoUrl ?? null
+                  }
+                  onSelect={(alternateFormId) =>
+                    setFieldValue("alternateFormId", alternateFormId)
+                  }
+                />
               </div>
 
               <AppButton

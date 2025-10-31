@@ -10,6 +10,7 @@ import NotificationsList, {
 } from "../lists/NotificationsList";
 import { v4 as uuidv4 } from "uuid";
 import { BASE_URL, useApi } from "../../hooks/useApi";
+import clsx from "clsx";
 
 interface DashboardPlayerCardProps {
   player: JourneyCharacterDto;
@@ -22,10 +23,22 @@ const DashboardPlayerCard = ({
 }: DashboardPlayerCardProps) => {
   const [notifications, setNotifications] = useState<CardNotification[]>([]);
   const { patch } = useApi();
-  const character = player.character;
+  const character =
+    player.isAlternateForm && !!player.character.alternateForm
+      ? player.character.alternateForm
+      : player.character;
+  const hasAlternateForm = !!player.character.alternateForm;
 
   return (
-    <div className="rounded-3xl p-3 flex flex-col bg-stone-800/50 w-[calc(20%-1rem)] border-white border-2 relative">
+    <div
+      className={clsx(
+        "rounded-3xl p-3 flex flex-col w-[calc(20%-1rem)] border-white border-2 relative",
+        {
+          "bg-red-800/75": player.currentHp === 0,
+          "bg-stone-800/50": player.currentHp > 0,
+        },
+      )}
+    >
       <NotificationsList
         notifications={notifications}
         onHideNotification={(id) =>
@@ -39,16 +52,19 @@ const DashboardPlayerCard = ({
         }
       />
       <CharacterMenu
+        hasAlternate={hasAlternateForm}
         onDropAdded={async (text, type) => {
           if (type === NotificationType.hp) {
             await patch(`${BASE_URL}/JourneyCharacter/${player.id}`, {
               Hp: Math.min(player.character.maxHp, player.currentHp + 4),
               Mp: player.currentMp,
+              IsAlternateForm: player.isAlternateForm,
             });
           } else {
             await patch(`${BASE_URL}/JourneyCharacter/${player.id}`, {
               Hp: player.currentHp,
               Mp: Math.min(player.character.maxMp, player.currentMp + 4),
+              IsAlternateForm: player.isAlternateForm,
             });
           }
 
@@ -64,7 +80,7 @@ const DashboardPlayerCard = ({
             },
           ]);
         }}
-        journeyCharacterId={player.id}
+        journeyCharacter={player}
         onRefreshRequest={onRefreshRequest}
       />
 
@@ -74,7 +90,7 @@ const DashboardPlayerCard = ({
           <Text
             size={TextSize.xl}
             textColor={TextColor.white}
-            className="text-wrap break-all font-bold"
+            className="text-wrap break-all font-bold mr-3"
           >
             {character.name}
           </Text>

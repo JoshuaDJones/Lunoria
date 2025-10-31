@@ -10,25 +10,29 @@ import AppButton, {
   AppButtonSize,
   AppButtonVariant,
 } from "./buttons/AppButton";
+import { JourneyCharacterDto } from "../types/journey";
 
 interface CharacterMenuProps {
   sceneCharacterId?: number;
-  journeyCharacterId?: number;
+  journeyCharacter?: JourneyCharacterDto;
+  hasAlternate: boolean;
   onRefreshRequest: () => void;
   onDropAdded: (text: string, type: NotificationType) => void;
 }
 
 const CharacterMenu = ({
   sceneCharacterId,
-  journeyCharacterId,
+  journeyCharacter,
+  hasAlternate,
   onRefreshRequest,
   onDropAdded,
 }: CharacterMenuProps) => {
-  const { del } = useApi();
+  const { del, patch } = useApi();
   const [menuOpen, setMenuOpen] = useState(false);
   const [itemMenuOpen, setItemMenuOpen] = useState(false);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
-  const { showToast } = useToast();
+  const { showToast, showSuccess, showError } = useToast();
+  const journeyCharacterId = journeyCharacter?.id;
 
   if (!menuOpen && !itemMenuOpen) {
     return (
@@ -92,6 +96,24 @@ const CharacterMenu = ({
     }
   };
 
+  const handleTransformation = async () => {
+    if (!journeyCharacterId) return;
+
+    try {
+      await patch(`${BASE_URL}/JourneyCharacter/${journeyCharacterId}`, {
+        Hp: journeyCharacter.currentHp,
+        Mp: journeyCharacter.currentMp,
+        IsAlternateForm: !journeyCharacter.isAlternateForm,
+      });
+      onRefreshRequest();
+      showSuccess("Transformation Complete.");
+      setMenuOpen(false);
+    } catch (err) {
+      console.error(err);
+      showError("Character not saved.");
+    }
+  };
+
   return (
     <div className="absolute flex flex-col top-3 right-3 rounded-lg bg-gray-700 border-2 border-gray-500 w-[55%] font-cinzel text-white">
       <button
@@ -139,6 +161,17 @@ const CharacterMenu = ({
         </div>
       )}
       <div className="h-[2px] bg-gray-500"></div>
+      {hasAlternate && (
+        <>
+          <button
+            className="py-2 hover:opacity-50 text-sm"
+            onClick={async () => await handleTransformation()}
+          >
+            Transform
+          </button>
+          <div className="h-[2px] bg-gray-500"></div>
+        </>
+      )}
       <button
         className="items-center justify-center flex gap-1 self-end py-2 pr-2 hover:opacity-50"
         onClick={() => {
