@@ -1,0 +1,97 @@
+﻿.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-content: center;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: none;
+    border-radius: 15px;
+    padding: 0;
+    font-size: 0;
+}
+
+    .btn:hover {
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+.btn-primary {
+    color: white;
+    background-color: var(--blue-700);
+}
+
+.btn-secondary {
+    color: white;
+    background-color: var(--stone-800);
+}
+
+.btn-warning {
+    color: white;
+    background-color: var(--red-900);
+}
+
+.btn-go {
+    color: white;
+    background-color: var(--green-700);
+}
+
+.btn-outline {
+    color: black;
+    border: 2px solid black;
+}
+
+    .btn-outline:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+.btn-disabled {
+    color: white;
+    background-color: var(--blue-700);
+}
+
+.btn-ghost {
+    color: white;
+    background-color: var(--blue-700);
+}
+
+.btn-xs {
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 15px;
+}
+
+.btn-sm {
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 20px;
+}
+
+.btn-md {
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 25px;
+}
+
+.btn-lg {
+    padding-right: 13px;
+    padding-left: 13px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 35px;
+}
+
+.btn-xl {
+    padding-right: 13px;
+    padding-left: 13px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 42px;
+}

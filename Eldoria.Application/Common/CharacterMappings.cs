@@ -22,6 +22,7 @@ namespace Eldoria.Application.Common
                 IsPlayer = character.IsPlayer,
                 IsNPC = character.IsNPC,
                 IsEnemy = character.IsEnemy,
+                AlternateForm = character.AlternateForm?.ToDto(),
                 CreateDate = character.CreateDate,
                 CharacterSpells = character.CharacterSpells.Select(s => s.ToDto()).ToList()
             };

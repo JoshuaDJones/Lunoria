@@ -32,9 +32,9 @@ namespace Eldoria.Api.Controllers
         }
 
         [HttpPatch("{journeyCharacterId:int}")]
-        public async Task<IActionResult> Modify(int journeyCharacterId, [FromBody] UpdateJourneyCharacterHpMpRequest req, CancellationToken ct)
+        public async Task<IActionResult> Modify(int journeyCharacterId, [FromBody] UpdateJourneyCharacterRequest req, CancellationToken ct)
         {
-            var result = await _journeyCharacterService.AdjustCharacterHpMpAsync(journeyCharacterId, req.Hp!.Value, req.Mp!.Value, ct);
+            var result = await _journeyCharacterService.UpdateJourneyCharacter(journeyCharacterId, req.Hp!.Value, req.Mp!.Value, req.IsAlternateForm, ct);
 
             if (result.Success) 
                 return Ok();

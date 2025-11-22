@@ -9,13 +9,14 @@ import { useParams } from "react-router";
 import { JourneyDto } from "../../types/journey";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
-import Title, { TitleColor } from "../../components/typography/Title";
+import Title, { TitleColor, TitleSize } from "../../components/typography/Title";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import JourneyPlayersModal from "../../components/modals/JourneyPlayersModal";
 import AddEditSceneModal from "../../components/modals/AddEditSceneModal";
 import SceneList from "../../components/lists/SceneList";
+import { TextSize } from "../../components/typography/Text";
 
 const JourneyDetailsPage = () => {
   const { get } = useApi();
@@ -88,7 +89,7 @@ const JourneyDetailsPage = () => {
           </div>
           <div className="flex flex-col w-[60%]">
             <div className="flex w-full border-b-4 border-black items-center">
-              <Title className="flex-1" color={TitleColor.default}>
+              <Title className="flex-1" color={TitleColor.default} size={TitleSize.medium}>
                 Scenes
               </Title>
               <AppButton

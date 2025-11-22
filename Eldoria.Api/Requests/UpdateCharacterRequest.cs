@@ -36,5 +36,7 @@ namespace Eldoria.Api.Requests
 
         [Required]
         public bool? IsEnemy { get; set; }
+
+        public int? AlternateFormId { get; set; }
     }
 }

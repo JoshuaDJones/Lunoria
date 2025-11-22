@@ -100,7 +100,7 @@ const SceneListItem = ({
     <div className="flex flex-col mt-2 bg-red-200 p-4 rounded bg-stone-700/70 rounded-xl">
       <div className="flex">
         <div className="w-[65%]">
-          <Title size={TitleSize.large} color={TitleColor.white}>
+          <Title size={TitleSize.medium} color={TitleColor.white}>
             {scene.name}
           </Title>
           <Text

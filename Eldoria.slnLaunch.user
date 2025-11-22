@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Eldoria.Api\\Eldoria.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Eldoria.BlazorClient\\Eldoria.BlazorClient.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

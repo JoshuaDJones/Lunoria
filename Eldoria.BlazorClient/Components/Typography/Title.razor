@@ -1,0 +1,39 @@
+﻿@if(Size == TitleSize.Xs)
+{
+    <h6>@ChildContent</h6>
+
+}
+else if(Size == TitleSize.Sm)
+{
+    <h5>@ChildContent</h5>
+
+}
+else if (Size == TitleSize.Md)
+{
+    <h4>@ChildContent</h4>
+
+}
+else if(Size == TitleSize.Lg)
+{
+    <h3>@ChildContent</h3>
+
+}
+else if (Size == TitleSize.Xl)
+{
+    <h2>@ChildContent</h2>
+
+}
+else if (Size == TitleSize.X2l)
+{
+    <h1>@ChildContent</h1>
+
+}
+else
+{
+    
+}
+
+@code {
+    [Parameter] public TitleSize Size { get; set; } = TitleSize.Md;
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+}

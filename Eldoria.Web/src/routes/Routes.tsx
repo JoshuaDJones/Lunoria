@@ -48,35 +48,3 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-
-// export const router = createBrowserRouter([
-//   {
-//     path: "/",
-//     element: <App />,
-//     children: [
-//       { path: "", element: <HomePage /> },
-//       // {
-//       //   path: "Scenes/:id",
-//       //   element: <ProtectedRoute element={<ScenePage />} />,
-//       // },
-//       // {
-//       //   path: "Characters/",
-//       //   element: <ProtectedRoute element={<CharactersPage />} />,
-//       // },
-//       // { path: "Spells", element: <ProtectedRoute element={<SpellsPage />} /> },
-//       // { path: "Items", element: <ProtectedRoute element={<ItemsPage />} /> },
-//       // {
-//       //   path: "SceneDetails/:id",
-//       //   element: <ProtectedRoute element={<SceneDetails />} />,
-//       // },
-//       // {
-//       //   path: "Profile",
-//       //   element: <ProtectedRoute element={<ProfilePage />} />,
-//       // },
-
-//       { path: "Login", element: <LoginPage /> },
-//       { path: "Register", element: <RegisterPage /> },
-//       { path: "ForgotPassword", element: <ForgotPasswordPage /> },
-//     ],
-//   },
-// ]);

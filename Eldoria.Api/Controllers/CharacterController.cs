@@ -79,6 +79,7 @@ namespace Eldoria.Api.Controllers
                 req.IsPlayer!.Value,
                 req.IsNPC!.Value,
                 req.IsEnemy!.Value,
+                req.AlternateFormId,
                 ct);
 
             if (result.Success)
@@ -105,6 +106,7 @@ namespace Eldoria.Api.Controllers
                 req.IsPlayer!.Value,
                 req.IsNPC!.Value,
                 req.IsEnemy!.Value,
+                req.AlternateFormId,
                 ct);
 
             if (result.Success)

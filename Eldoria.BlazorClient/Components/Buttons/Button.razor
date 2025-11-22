@@ -1,0 +1,47 @@
+﻿
+
+<button class="@CssClass"
+@onclick="HandleClick"
+        disabled="@Disabled">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public ButtonSize Size { get; set; } = ButtonSize.Sm;
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Primary;
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+
+    private string CssClass =>
+        $"{GetVariantClass()} {GetSizeClass()}";
+
+    private string GetVariantClass() => 
+        Variant switch
+        {
+            ButtonVariant.Primary => "btn btn-primary",
+            ButtonVariant.Secondary => "btn btn-secondary",
+            ButtonVariant.Warning => "btn btn-warning",
+            ButtonVariant.Go => "btn btn-go",
+            ButtonVariant.Outline => "btn btn-outline",
+            _ => "btn btn-primary"
+        };
+
+    private string GetSizeClass() =>
+        Size switch
+        {
+            ButtonSize.Xs => "btn-xs",
+            ButtonSize.Sm => "btn-sm",
+            ButtonSize.Md => "btn-md",
+            ButtonSize.Lg => "btn-lg",
+            ButtonSize.Xl => "btn-xl",
+            ButtonSize.Custom => "",
+            _ => "btn-sm"
+        };
+
+    private async Task HandleClick()
+    {
+        if (!Disabled)
+            await OnClick.InvokeAsync(null);
+    }
+}

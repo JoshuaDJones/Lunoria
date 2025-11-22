@@ -2,7 +2,6 @@
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Enums;
 using Microsoft.AspNetCore.Http;
-using System.Net.Http.Headers;
 
 namespace Eldoria.Application.Services
 {
@@ -24,6 +23,7 @@ namespace Eldoria.Application.Services
             bool isPlayer,
             bool isNPC,
             bool isEnemy,
+            int? alternateFormId,
             CancellationToken ct);
 
         Task<Result<CharacterDto>> UpdateAsync(int id,
@@ -39,6 +39,7 @@ namespace Eldoria.Application.Services
             bool isPlayer,
             bool isNPC,
             bool isEnemy,
+            int? alternateFormId,
             CancellationToken ct);
     }
 }

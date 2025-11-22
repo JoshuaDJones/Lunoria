@@ -81,7 +81,7 @@ const SpellListItem = ({ spell, onRefreshRequest }: SpellListItemProps) => {
         <div className="w-[60%] flex-col">
           <Title
             className="flex-1 break-words"
-            size={TitleSize.medium}
+            size={TitleSize.small}
             color={TitleColor.white}
           >
             {spell.name}

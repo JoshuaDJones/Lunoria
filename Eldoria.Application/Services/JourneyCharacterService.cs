@@ -17,7 +17,7 @@ namespace Eldoria.Application.Services
             _characterRepository = characterRepository;
         }
 
-        public async Task<Result> AdjustCharacterHpMpAsync(int journeyCharacterId, int newHp, int newMp, CancellationToken ct)
+        public async Task<Result> UpdateJourneyCharacter(int journeyCharacterId, int newHp, int newMp, bool isAlternateForm, CancellationToken ct)
         {
             var journeyCharacter = await _journeyCharacterRepository.GetByIdAsync(journeyCharacterId, ct);
 
@@ -26,6 +26,7 @@ namespace Eldoria.Application.Services
 
             journeyCharacter.CurrentHp = newHp;
             journeyCharacter.CurrentMp = newMp;            
+            journeyCharacter.IsAlternateForm = isAlternateForm;
 
             await _journeyCharacterRepository.SaveChangesAsync(ct);
             return Result.Ok();

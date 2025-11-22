@@ -29,7 +29,7 @@ const DashboardSceneCharacterCard = ({
   }, []);
 
   return (
-    <div className="rounded-3xl p-3 flex flex-col bg-stone-800/50 w-[calc(20%-1rem)] border-white border-2 relative">
+    <div className="rounded-3xl p-3 flex flex-col bg-stone-800/50 w-[calc(25%-1rem)] border-white border-2 relative">
       <NotificationsList
         notifications={notifications}
         onHideNotification={(id) =>

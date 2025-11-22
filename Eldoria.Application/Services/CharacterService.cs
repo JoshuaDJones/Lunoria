@@ -23,7 +23,7 @@ namespace Eldoria.Application.Services
             _azureStorageBlob = azureStorageBlob;
         }
 
-        public async Task<Result<CharacterDto>> CreateAsync(string name, string description, IFormFile photo, int maxHp, int maxMp, int? meleeAttackDamage, int? bowAttackDamage, int movement, int maxInventory, bool isPlayer, bool isNPC, bool isEnemy, CancellationToken ct)
+        public async Task<Result<CharacterDto>> CreateAsync(string name, string description, IFormFile photo, int maxHp, int maxMp, int? meleeAttackDamage, int? bowAttackDamage, int movement, int maxInventory, bool isPlayer, bool isNPC, bool isEnemy, int? alternateFormId, CancellationToken ct)
         {
             var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
 
@@ -42,6 +42,7 @@ namespace Eldoria.Application.Services
                 IsPlayer = isPlayer,
                 IsNPC = isNPC,
                 IsEnemy = isEnemy,
+                AlternateFormId = alternateFormId,
                 CreateDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow,
             };
@@ -109,7 +110,7 @@ namespace Eldoria.Application.Services
             return Result<List<CharacterDto>>.Ok(characterDtos);
         }
 
-        public async Task<Result<CharacterDto>> UpdateAsync(int id, string name, string description, IFormFile? photo, int maxHp, int maxMp, int? meleeAttackDamage, int? bowAttackDamage, int movement, int maxInventory, bool isPlayer, bool isNPC, bool isEnemy, CancellationToken ct)
+        public async Task<Result<CharacterDto>> UpdateAsync(int id, string name, string description, IFormFile? photo, int maxHp, int maxMp, int? meleeAttackDamage, int? bowAttackDamage, int movement, int maxInventory, bool isPlayer, bool isNPC, bool isEnemy, int? alternateFormId, CancellationToken ct)
         {
             var character = await _characterRepository.GetByIdAsync(id, ct);
 
@@ -139,6 +140,7 @@ namespace Eldoria.Application.Services
             character.IsPlayer = isPlayer;
             character.IsNPC = isNPC;
             character.IsEnemy = isEnemy;
+            character.AlternateFormId = alternateFormId;
 
             _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);

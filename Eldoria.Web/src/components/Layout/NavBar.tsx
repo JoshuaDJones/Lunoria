@@ -30,7 +30,7 @@ const NavBar = ({ hasBackButton = false }: NavBarProps) => {
         </button>
       )}
 
-      <Title color={TitleColor.white} size={TitleSize.large}>
+      <Title color={TitleColor.white} size={TitleSize.medium}>
         Lunoria
       </Title>
 

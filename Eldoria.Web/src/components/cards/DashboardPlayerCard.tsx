@@ -32,7 +32,7 @@ const DashboardPlayerCard = ({
   return (
     <div
       className={clsx(
-        "rounded-3xl p-3 flex flex-col w-[calc(20%-1rem)] border-white border-2 relative",
+        "rounded-3xl p-3 flex flex-col w-[calc(25%-1rem)] border-white border-2 relative",
         {
           "bg-red-800/75": player.currentHp === 0,
           "bg-stone-800/50": player.currentHp > 0,
