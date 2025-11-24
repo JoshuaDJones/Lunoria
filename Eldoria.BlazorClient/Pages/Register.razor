@@ -4,6 +4,7 @@
 @using Eldoria.BlazorClient.Components.Typography
 @using Eldoria.BlazorClient.Components.Buttons
 @using Eldoria.BlazorClient.ViewModels
+@inject Eldoria.BlazorClient.Services.Auth.IAuthService AuthService
 
 <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit">
     <DataAnnotationsValidator />
@@ -58,11 +59,8 @@
     private bool IsConfirmPasswordValid =>
         !(editContext?.GetValidationMessages(() => model.ConfirmPassword).Any() ?? false);
 
-    private void HandleSubmit()
+    private async Task HandleSubmit()
     {
-        Console.WriteLine("Email: " + model.Email);
-        Console.WriteLine("Password: " + model.Password);
-        Console.WriteLine("Confirm: " + model.ConfirmPassword);
-
+        var result = await AuthService.RegisterAsync(model.Email, model.Password);
     }
 }

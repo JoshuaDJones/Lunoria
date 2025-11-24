@@ -1,0 +1,73 @@
+﻿@using Eldoria.BlazorClient.Common.Enums
+@using Eldoria.BlazorClient.Components.Typography
+@inject Eldoria.BlazorClient.Services.Interfaces.IToastService ToastService
+
+<div class="toast-container">
+    @foreach (var toast in toasts)
+    {
+        <div class=@($"toast {GetToastColor(toast.toastLevel)}")>
+            <div class=@($"level-container {GetLevelColor(toast.toastLevel)}")>
+                @switch (toast.toastLevel)
+                {
+                    case ToastLevel.Success:
+                        <i class="fa-regular fa-circle-check"></i>
+                        break;
+
+                    case ToastLevel.Informational:
+                        <i class="fa-solid fa-circle-info"></i>
+                        break;
+
+                    case ToastLevel.Error:
+                        <i class="fa-regular fa-circle-xmark"></i>
+                        break;
+                }
+            </div>
+            <div class="toast-text-container">
+                <TextBlock Size="TextSize.Md">@toast.message</TextBlock>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private record ToastItem(string message, ToastLevel toastLevel);
+    private List<ToastItem> toasts = [];
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += showToast;
+    }
+
+    private void showToast(string message, ToastLevel level)
+    {
+        var toast = new ToastItem(message, level);
+        toasts.Add(toast);
+
+        InvokeAsync(async () =>
+        {
+            await Task.Delay(2000);
+            toasts.Remove(toast);
+            StateHasChanged();
+        });
+
+        StateHasChanged();
+    }
+
+    private string GetToastColor(ToastLevel toastLevel) =>
+        toastLevel switch
+        {
+            ToastLevel.Success => "toast-success",
+            ToastLevel.Informational => "toast-informational",
+            ToastLevel.Error => "toast-warning",
+            _ => "toast-warning"
+        };
+
+    private string GetLevelColor(ToastLevel toastLevel) =>
+        toastLevel switch
+        {
+            ToastLevel.Success => "level-success",
+            ToastLevel.Informational => "level-informational",
+            ToastLevel.Error => "level-warning",
+            _ => "level-warning"
+        };
+}
