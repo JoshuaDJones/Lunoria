@@ -1,0 +1,51 @@
+﻿@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+
+<div class="@($"inputTitleContainer {Class}")" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrWhiteSpace(Title))
+    {
+        <TextBlock Size="TextSize.Lg">@Title</TextBlock>
+    }
+
+    <div class=@($"inputContainer {(!IsValid ? "invalidInputContainer" : "")} {(IsFocused ? "focusedInputContainer" : "")}")>
+        <input class="input"
+               @onfocus="() => IsFocused = true"
+               @onblur="() => IsFocused = false"
+               type="@(IsPassword && !IsPasswordVisible? "password" : "text")"
+               value="@Value"
+               @oninput="HandleInput" />
+        
+        @if (IsPassword == true)
+        {
+            <IconButton OnClick="TogglePasswordVisibility"
+                        IconClass="@($"fa-solid {(IsPasswordVisible ? "fa-eye" : "fa-eye-slash")}")" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public bool IsPassword { get; set; } = false;
+    [Parameter] public bool IsValid { get; set; } = true;
+
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    public bool IsPasswordVisible { get; set; } = false;
+    public bool IsFocused = false;
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString();
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
+}

@@ -1,4 +1,4 @@
-﻿namespace Eldoria.BlazorClient.Components.Texts
+﻿namespace Eldoria.BlazorClient.Components.Typography
 {
     public enum TextSize
     {

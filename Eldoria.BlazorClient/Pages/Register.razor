@@ -1,0 +1,68 @@
+﻿@page "/Register"
+@using Eldoria.BlazorClient.Components.Containers
+@using Eldoria.BlazorClient.Components.Inputs
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.ViewModels
+
+<EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="lunoria_field_page">
+        <AuthFormContainer>
+            <Title Size="TitleSize.Sm">Register</Title>
+
+            <Input Class="mt-10"
+                   Title="Email"
+                   @bind-Value="model.Email"
+                   IsValid="IsEmailValid" />
+
+            <Input Class="mt-6"
+                   Title="Password"
+                   IsPassword
+                   @bind-Value="model.Password"
+                   IsValid="IsPasswordValid" />
+
+            <Input Class="mt-6"
+                   Title="Confirm Password"
+                   IsPassword
+                   @bind-Value="model.ConfirmPassword"
+                   IsValid="IsConfirmPasswordValid" />
+
+            <ValidationSummary />
+
+            <div class="flex-center mt-10">
+                <Button type="submit" Size="ButtonSize.Lg" Class="mr-3">Submit</Button>
+            </div>
+        </AuthFormContainer>
+    </div>
+
+</EditForm>
+
+@code {
+    private RegisterModel model = new();
+    private EditContext? editContext;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+        editContext.OnFieldChanged += (_, __) => StateHasChanged();
+    }
+
+    private bool IsEmailValid =>
+        !(editContext?.GetValidationMessages(() => model.Email).Any() ?? false);
+
+    private bool IsPasswordValid =>
+        !(editContext?.GetValidationMessages(() => model.Password).Any() ?? false);
+
+    private bool IsConfirmPasswordValid =>
+        !(editContext?.GetValidationMessages(() => model.ConfirmPassword).Any() ?? false);
+
+    private void HandleSubmit()
+    {
+        Console.WriteLine("Email: " + model.Email);
+        Console.WriteLine("Password: " + model.Password);
+        Console.WriteLine("Confirm: " + model.ConfirmPassword);
+
+    }
+}

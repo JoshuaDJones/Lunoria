@@ -1,7 +1,8 @@
-﻿
+﻿@inject NavigationManager Navigation
 
-<button class="@CssClass"
-@onclick="HandleClick"
+<button @attributes="AdditionalAttributes"
+        class="@($"{CssClass} {Class}")"
+        @onclick="HandleClick"
         disabled="@Disabled">
     @ChildContent
 </button>
@@ -10,8 +11,12 @@
     [Parameter] public bool Disabled { get; set; } = false;
     [Parameter] public ButtonSize Size { get; set; } = ButtonSize.Sm;
     [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Primary;
+    [Parameter] public string? Href { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
 
     private string CssClass =>
         $"{GetVariantClass()} {GetSizeClass()}";
@@ -24,6 +29,7 @@
             ButtonVariant.Warning => "btn btn-warning",
             ButtonVariant.Go => "btn btn-go",
             ButtonVariant.Outline => "btn btn-outline",
+            ButtonVariant.Ghost => "btn btn-ghost",
             _ => "btn btn-primary"
         };
 
@@ -41,7 +47,15 @@
 
     private async Task HandleClick()
     {
-        if (!Disabled)
-            await OnClick.InvokeAsync(null);
+        if (Disabled)
+            return;
+
+        if(!string.IsNullOrWhiteSpace(Href))
+        {
+            Navigation.NavigateTo(Href);
+            return;
+        }
+
+        await OnClick.InvokeAsync(null);
     }
 }

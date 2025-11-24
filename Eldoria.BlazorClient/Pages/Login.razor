@@ -1,0 +1,56 @@
+﻿@page "/Login"
+@using Eldoria.BlazorClient.Components.Containers
+@using Eldoria.BlazorClient.Components.Inputs
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.ViewModels
+
+<EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="lunoria_field_page">
+        <AuthFormContainer>
+            <Title Size="TitleSize.Sm">Login</Title>
+
+            <Input Class="mt-10" Title="Email" IsValid="IsEmailValid" @bind-Value="model.Email"/>
+            <Input Class="mt-6" Title="Password" IsPassword IsValid="IsPasswordValid" @bind-Value="model.Password"/>
+
+            <ValidationSummary />
+
+            <div class="flex-center mt-10">
+                <Button Size="ButtonSize.Lg" Class="mr-3" type="submit">Login</Button>
+                <Button Size="ButtonSize.Lg"
+                        type="button"
+                        Class="ml-3"
+                        Variant="ButtonVariant.Secondary"
+                        Href="/Register">
+                Register
+            </Button>
+            </div>
+        </AuthFormContainer>
+    </div>
+</EditForm>
+
+@code {
+    private LoginModel model = new();
+    private EditContext? editContext;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+        editContext.OnFieldChanged += (_, __) => StateHasChanged();
+    }
+
+    private bool IsEmailValid =>
+        !(editContext?.GetValidationMessages(() => model.Email).Any() ?? false);
+
+    private bool IsPasswordValid =>
+        !(editContext?.GetValidationMessages(() => model.Password).Any() ?? false);
+
+    private void HandleSubmit()
+    {
+        Console.WriteLine("Email: " + model.Email);
+        Console.WriteLine("Password: " + model.Password);
+    }
+
+}

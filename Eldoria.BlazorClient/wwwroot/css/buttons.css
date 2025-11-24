@@ -6,7 +6,7 @@
     border: none;
     outline: none;
     box-shadow: none;
-    background: none;
+    background-color: unset;
     border-radius: 15px;
     padding: 0;
     font-size: 0;
@@ -46,12 +46,11 @@
         background-color: rgba(255, 255, 255, 0.2);
     }
 
-.btn-disabled {
-    color: white;
-    background-color: var(--blue-700);
+.btn-ghost {
+    color: black;
 }
 
-.btn-ghost {
+.btn-disabled {
     color: white;
     background-color: var(--blue-700);
 }

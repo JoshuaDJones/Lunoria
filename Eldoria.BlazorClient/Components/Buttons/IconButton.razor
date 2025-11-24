@@ -1,0 +1,15 @@
+﻿<Button Class="@Class" Variant="ButtonVariant.Ghost" Size="@Size" Onclick="HandleClick" type="button">
+    <i class="@IconClass"></i>
+</Button>
+
+@code {
+    [Parameter] public ButtonSize Size { get; set; } = ButtonSize.Sm;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public required string IconClass { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync();
+    }
+}

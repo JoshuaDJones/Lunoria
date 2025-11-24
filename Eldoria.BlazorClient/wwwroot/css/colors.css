@@ -244,6 +244,7 @@
     /* ---------- special colors ---------- */
     --black: #000000;
     --white: #ffffff;
+    --whitetransparent: #FFFFFFBF;
     --transparent: transparent;
     --current: currentColor;
 }

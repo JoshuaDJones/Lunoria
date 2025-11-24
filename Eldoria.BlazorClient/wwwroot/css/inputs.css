@@ -1,0 +1,27 @@
+﻿.inputTitleContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.inputContainer {
+    display: flex;
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.focusedInputContainer {
+    border: 2px solid var(--blue-700);
+}
+
+.invalidInputContainer {
+    border: 2px solid red;
+}
+
+.input {
+    all: unset;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 100%;
+    background-color: transparent;    
+}

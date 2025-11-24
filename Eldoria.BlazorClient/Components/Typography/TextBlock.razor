@@ -1,0 +1,25 @@
+﻿@namespace Eldoria.BlazorClient.Components.Typography
+
+<span class="@CssClass">
+    @ChildContent
+</span>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public TextSize Size { get; set; } = TextSize.Sm;
+
+    private string CssClass =>
+        $"{GetSizeClass()}";
+
+    private string GetSizeClass() =>
+        Size switch
+        {
+            TextSize.Xs => "text-xs",
+            TextSize.Sm => "text-sm",
+            TextSize.Md => "text-md",
+            TextSize.Lg => "text-lg",
+            TextSize.Xl => "text-xl",
+            TextSize.X2l => "text-x2l",
+            _ => "text-md"
+        };
+}
