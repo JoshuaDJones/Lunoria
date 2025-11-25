@@ -34,7 +34,10 @@ namespace Eldoria.BlazorClient.Services.Auth
 
                 var token = await response.Content.ReadFromJsonAsync<AuthenticationTokenDto>();
 
+                if (token is null)
+                    return false;
 
+                await _localStorageService.SetItemAsync<string>("authToken", token.AccessToken);
 
                 return true;
             }
@@ -44,10 +47,8 @@ namespace Eldoria.BlazorClient.Services.Auth
             }
         }
 
-        public Task LogoutAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task LogoutAsync() =>
+            await _localStorageService.RemoveItemAsync("authToken");
 
         public async Task<bool> RegisterAsync(string email, string password)
         {

@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorageService
+@inject NavigationManager NavigationManager
+@using Eldoria.BlazorClient.Components.Layout
+
+@if (allowed)
+{
+    <div class="page">
+        <main class="stone-page">
+            <NavBar />
+            <div class="nav-layout-body-container">
+                @Body
+            </div>
+        </main>
+    </div>
+}
+
+@code {
+    private bool allowed = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("authToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            NavigationManager.NavigateTo("/Login");
+            return;
+        }
+
+        allowed = true;
+    }
+}

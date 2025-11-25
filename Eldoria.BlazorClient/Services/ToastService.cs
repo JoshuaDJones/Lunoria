@@ -7,17 +7,17 @@ namespace Eldoria.BlazorClient.Services
     {
         public event Action<string, ToastLevel>? OnShow;
 
-        public void showError(string message)
+        public void ShowError(string message)
         {
             OnShow?.Invoke(message, ToastLevel.Error);
         }
 
-        public void showSuccess(string message)
+        public void ShowSuccess(string message)
         {
             OnShow?.Invoke(message, ToastLevel.Success);
         }
 
-        public void showInformation(string message)
+        public void ShowInformation(string message)
         {
             OnShow?.Invoke(message, ToastLevel.Informational);
         }

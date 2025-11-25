@@ -1,0 +1,53 @@
+﻿@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+@inject NavigationManager NavigationManager
+@inject Eldoria.BlazorClient.Services.Auth.IAuthService AuthService
+
+<div class="nav-container">
+    <div class="nav-title-container">
+        <Title Color="TextColor.white" Size="TitleSize.Xs">Lunoria</Title>
+    </div>
+    <div class="nav-links-container">
+        <Button Variant="ButtonVariant.Ghost" OnClick="@(() => Navigate(homeUri))">
+            <TextBlock Color=@(currentUri == "Home" ? TextColor.lightBlue : TextColor.white) Size="TextSize.Xl">Journeys</TextBlock>
+        </Button>
+        <Button Variant="ButtonVariant.Ghost" OnClick="@(() => Navigate(charactersUri))">
+            <TextBlock Color=@(currentUri == "Characters" ? TextColor.lightBlue : TextColor.white) Size="TextSize.Xl">Characters</TextBlock>
+        </Button>
+        <Button Variant="ButtonVariant.Ghost" OnClick="@(() => Navigate(spellsUri))">
+            <TextBlock Color=@(currentUri == "Spells" ? TextColor.lightBlue : TextColor.white) Size="TextSize.Xl">Spells</TextBlock>
+        </Button>
+        <Button Variant="ButtonVariant.Ghost" OnClick="@(() => Navigate(itemsUri))">
+            <TextBlock Color=@(currentUri == "Items" ? TextColor.lightBlue : TextColor.white) Size="TextSize.Xl">Items</TextBlock>
+        </Button>
+        <Button Variant="ButtonVariant.Ghost" OnClick="HandleLogout">
+            <TextBlock Color="TextColor.white" Size="TextSize.Xl">Logout</TextBlock>
+        </Button>
+    </div>
+</div>
+
+@code{
+    private string homeUri = "Home";
+    private string charactersUri = "Characters";
+    private string spellsUri = "Spells";
+    private string itemsUri = "Items";
+    private string currentUri = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var fullUri = NavigationManager.Uri;
+        currentUri = NavigationManager.ToBaseRelativePath(fullUri);
+    }
+
+    private void Navigate(string href)
+    {
+        NavigationManager.NavigateTo($"/{href}");
+        currentUri = href;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/");
+    }
+}

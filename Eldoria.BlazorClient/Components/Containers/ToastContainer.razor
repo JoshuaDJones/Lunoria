@@ -5,9 +5,9 @@
 <div class="toast-container">
     @foreach (var toast in toasts)
     {
-        <div class=@($"toast {GetToastColor(toast.toastLevel)}")>
-            <div class=@($"level-container {GetLevelColor(toast.toastLevel)}")>
-                @switch (toast.toastLevel)
+        <div class="@($"toast {GetToastColor(toast.Level)}")" @key="toast.Id">
+            <div class="@($"level-container {GetLevelColor(toast.Level)}")">
+                @switch (toast.Level)
                 {
                     case ToastLevel.Success:
                         <i class="fa-regular fa-circle-check"></i>
@@ -22,30 +22,32 @@
                         break;
                 }
             </div>
+
             <div class="toast-text-container">
-                <TextBlock Size="TextSize.Md">@toast.message</TextBlock>
+                <TextBlock Size="TextSize.Md">@toast.Message</TextBlock>
             </div>
         </div>
     }
 </div>
 
 @code {
-    private record ToastItem(string message, ToastLevel toastLevel);
+    private record ToastItem(Guid Id, string Message, ToastLevel Level);
+
     private List<ToastItem> toasts = [];
 
     protected override void OnInitialized()
     {
-        ToastService.OnShow += showToast;
+        ToastService.OnShow += ShowToast;
     }
 
-    private void showToast(string message, ToastLevel level)
+    private void ShowToast(string message, ToastLevel level)
     {
-        var toast = new ToastItem(message, level);
+        var toast = new ToastItem(Guid.NewGuid(), message, level);
         toasts.Add(toast);
 
         InvokeAsync(async () =>
         {
-            await Task.Delay(2000);
+            await Task.Delay(2500);
             toasts.Remove(toast);
             StateHasChanged();
         });

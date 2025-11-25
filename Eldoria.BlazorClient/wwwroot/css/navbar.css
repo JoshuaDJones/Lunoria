@@ -1,0 +1,22 @@
+﻿.nav-container {
+    height: 100px;
+    width: 100%;
+    display: flex;
+    background-color: var(--stone-800-80);
+}
+
+.nav-title-container {
+    height: 100%;
+    width: 34%;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+
+.nav-links-container {
+    height: 100%;
+    width: 66%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}

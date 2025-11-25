@@ -4,9 +4,9 @@ namespace Eldoria.BlazorClient.Services.Interfaces
 {
     public interface IToastService
     {
-        void showInformation(string message);
-        void showSuccess(string message);
-        void showError(string message);
+        void ShowInformation(string message);
+        void ShowSuccess(string message);
+        void ShowError(string message);
 
         event Action<string, ToastLevel>? OnShow;
     }

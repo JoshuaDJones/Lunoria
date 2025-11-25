@@ -4,7 +4,9 @@
 @using Eldoria.BlazorClient.Components.Typography
 @using Eldoria.BlazorClient.Components.Buttons
 @using Eldoria.BlazorClient.ViewModels
+@inject NavigationManager NavigationManager
 @inject Eldoria.BlazorClient.Services.Auth.IAuthService AuthService
+@inject Eldoria.BlazorClient.Services.Interfaces.IToastService ToastService
 
 <EditForm EditContext="@editContext" OnValidSubmit="@HandleSubmit">
     <DataAnnotationsValidator />
@@ -50,7 +52,14 @@
 
     private async Task HandleSubmit()
     {
-        var result = await AuthService.LoginAsync(model.Email, model.Password);
-    }
+        var success = await AuthService.LoginAsync(model.Email, model.Password);
 
+        if (!success)
+        {
+            ToastService.ShowError("Invalid login credentials");
+            return;
+        }
+
+        NavigationManager.NavigateTo("/Home");
+    }
 }

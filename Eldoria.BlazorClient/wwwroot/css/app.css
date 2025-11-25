@@ -297,7 +297,14 @@ body, button, span, p, h1, h2, h3, h4, h5, h6 {
     justify-content: center;
 }
 
+.no-scrollbar {
+    overflow-y: auto; 
+    scrollbar-width: none; 
+}
 
+    .no-scrollbar::-webkit-scrollbar {
+        display: none; 
+    }
 
 
 

@@ -3,7 +3,6 @@ using Eldoria.BlazorClient;
 using Eldoria.BlazorClient.Services;
 using Eldoria.BlazorClient.Services.Auth;
 using Eldoria.BlazorClient.Services.Interfaces;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -27,8 +26,8 @@ builder.Services.AddHttpClient("AuthClient", client =>
 .AddHttpMessageHandler<AuthMessageHandler>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
 builder.Services.AddScoped<IToastService, ToastService>();
+builder.Services.AddScoped<IJourneyService, JourneyService>();
 builder.Services.AddTransient<AuthMessageHandler>();
 
 await builder.Build().RunAsync();

@@ -7,9 +7,10 @@
 @code {
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Parameter] public TextSize Size { get; set; } = TextSize.Sm;
+    [Parameter] public TextColor Color { get; set; } = TextColor.black;
 
     private string CssClass =>
-        $"{GetSizeClass()}";
+        $"{GetSizeClass()} {GetTextColor()}";
 
     private string GetSizeClass() =>
         Size switch
@@ -21,5 +22,14 @@
             TextSize.Xl => "text-xl",
             TextSize.X2l => "text-x2l",
             _ => "text-md"
+        };
+
+    private string GetTextColor() =>
+        Color switch
+        {
+            TextColor.white => "text-white",
+            TextColor.black => "text-black",
+            TextColor.lightBlue => "text-light-blue",
+            _ => "text-black"
         };
 }

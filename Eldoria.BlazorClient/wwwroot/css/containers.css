@@ -9,3 +9,25 @@
     background-color: rgba(255, 255, 255, 0.80);
     width: 30%;
 }
+
+.nav-layout-body-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 15px;
+    padding-right: 120px;
+    padding-left: 120px;
+}
+
+.card-list-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.card-item-container {
+    border-radius: 10px;
+    background-color: var(--stone-800-60);
+    height: auto;
+    overflow: hidden;
+}

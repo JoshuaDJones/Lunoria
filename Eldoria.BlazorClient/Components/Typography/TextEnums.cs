@@ -9,4 +9,11 @@
         Xl,
         X2l,
     }
+
+    public enum TextColor
+    {
+        white,
+        black,
+        lightBlue
+    }
 }
