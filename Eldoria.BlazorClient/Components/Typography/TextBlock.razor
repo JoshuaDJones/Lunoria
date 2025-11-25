@@ -6,11 +6,12 @@
 
 @code {
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public string? TextClass { get; set; }
     [Parameter] public TextSize Size { get; set; } = TextSize.Sm;
     [Parameter] public TextColor Color { get; set; } = TextColor.black;
 
     private string CssClass =>
-        $"{GetSizeClass()} {GetTextColor()}";
+        $"{GetSizeClass()} {GetTextColor()} {TextClass}";
 
     private string GetSizeClass() =>
         Size switch
@@ -30,6 +31,10 @@
             TextColor.white => "text-white",
             TextColor.black => "text-black",
             TextColor.lightBlue => "text-light-blue",
+            TextColor.lightGreen => "text-light-green",
+            TextColor.darkGreen => "text-dark-green",
+            TextColor.lightRed => "text-light-red",
+            TextColor.darkRed => "text-dark-red",
             _ => "text-black"
         };
 }

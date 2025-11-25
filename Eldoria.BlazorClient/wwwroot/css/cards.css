@@ -1,0 +1,39 @@
+﻿.card-item-container {
+    border-radius: 10px;
+    background-color: var(--stone-800-60);
+    height: auto;
+    align-self: start;
+    overflow: hidden;
+}
+
+.card-content-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.card-data-section {
+    display: flex;
+    padding: 0;
+    gap: 5px;
+}
+
+.card-data-rows {
+    display: flex;
+    flex-direction: column;
+    width: 67%;
+}
+
+.card-img {
+    width: 33%;
+    align-self: start;
+    border-radius: 15px;
+}
+
+.card-action-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 10px;
+    gap: 5px;
+}

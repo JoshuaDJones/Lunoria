@@ -1,0 +1,41 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Typography
+
+<div class="character-spells-container">
+    <div class="spells-toggle-container">
+        <IconButton OnClick="HandleToggle" IconClass=@(_isOpen == true ? "fa-solid fa-circle-chevron-up text-white text-xl" : "fa-solid fa-circle-chevron-down text-white text-xl") />
+        <TextBlock Color="TextColor.white" Size="TextSize.Lg">Spells</TextBlock>
+    </div>
+
+    @if (_isOpen)
+    {
+        @foreach (var characterSpell in CharacterSpellsList)
+        {
+            <div class="card-data-section mt-4">
+                <div class="card-data-rows">
+                    <TextBlock Color="TextColor.white" Size="TextSize.Xl">@characterSpell.Spell.Name</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md" TextClass="mb-2">@characterSpell.Spell.Description</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md">Cost: @characterSpell.Spell.MpCost</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md">Range: @characterSpell.Spell.Range</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md">IsRadius: @characterSpell.Spell.IsRadius</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md">Damage Effect: @characterSpell.Spell.DamageEffect</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md">Health Effect: @characterSpell.Spell.HealthEffect</TextBlock>
+                    <TextBlock Color="TextColor.white" Size="TextSize.Md">Magic Effect: @characterSpell.Spell.MagicEffect</TextBlock>
+                </div>
+                <img class="card-img" src="@characterSpell.Spell.PhotoUrl" />
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<CharacterSpellDto> CharacterSpellsList { get; set; } = [];
+
+    private bool _isOpen = false;
+
+    private void HandleToggle()
+    {
+        _isOpen = !_isOpen;
+    }
+}

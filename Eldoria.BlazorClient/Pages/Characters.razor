@@ -1,11 +1,11 @@
 ﻿@layout NavLayout
 @page "/Characters"
 @using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Lists
 
 <div class="flex-center">
-    <Title Size="TitleSize.Sm">Characters</Title>
+    <Title Size="TitleSize.Xs">Characters</Title>
+    <CreateItemButton />
 </div>
-
-@code {
-
-}
+<CharactersList />

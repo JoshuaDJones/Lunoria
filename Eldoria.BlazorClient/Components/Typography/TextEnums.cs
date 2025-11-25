@@ -14,6 +14,10 @@
     {
         white,
         black,
-        lightBlue
+        lightBlue,
+        lightRed,
+        darkRed,
+        lightGreen,
+        darkGreen
     }
 }

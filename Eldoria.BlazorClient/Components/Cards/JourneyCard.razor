@@ -1,0 +1,26 @@
+﻿@using Eldoria.BlazorClient.Components.Cards
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Dtos
+
+<CardBase>
+    <DataContent>
+        <div class="card-data-rows">
+            <TextBlock Color="TextColor.white" Size="TextSize.X2l">@Journey.Name</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">@Journey.Description</TextBlock>
+        </div>
+
+        <img class="card-img" src="@Journey.PhotoUrl" />
+    </DataContent>
+
+    <ActionContent>
+        <Button Variant="ButtonVariant.Go">View</Button>
+        <Button Variant="ButtonVariant.Primary">Edit</Button>
+        <Button Variant="ButtonVariant.Warning">Delete</Button>
+    </ActionContent>
+</CardBase>
+
+
+@code {
+    [Parameter] public JourneyDto Journey { get; set; } = default!;
+}

@@ -1,0 +1,17 @@
+﻿        <div class="card-item-container">
+            <div class="card-content-container">
+                <div class="card-data-section">
+                    @DataContent
+                </div>                
+                @AdditionalContent
+                <div class="card-action-section">
+                    @ActionContent
+                </div>
+            </div>            
+        </div>
+
+@code {
+    [Parameter] public RenderFragment DataContent { get; set; } = default!;
+    [Parameter] public RenderFragment? AdditionalContent { get; set; }
+    [Parameter] public RenderFragment ActionContent { get; set; } = default!;
+}

@@ -1,7 +1,7 @@
 ﻿using Eldoria.BlazorClient.Common.Enums;
 using Eldoria.BlazorClient.Services.Interfaces;
 
-namespace Eldoria.BlazorClient.Services
+namespace Eldoria.BlazorClient.Services.Implementations
 {
     public class ToastService : IToastService
     {

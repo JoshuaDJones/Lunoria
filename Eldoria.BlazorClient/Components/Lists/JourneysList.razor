@@ -1,26 +1,11 @@
 ﻿@using Eldoria.BlazorClient.Dtos
-@using Eldoria.BlazorClient.Components.Typography
-@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Cards
 @inject Eldoria.BlazorClient.Services.Interfaces.IJourneyService JourneyService
 
-<div class="card-list-container">
+<div class="card-list-container no-scrollbar">
     @foreach(var journey in journeyList)
     {
-        <div class="card-item-container">
-            <div style="display: flex; flex-direction: column; padding:10px;">
-                <div style="display: flex; padding: 0;">
-                    <div style="display: flex; width: 67%; background-color: blue;">
-
-                    </div>
-                    <img style="width: 33%; border-radius: 15px;" src="@journey.PhotoUrl" />
-                </div>                
-                <div style="display: flex; align-items: center; justify-content: flex-end; margin-top: 10px; gap: 5px;">
-                    <Button Variant="ButtonVariant.Go">View</Button>
-                    <Button Variant="ButtonVariant.Primary">Edit</Button>
-                    <Button Variant="ButtonVariant.Warning">Delete</Button>
-                </div>
-            </div>            
-        </div>
+        <JourneyCard Journey="journey"/>
     }
 </div>
 

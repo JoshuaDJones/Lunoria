@@ -1,0 +1,9 @@
+﻿@using Eldoria.BlazorClient.Components.Buttons
+
+<Button OnClick="OnClick" Variant="ButtonVariant.Ghost">
+    <i class="fa-solid fa-circle-plus text-dark-green text-x2l"></i>
+</Button>
+
+@code {
+    [Parameter] public EventCallback OnClick { get; set; }
+}

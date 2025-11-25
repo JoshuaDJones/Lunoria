@@ -13,21 +13,31 @@
 .nav-layout-body-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
     padding: 15px;
     padding-right: 120px;
     padding-left: 120px;
+    overflow: hidden;
+    min-height: 0;
 }
 
 .card-list-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
+    overflow-y: auto;
+    grid-auto-rows: max-content;
 }
 
-.card-item-container {
-    border-radius: 10px;
-    background-color: var(--stone-800-60);
-    height: auto;
-    overflow: hidden;
+.character-spells-container {
+    border: 2px solid lightGray;
+    border-radius: 15px;
+    padding: 15px;
+    gap: 15px;
+}
+
+.spells-toggle-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }

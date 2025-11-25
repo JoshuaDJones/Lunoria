@@ -34,8 +34,20 @@
     color: var(--blue-400);
 }
 
+.text-light-green {
+    color: var(--green-400);
+}
+
 .text-dark-green {
     color: var(--green-900);
+}
+
+.text-light-red {
+    color: var(--red-400);
+}
+
+.text-dark-red {
+    color: var(--red-900);
 }
 
 h1 {

@@ -1,0 +1,37 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Cards
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Lists
+
+<CardBase>
+    <DataContent>
+        <div class="card-data-rows">
+            <TextBlock Color="TextColor.white" Size="TextSize.X2l">@Character.Name</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Md" TextClass="mb-2">@Character.Description</TextBlock>
+            <TextBlock Color="TextColor.lightRed" Size="TextSize.Lg">Max Hp: @Character.MaxHp</TextBlock>
+            <TextBlock Color="TextColor.lightGreen" Size="TextSize.Lg">Max Mp: @Character.MaxMp</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Melee Attack Damage: @Character.MeleeAttackDamage</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Bow Attack Damage: @Character.BowAttackDamage</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Movement: @Character.Movement</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Max Inventory: @Character.MaxInventory</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Is Player: @Character.IsPlayer</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Is Enemy: @Character.IsEnemy</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Is NPC: @Character.IsNPC</TextBlock>
+        </div>
+
+        <img class="card-img" src="@Character.PhotoUrl" />
+    </DataContent>
+    <AdditionalContent>
+        <ToggleSpellsList CharacterSpellsList="@Character.CharacterSpells" />
+    </AdditionalContent>
+    <ActionContent>
+        <Button Variant="ButtonVariant.Go">Spells</Button>
+        <Button Variant="ButtonVariant.Primary">Edit</Button>
+        <Button Variant="ButtonVariant.Warning">Delete</Button>
+    </ActionContent>
+</CardBase>
+
+@code {
+    [Parameter] public CharacterDto Character { get; set; } = default!;
+}

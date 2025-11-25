@@ -1,0 +1,19 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Cards
+@inject Eldoria.BlazorClient.Services.Interfaces.ICharacterService CharacterService
+
+<div class="card-list-container no-scrollbar">
+    @foreach (var character in characterList)
+    {
+        <CharacterCard Character="character" />
+    }
+</div>
+
+@code {
+    private List<CharacterDto> characterList = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        characterList = await CharacterService.GetCharacterListAsync();
+    }
+}

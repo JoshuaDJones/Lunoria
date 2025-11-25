@@ -2,7 +2,7 @@
 using Eldoria.BlazorClient.Services.Interfaces;
 using System.Net.Http.Json;
 
-namespace Eldoria.BlazorClient.Services
+namespace Eldoria.BlazorClient.Services.Implementations
 {
     public class JourneyService : IJourneyService
     {
