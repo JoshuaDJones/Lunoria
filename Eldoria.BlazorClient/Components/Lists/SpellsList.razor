@@ -1,0 +1,19 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Cards
+@inject Eldoria.BlazorClient.Services.Interfaces.ISpellService SpellService
+
+<div class="card-list-container no-scrollbar">
+    @foreach (var spell in spellsList)
+    {
+        <SpellCard Spell="spell"/>
+    }
+</div>
+
+@code {
+    private List<SpellDto> spellsList = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        spellsList = await SpellService.GetSpellsListAsync();
+    }
+}

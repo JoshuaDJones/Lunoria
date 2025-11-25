@@ -29,6 +29,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IToastService, ToastService>();
 builder.Services.AddScoped<IJourneyService, JourneyService>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<ISpellService, SpellService>();
 builder.Services.AddTransient<AuthMessageHandler>();
 
 await builder.Build().RunAsync();

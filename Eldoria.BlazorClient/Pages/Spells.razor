@@ -1,7 +1,11 @@
 ﻿@layout NavLayout
 @page "/Spells"
 @using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Lists
 
 <div class="flex-center">
-    <Title Size="TitleSize.Sm">Spells</Title>
+    <Title Size="TitleSize.Xs">Spells</Title>
+    <CreateItemButton />
 </div>
+<SpellsList />

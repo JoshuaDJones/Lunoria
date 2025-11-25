@@ -1,0 +1,30 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Cards
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Lists
+
+<CardBase>
+    <DataContent>
+        <div class="card-data-rows">
+            <TextBlock Color="TextColor.white" Size="TextSize.X2l">@Spell.Name</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Md" TextClass="mb-2">@Spell.Description</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Cost: @Spell.MpCost</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Range: @Spell.Range</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">IsRadius: @Spell.IsRadius</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Damage Effect: @Spell.DamageEffect</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Health Effect: @Spell.HealthEffect</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Lg">Magic Effect: @Spell.MagicEffect</TextBlock>
+        </div>
+
+        <img class="card-img" src="@Spell.PhotoUrl" />
+    </DataContent>
+    <ActionContent>
+        <Button Variant="ButtonVariant.Primary">Edit</Button>
+        <Button Variant="ButtonVariant.Warning">Delete</Button>
+    </ActionContent>
+</CardBase>
+
+@code {
+    [Parameter] public SpellDto Spell { get; set; } = default!;
+}
