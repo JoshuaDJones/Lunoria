@@ -27,6 +27,7 @@ builder.Services.AddHttpClient("AuthClient", client =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IToastService, ToastService>();
+builder.Services.AddScoped<IModalService, ModalService>();
 builder.Services.AddScoped<IJourneyService, JourneyService>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<ISpellService, SpellService>();

@@ -1,0 +1,18 @@
+﻿@inject Eldoria.BlazorClient.Services.Interfaces.IModalService ModalService
+
+<div class=@($"modal-root {(ModalService.Stack.Count > 0 ? "modal-expand" : "")}")>
+    @foreach (var fragment in ModalService.Stack)
+        @fragment
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ModalService.OnChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ModalService.OnChanged -= StateHasChanged;
+    }
+}

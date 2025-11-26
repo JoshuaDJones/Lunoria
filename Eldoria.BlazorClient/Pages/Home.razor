@@ -1,12 +1,25 @@
 ﻿@layout NavLayout
 @page "/Home"
+@using Eldoria.BlazorClient.Components.Modals
 @using Eldoria.BlazorClient.Components.Typography
 @using Eldoria.BlazorClient.Components.Buttons
 @using Eldoria.BlazorClient.Components.Lists
+@inject Eldoria.BlazorClient.Services.Interfaces.IModalService ModalService
 
 <div class="flex-center">
     <Title Size="TitleSize.Xs">Journeys</Title>
-    <CreateItemButton />
+    <CreateItemButton OnClick="OpenCreateModal"/>
 </div>
 <JourneysList />
+
+@code {
+    private void OpenCreateModal()
+    {
+        ModalService.Push(builder =>
+        {
+            builder.OpenComponent(0, typeof(ModalBackDrop));
+            builder.CloseComponent();
+        });
+    }
+}
 
