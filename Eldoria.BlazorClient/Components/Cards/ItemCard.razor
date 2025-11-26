@@ -1,0 +1,26 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Cards
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Lists
+
+<CardBase>
+    <DataContent>
+        <div class="card-data-rows">
+            <TextBlock Color="TextColor.white" Size="TextSize.X2l">@Item.Name</TextBlock>
+            <TextBlock Color="TextColor.white" Size="TextSize.Md" TextClass="mb-2">@Item.Description</TextBlock>
+            <TextBlock Color="TextColor.lightRed" Size="TextSize.Lg">Cost: @Item.HpEffect</TextBlock>
+            <TextBlock Color="TextColor.lightGreen" Size="TextSize.Lg">Cost: @Item.MpEffect</TextBlock>
+        </div>
+
+        <img class="card-img" src="@Item.PhotoUrl" />
+    </DataContent>
+    <ActionContent>
+        <Button Variant="ButtonVariant.Primary">Edit</Button>
+        <Button Variant="ButtonVariant.Warning">Delete</Button>
+    </ActionContent>
+</CardBase>
+
+@code {
+    [Parameter] public ItemDto Item { get; set; } = default!;
+}

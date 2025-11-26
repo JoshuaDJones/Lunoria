@@ -1,0 +1,19 @@
+﻿@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.Components.Cards
+@inject Eldoria.BlazorClient.Services.Interfaces.IItemService ItemService
+
+<div class="card-list-container no-scrollbar">
+    @foreach (var item in itemsList)
+    {
+        <ItemCard Item="item"/>
+    }
+</div>
+
+@code {
+    private List<ItemDto> itemsList = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        itemsList = await ItemService.GetItemsListAsync();
+    }
+}
