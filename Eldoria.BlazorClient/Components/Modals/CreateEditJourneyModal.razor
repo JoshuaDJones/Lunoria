@@ -1,0 +1,65 @@
+﻿@using Eldoria.BlazorClient.Components.Modals
+@using Eldoria.BlazorClient.Components.Inputs
+@using Eldoria.BlazorClient.Components.Buttons
+@using Eldoria.BlazorClient.Dtos
+@using Eldoria.BlazorClient.ViewModels
+@using Microsoft.AspNetCore.Components.Forms
+
+<EditForm EditContext="@_editContext" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+
+    <ModalBase Title="@_title">
+        <Content>
+            <Input Title="Name" Theme="InputTheme.light" @bind-Value="_model.Name" />
+            <ValidationMessage For="@(() => _model.Name)" />
+
+            <Input Class="mt-5" Title="Description" Theme="InputTheme.light" @bind-Value="_model.Description" />
+            <ValidationMessage For="@(() => _model.Description)" />
+
+            <PhotoInput Title="Photo"
+                        Class="mt-5"
+                        Theme="InputTheme.light"
+                        OriginalPhotoUrl="@_model.ExistingPhotoUrl"
+                        @bind-Value="_model.NewPhoto" />
+
+            <ValidationMessage For="@(() => _model.ExistingPhotoUrl)" />
+            <ValidationMessage For="@(() => _model.NewPhoto)" />
+
+            <ValidationSummary />
+        </Content>
+
+        <Actions>
+            <Button Size="ButtonSize.Lg" type="submit">Save</Button>
+        </Actions>
+    </ModalBase>
+
+</EditForm>
+
+@code {
+    [Parameter] public JourneyDto? EditJourney { get; set; }
+
+    private string _title = "Create Journey";
+    private bool _isEdit => EditJourney is not null;
+    private CreateJourneyModel? _model;
+    private EditContext? _editContext;
+
+    protected override void OnInitialized()
+    {
+        if (_isEdit)
+            _title = "Edit Journey";
+
+        _model = new CreateJourneyModel
+        {
+            Name = EditJourney?.Name ?? "",
+            Description = EditJourney?.Description ?? "",
+            ExistingPhotoUrl = EditJourney?.PhotoUrl
+        };
+
+        _editContext = new EditContext(_model);
+    }
+
+    private void HandleSubmit()
+    {
+        // submit logic
+    }
+}

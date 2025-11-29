@@ -1,0 +1,73 @@
+﻿@using Eldoria.BlazorClient.Components.Typography
+@using Microsoft.AspNetCore.Components.Forms
+@inherits InputBase<IBrowserFile?>
+
+<div class="@ContainerClasses">
+    @if (!string.IsNullOrWhiteSpace(Title))
+    {
+        <TextBlock Size="TextSize.Lg"
+                   Color="@(Theme == InputTheme.light ? TextColor.white : TextColor.black)">
+            @Title
+        </TextBlock>
+    }
+
+    <InputFile OnChange="HandleFileChange"
+               Accept="image/png, image/jpeg" />
+
+    @if (!string.IsNullOrWhiteSpace(PreviewImageUrl))
+    {
+        <img src="@PreviewImageUrl"
+             class="card-img mt-3"
+             alt="Selected image preview" />
+    }
+
+    @if (string.IsNullOrWhiteSpace(PreviewImageUrl) && OriginalPhotoUrl is not null)
+    {
+        <img src="@OriginalPhotoUrl"
+             class="card-img mt-3"
+             alt="Selected image preview" />
+    }
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public InputTheme Theme { get; set; } = InputTheme.dark;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? OriginalPhotoUrl { get; set; }
+
+    private string? PreviewImageUrl { get; set; }
+
+    private string ContainerClasses =>
+        string.Join(" ",
+            new[]
+            {
+                "file-input-container",
+                Theme == InputTheme.light ? "text-white" : "text-black",
+                Class
+            }.Where(c => !string.IsNullOrWhiteSpace(c)));
+
+    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+            return;
+
+        CurrentValue = file;
+
+        EditContext?.NotifyFieldChanged(FieldIdentifier);
+
+        using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        var bytes = ms.ToArray();
+        PreviewImageUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+    }
+
+    protected override bool TryParseValueFromString(string value, out IBrowserFile? result, out string validationErrorMessage)
+    {
+        result = null;
+        validationErrorMessage = null;
+        return true;
+    }
+}

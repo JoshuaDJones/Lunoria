@@ -8,6 +8,8 @@
         Lg,
         Xl,
         X2l,
+        X3l,
+        X4l
     }
 
     public enum TextColor

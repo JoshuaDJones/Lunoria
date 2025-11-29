@@ -1,30 +1,32 @@
 ﻿@using Eldoria.BlazorClient.Components.Typography
 @using Eldoria.BlazorClient.Components.Buttons
 
-<div class="@($"inputTitleContainer {Class}")" @attributes="AdditionalAttributes">
+<div class="@RootClasses" @attributes="AdditionalAttributes">
     @if (!string.IsNullOrWhiteSpace(Title))
     {
-        <TextBlock Size="TextSize.Lg">@Title</TextBlock>
+        <TextBlock Size="TextSize.Lg" Color=@(Theme == InputTheme.light ? TextColor.white : TextColor.black)>@Title</TextBlock>
     }
 
-    <div class=@($"inputContainer {(!IsValid ? "invalidInputContainer" : "")} {(IsFocused ? "focusedInputContainer" : "")}")>
+    <div class="@InputContainerClasses">
         <input class="input"
                @onfocus="() => IsFocused = true"
                @onblur="() => IsFocused = false"
-               type="@(IsPassword && !IsPasswordVisible? "password" : "text")"
+               type="@(IsPassword && !IsPasswordVisible ? "password" : "text")"
                value="@Value"
                @oninput="HandleInput" />
-        
-        @if (IsPassword == true)
+
+        @if (IsPassword)
         {
             <IconButton OnClick="TogglePasswordVisibility"
-                        IconClass="@($"fa-solid {(IsPasswordVisible ? "fa-eye" : "fa-eye-slash")}")" />
+                        IconClass="@PasswordIconClass" />
         }
     </div>
 </div>
 
+
 @code {
     [Parameter] public string? Title { get; set; }
+    [Parameter] public InputTheme Theme { get; set; } = InputTheme.dark;
     [Parameter] public bool IsPassword { get; set; } = false;
     [Parameter] public bool IsValid { get; set; } = true;
 
@@ -35,8 +37,29 @@
     [Parameter] public string? Value { get; set; }
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    public bool IsPasswordVisible { get; set; } = false;
-    public bool IsFocused = false;
+    public bool IsFocused { get; set; }
+    public bool IsPasswordVisible { get; set; }
+
+    private string RootClasses =>
+        string.Join(" ",
+        new[]
+        {
+            "inputTitleContainer",
+            Class
+        }.Where(c => !string.IsNullOrWhiteSpace(c)));
+
+    private string InputContainerClasses =>
+        string.Join(" ",
+        new[]
+        {
+            "inputContainer",
+            Theme == InputTheme.light ? "lightInputBorder text-white" : "darkInputBorder text-black",
+            !IsValid ? "invalidInputContainer" : null,
+            IsFocused ? "focusedInputContainer" : null
+        }.Where(c => !string.IsNullOrWhiteSpace(c)));
+
+    private string PasswordIconClass =>
+        $"fa-solid {(IsPasswordVisible ? "fa-eye" : "fa-eye-slash")}";
 
     private async Task HandleInput(ChangeEventArgs e)
     {

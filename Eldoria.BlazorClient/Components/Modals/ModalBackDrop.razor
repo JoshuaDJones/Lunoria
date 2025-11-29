@@ -1,21 +1,11 @@
 ﻿@inject Eldoria.BlazorClient.Services.Interfaces.IModalService ModalService
 
 <div class="modal-backdrop" @onclick="CloseModal">
-    <div class=@($"modal-right {(_isActive ? "active" : "")}") @onclick:stopPropagation></div>
+    @ChildContent
 </div>
 
 @code {
-    private bool _isActive = false;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await Task.Yield();
-            _isActive = true;
-            StateHasChanged();
-        }
-    }
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
 
     private void CloseModal()
     {

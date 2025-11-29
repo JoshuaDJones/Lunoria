@@ -1,0 +1,47 @@
+﻿@using Eldoria.BlazorClient.Components.Modals
+@using Eldoria.BlazorClient.Components.Typography
+@using Eldoria.BlazorClient.Components.Buttons
+
+<ModalBackDrop>
+    <div class="@CssClass" @onclick:stopPropagation>
+        <div class="modal-title-section">
+            <TextBlock Size="TextSize.X3l" Color="TextColor.white">@Title</TextBlock>
+        </div>
+        <div class="modal-content-section no-scrollbar">
+            @Content
+        </div>
+        <div class="modal-actions-section">
+            @Actions
+        </div>
+    </div>
+</ModalBackDrop>
+
+@code {
+    private bool _isActive = false;
+    [Parameter] public ModalType Type { get; set; } = ModalType.Right;
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public RenderFragment Content { get; set; } = default!;
+    [Parameter] public RenderFragment Actions { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Yield();
+            _isActive = true;
+            StateHasChanged();
+        }
+    }
+
+    private string CssClass =>
+        $"{GetModalTypeClass()} {(_isActive ? "active" : "")}";
+
+    private string GetModalTypeClass() =>
+        Type switch
+        {
+            ModalType.Right => "modal-right",
+            ModalType.Left => "modal-left",
+            ModalType.Bottom => "modal-bottom",
+            _ => "modal-right"
+        };
+}

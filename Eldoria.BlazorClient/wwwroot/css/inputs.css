@@ -5,13 +5,20 @@
 
 .inputContainer {
     display: flex;
-    padding: 10px;
-    border: 2px solid black;
+    padding: 10px;    
     border-radius: 10px;
 }
 
+.lightInputBorder {
+    border: 2px solid white;
+}
+
+.darkInputBorder {
+    border: 2px solid black;
+}
+
 .focusedInputContainer {
-    border: 2px solid var(--blue-700);
+    border: 2px solid var(--blue-500);
 }
 
 .invalidInputContainer {
@@ -24,4 +31,9 @@
     box-sizing: border-box;
     width: 100%;
     background-color: transparent;    
+}
+
+.file-input-container {
+    display: flex;
+    flex-direction: column;
 }
