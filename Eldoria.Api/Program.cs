@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
-// 
+// trigger
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
