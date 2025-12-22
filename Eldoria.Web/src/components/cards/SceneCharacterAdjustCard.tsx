@@ -17,7 +17,6 @@ const SceneCharacterAdjustCard = ({
   const { showToast } = useToast();
   const { showLoading, closeLoading } = useLoading();
   const { patch } = useApi();
-  3;
 
   const character = sceneCharacter.character;
 

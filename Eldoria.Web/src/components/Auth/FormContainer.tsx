@@ -1,13 +1,10 @@
 import { Form } from "formik";
 import { InputHTMLAttributes, PropsWithChildren } from "react";
 
-interface FormContainerProps extends InputHTMLAttributes<HTMLFormElement> {}
-
 const FormContainer = ({
   children,
-  className,
   ...props
-}: PropsWithChildren<FormContainerProps>) => {
+}: PropsWithChildren<InputHTMLAttributes<HTMLFormElement>>) => {
   return (
     <div className="flex justify-center">
       <Form

@@ -37,6 +37,7 @@ const JourneyDetailsPage = () => {
         ToastType.error,
         3000,
       );
+      console.error(err);
     }
   };
 

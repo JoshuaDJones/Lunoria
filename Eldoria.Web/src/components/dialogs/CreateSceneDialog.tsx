@@ -48,6 +48,7 @@ const CreateSceneDialog = ({
       onDialogCreated();
     } catch (err) {
       showToast("Error", "Could not save scene dialog.", ToastType.error, 3000);
+      console.error(err);
     }
   };
 
