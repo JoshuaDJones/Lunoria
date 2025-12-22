@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { PropsWithChildren, ReactElement } from "react";
 import BackIconButton from "../buttons/BackIconButton";
-import Title, { TitleColor } from "../typography/Title";
+import { TitleColor } from "../typography/Title";
 
 interface PageContentProps extends PropsWithChildren {
   title?: string;
@@ -16,8 +16,6 @@ interface PageContentProps extends PropsWithChildren {
 }
 
 const PageContent = ({
-  title,
-  titleColor,
   children,
   noCentering,
   noTopMargin,

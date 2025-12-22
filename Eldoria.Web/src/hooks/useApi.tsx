@@ -1,7 +1,6 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import axios from "axios";
-import { useAuth } from "../providers/AuthProvider"; // adjust path
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../providers/AuthProvider";
 
 export const BASE_URL = "https://localhost:7006/api/v1";
 

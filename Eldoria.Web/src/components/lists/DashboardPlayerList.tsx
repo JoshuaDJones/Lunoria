@@ -1,4 +1,3 @@
-import React from "react";
 import { JourneyCharacterDto } from "../../types/journey";
 import DashboardPlayerCard from "../cards/DashboardPlayerCard";
 

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import AppPage from "../../components/layout/AppPage";
 import PageContent from "../../components/layout/PageContent";
 import { BASE_URL, useApi } from "../../hooks/useApi";
-import { useLoading } from "../../providers/LoadingProvider";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import { ItemDto } from "../../types/item";
 import AddEditItemModal from "../../components/modals/AddEditItemModal";

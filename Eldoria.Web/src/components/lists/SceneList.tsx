@@ -1,9 +1,6 @@
-import React from "react";
 import { SceneDto } from "../../types/scene";
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 import Text, { TextColor, TextSize } from "../typography/Text";
-import EditIconButton from "../buttons/EditIconButton";
-import DeleteIconButton from "../buttons/DeleteIconButton";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import ConfirmationModal from "../modals/ConfirmationModal";
 import { BASE_URL, useApi } from "../../hooks/useApi";
@@ -14,7 +11,6 @@ import AppButton, {
   AppButtonVariant,
 } from "../buttons/AppButton";
 import { useNavigate } from "react-router";
-import EditSceneDialogModal from "../modals/EditSceneDialogModal";
 
 interface SceneListProps {
   journeyId: number;
@@ -82,10 +78,6 @@ const SceneListItem = ({
         description={"Are you sure you want to delete this scene?"}
       />,
     );
-  };
-
-  const openDialogModal = () => {
-    modalRouter.push(<EditSceneDialogModal dialogs={scene.sceneDialogs} />);
   };
 
   const navigateScene = () => {

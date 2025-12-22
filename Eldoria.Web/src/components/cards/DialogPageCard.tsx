@@ -6,8 +6,7 @@ import DialogItemButton from "../dialogs/DialogItemButton";
 import Text, { TextColor, TextSize } from "../typography/Text";
 import EditDialogPage from "../dialogs/EditDialogPage";
 import { BASE_URL, useApi } from "../../hooks/useApi";
-import { ToastType, useToast } from "../../providers/ToastProvider";
-import ViewIconButton from "../buttons/ViewIconButton";
+import { useToast } from "../../providers/ToastProvider";
 
 interface DialogPageCardProps {
   dialogPage: DialogPageDto;

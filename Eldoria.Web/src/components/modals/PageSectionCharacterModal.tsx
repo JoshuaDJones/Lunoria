@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import AppModal from "./AppModal";
-import BottomModalContent from "./BottomModalContent";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { CharacterDto } from "../../types/character";
 import Text, { TextColor, TextSize } from "../typography/Text";
-import RightModalContent from "./RightModalContent";
 import LeftModalContent from "./LeftModalContent";
 import AppButton, {
   AppButtonSize,

@@ -1,24 +1,14 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import { DialogPageDto, SceneDialogDto } from "../../types/scene";
+import { SceneDialogDto } from "../../types/scene";
 import AppModal from "./AppModal";
 import {
-  faArrowAltCircleRight,
-  faArrowCircleLeft,
-  faArrowCircleRight,
   faArrowLeft,
   faArrowRight,
-  faClose,
-  faSquareXmark,
-  faWindowClose,
+  faSquareXmark
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import ViewDialogSection from "../dialogs/ViewDialogSection";
-
-interface ViewableDialogPage {
-  isViewing: boolean;
-  page: DialogPageDto;
-}
 
 interface ViewSceneDialogModalProps {
   sceneDialog: SceneDialogDto;

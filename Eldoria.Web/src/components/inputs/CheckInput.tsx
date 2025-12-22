@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import Text, { TextColor, TextSize } from "../typography/Text";
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 
 interface CheckInputProps {

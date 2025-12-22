@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { SceneDialogDto } from "../../types/scene";
-import CloseIconButton from "../buttons/CloseIconButton";
-import SaveIconButton from "../buttons/SaveIconButton";
 import AppInput from "../inputs/AppInput";
-import Text, { TextColor, TextSize } from "../typography/Text";
 import DialogInputError from "../inputs/DialogInputError";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";

@@ -6,8 +6,7 @@ import AppButton, {
 } from "../buttons/AppButton";
 import PageSectionCharacterModal from "../modals/PageSectionCharacterModal";
 import Text, { TextColor, TextSize } from "../typography/Text";
-import { faCircleXmark, faClose } from "@fortawesome/free-solid-svg-icons";
-import { useDebugValue } from "react";
+import { faClose } from "@fortawesome/free-solid-svg-icons";
 import clsx from "clsx";
 
 export interface DialogCharacter {

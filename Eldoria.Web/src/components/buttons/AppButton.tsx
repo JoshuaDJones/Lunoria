@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { ReactElement, ReactNode } from "react";
+import React, { ReactElement } from "react";
 
 export enum AppButtonVariant {
   primary,

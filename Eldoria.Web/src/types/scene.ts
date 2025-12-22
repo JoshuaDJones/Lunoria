@@ -1,4 +1,3 @@
-import SceneDashboard from "../pages/authenticated/SceneDashboard";
 import { CharacterDto } from "./character";
 import { ItemDto } from "./item";
 import { JourneyCharacterDto } from "./journey";

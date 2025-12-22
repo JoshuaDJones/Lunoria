@@ -1,4 +1,3 @@
-import React from "react";
 import { SceneCharacterDto } from "../../types/scene";
 import SceneCharacterAdjustCard from "../cards/SceneCharacterAdjustCard";
 

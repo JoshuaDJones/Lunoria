@@ -5,7 +5,6 @@ import AppButton, {
   AppButtonSize,
   AppButtonVariant,
 } from "../buttons/AppButton";
-import Toast from "../Toast";
 import Text, { TextColor, TextSize } from "../typography/Text";
 
 interface EnemyNPCActivationCardProps {

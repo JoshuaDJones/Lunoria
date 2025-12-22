@@ -15,13 +15,10 @@ import ConfirmationModal from "../modals/ConfirmationModal";
 import CharacterSpellsModal from "../modals/CharacterSpellsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowCircleDown,
-  faCaretDown,
   faCaretSquareDown,
   faCaretSquareUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import { SpellDto } from "../../types/spell";
 
 interface CharacterListProps {
   characters: CharacterDto[] | undefined;

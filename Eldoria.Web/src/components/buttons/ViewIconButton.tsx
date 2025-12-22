@@ -1,4 +1,4 @@
-import { faBinoculars, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faBinoculars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface ViewIconButtonProps {

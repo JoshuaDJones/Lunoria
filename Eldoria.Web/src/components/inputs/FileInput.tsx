@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef } from "react";
+import { ChangeEvent, useRef } from "react";
 import Text, { TextColor, TextSize } from "../typography/Text";
 import clsx from "clsx";
 import AppButton, {

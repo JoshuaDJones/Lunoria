@@ -1,6 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Title, { TitleColor, TitleSize } from "../typography/Title";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import CreateIconButton from "../buttons/CreateIconButton";
 import clsx from "clsx";
 

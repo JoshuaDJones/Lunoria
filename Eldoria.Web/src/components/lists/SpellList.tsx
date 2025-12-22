@@ -1,4 +1,3 @@
-import { JourneyDto } from "../../types/journey";
 import Text, { TextColor, TextSize } from "../typography/Text";
 import Title, { TitleColor, TitleSize } from "../typography/Title";
 import AppButton, {

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LeftModalContent from "./LeftModalContent";
-import Modal from "./Modal";
 import AppModal from "./AppModal";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import AppButton, {
@@ -10,7 +9,6 @@ import AppButton, {
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { CharacterDto } from "../../types/character";
 import JourneyCharacterList from "../lists/JourneyCharacterList";
-import { setIn } from "formik";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 
 interface JourneyPlayersModalProps {

@@ -1,4 +1,3 @@
-import Title from "../typography/Title";
 import AppModal from "./AppModal";
 import { RingLoader } from "react-spinners";
 

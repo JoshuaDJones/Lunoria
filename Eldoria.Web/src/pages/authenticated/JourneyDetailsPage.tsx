@@ -16,7 +16,6 @@ import { useModalRouter } from "../../providers/ModalRouterProvider";
 import JourneyPlayersModal from "../../components/modals/JourneyPlayersModal";
 import AddEditSceneModal from "../../components/modals/AddEditSceneModal";
 import SceneList from "../../components/lists/SceneList";
-import { TextSize } from "../../components/typography/Text";
 
 const JourneyDetailsPage = () => {
   const { get } = useApi();
