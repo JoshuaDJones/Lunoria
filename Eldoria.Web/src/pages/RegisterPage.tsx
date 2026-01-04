@@ -139,12 +139,6 @@ const RegisterPage = () => {
                     disabled={isSubmitting}
                     type="submit"
                   />
-                  <AppButton
-                    title="Back to Login"
-                    variant={AppButtonVariant.secondary}
-                    size={AppButtonSize.lg}
-                    onClick={() => navigate("/login")}
-                  />
                 </div>
               </FormContent>
             )}
