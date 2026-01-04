@@ -2,7 +2,11 @@ import { useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../providers/AuthProvider";
 
-export const BASE_URL = "https://localhost:7006/api/v1";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is not defined");
+}
 
 type QueryParams = { [key: string]: string | number | boolean | undefined };
 type ContentType = "application/json" | "multipart/form-data";
