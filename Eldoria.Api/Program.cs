@@ -1,4 +1,4 @@
-using Eldoria.Application;
+﻿using Eldoria.Application;
 using Eldoria.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -129,6 +129,12 @@ app.Use(async (context, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (ctx, next) =>
+{
+    Console.WriteLine($"➡️ {ctx.Request.Method} {ctx.Request.Path}");
+    await next();
+});
 
 app.MapControllers();
 

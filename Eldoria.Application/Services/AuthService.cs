@@ -40,6 +40,7 @@ namespace Eldoria.Application.Services
                 return invalid;
 
             var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+
             if (verificationResult == PasswordVerificationResult.Failed)
                 return invalid;
 
@@ -51,6 +52,7 @@ namespace Eldoria.Application.Services
             }
 
             var token = IssueJwt(user.Id.ToString(), user.Email, _configuration);
+
             return Result<AuthenticationTokenDto>.Ok(token);
         }
 
