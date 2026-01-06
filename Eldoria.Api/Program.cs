@@ -49,10 +49,7 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorizationBuilder()
-    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build());
+builder.Services.AddAuthorization();
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddInfrastructure(conn);
@@ -109,9 +106,13 @@ if (app.Environment.IsDevelopment())
 
     app.UseDeveloperExceptionPage();
     app.UseHttpLogging();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+
 }
+
+app.UseSwagger();
+app.UseSwaggerUI();
+app.MapSwagger().AllowAnonymous();
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
