@@ -1,4 +1,5 @@
-﻿using Eldoria.Core.Entities;
+﻿using Azure.Core.Extensions;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -65,7 +66,12 @@ namespace Eldoria.Infrastructure.Db.Configurations
 
             builder.HasMany(c => c.CharacterSpells)
                    .WithOne(s => s.Character)
-                   .HasForeignKey(c => c.SpellId)
+                   .HasForeignKey(c => c.CharacterId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(c => c.CharacterDialogSettings)
+                   .WithOne(d => d.Character)
+                   .HasForeignKey<CharacterDialogSettings>(d => d.CharacterId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

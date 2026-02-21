@@ -11,11 +11,10 @@ const ViewDialogSection = ({ pageSection }: ViewDialogSectionProps) => {
 
   return (
     <div
+      style={{borderColor: !isNarrator ? pageSection.character?.characterDialogSettings?.dialogActiveColor : "gray"}}
       className={clsx(
-        "border-4 relative flex flex-col rounded-xl w-[850px] bg-black/60",
+        "border-4 relative flex flex-col rounded-xl w-[850px] bg-black/60 opacity-30 hover:bg-black hover:opacity-100",
         {
-          "border-sky-600": !isNarrator,
-          "border-stone-500": isNarrator,
         },
       )}
     >
@@ -26,7 +25,7 @@ const ViewDialogSection = ({ pageSection }: ViewDialogSectionProps) => {
             src={pageSection.character.photoUrl}
           />
         )}
-        <Text textColor={TextColor.white}>
+        <Text size={TextSize.xl} textColor={TextColor.white}>
           {isNarrator ? "Narrator" : pageSection.character.name}
         </Text>
       </div>

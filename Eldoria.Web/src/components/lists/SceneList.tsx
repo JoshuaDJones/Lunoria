@@ -95,6 +95,10 @@ const SceneListItem = ({
           <Title size={TitleSize.medium} color={TitleColor.white}>
             {scene.name}
           </Title>
+          <div className="flex flex-col gap-4">
+            <Text textColor={TextColor.white}>
+            {scene.gridUrl}
+          </Text>
           <Text
             size={TextSize.xl}
             textColor={TextColor.custom}
@@ -102,6 +106,7 @@ const SceneListItem = ({
           >
             {scene.description}
           </Text>
+          </div>
         </div>
         <div className="w-[35%]">
           <img src={scene.photoUrl} className="rounded-xl" />

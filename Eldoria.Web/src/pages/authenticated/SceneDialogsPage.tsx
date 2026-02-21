@@ -29,6 +29,7 @@ const SceneDialogsPage = () => {
   const getSceneDialogs = async () => {
     try {
       const response = await get(`${BASE_URL}/SceneDialog/${sceneId}`);
+      console.log(response.value);
       setSceneDialogs(response.value);
     } catch (err) {
       console.error(err);
@@ -37,6 +38,7 @@ const SceneDialogsPage = () => {
   };
 
   useEffect(() => {
+    console.log("Fewpiohhhhhhhhhhhhhhhf");
     getSceneDialogs();
   }, []);
 

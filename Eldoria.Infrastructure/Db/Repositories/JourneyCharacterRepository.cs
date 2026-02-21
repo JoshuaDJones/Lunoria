@@ -28,6 +28,9 @@ namespace Eldoria.Infrastructure.Db.Repositories
                         .ThenInclude(af => af.CharacterSpells)
                             .ThenInclude(cs => cs.Spell)
                 .Include(jc => jc.Character)
+                    .ThenInclude(c => c.AlternateForm)
+                        .ThenInclude(af => af.CharacterDialogSettings)
+                .Include(jc => jc.Character)
                     .ThenInclude(c => c.CharacterSpells)
                 .Include(jc => jc.Character)
                     .ThenInclude(c => c.CharacterSpells)
@@ -37,6 +40,9 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Include(jc => jc.JourneyCharacterItems)
                 .Include(jc => jc.JourneyCharacterItems)
                     .ThenInclude(jci => jci.Item)
+                .Include(jc => jc.Character)
+                    .ThenInclude(c => c.CharacterDialogSettings
+                    )
                 .Where(jc => jc.JourneyId == journeyId)
                 .ToListAsync(ct);
         }

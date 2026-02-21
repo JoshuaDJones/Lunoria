@@ -26,7 +26,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .IsRequired();
 
             builder.HasOne(s => s.Character)
-                .WithMany()
+                .WithMany(c => c.DialogPageSections)
                 .HasForeignKey(s => s.CharacterId)
                 .OnDelete(DeleteBehavior.SetNull);
         }

@@ -24,7 +24,8 @@ namespace Eldoria.Application.Common
                 IsEnemy = character.IsEnemy,
                 AlternateForm = character.AlternateForm?.ToDto(),
                 CreateDate = character.CreateDate,
-                CharacterSpells = character.CharacterSpells.Select(s => s.ToDto()).ToList()
+                CharacterSpells = character.CharacterSpells.Select(s => s.ToDto()).ToList(),
+                CharacterDialogSettings = character.CharacterDialogSettings.ToDto()                
             };
         }
     }

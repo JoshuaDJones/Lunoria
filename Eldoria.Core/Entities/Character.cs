@@ -22,6 +22,7 @@
         public int? AlternateFormId { get; set; }
         public Character? AlternateForm { get; set; } = null!;
 
+        public CharacterDialogSettings CharacterDialogSettings { get; set; } = null!;
 
         public ICollection<CharacterSpell> CharacterSpells { get; set; } = [];
         public ICollection<DialogPageSection> DialogPageSections { get; set; } = [];

@@ -36,6 +36,7 @@ const SceneDashboard = () => {
           journeyId: journeyId!,
         },
       );
+      console.log(sceneDashboard);
       setSceneDashboard(sceneDashboard);
     } catch (err) {
       console.error(err);

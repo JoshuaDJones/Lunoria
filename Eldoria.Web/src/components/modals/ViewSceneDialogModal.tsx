@@ -17,6 +17,10 @@ interface ViewSceneDialogModalProps {
 const ViewSceneDialogModal = ({ sceneDialog }: ViewSceneDialogModalProps) => {
   const modalRouter = useModalRouter();
 
+
+  console.log("This is scene dialog")
+  console.log(sceneDialog);
+
   const pages = sceneDialog.dialogPages.sort((a, b) => a.orderNum - b.orderNum);
   const [viewableDialogPages, setViewableDialogPages] = useState(
     pages.map((p, idx) => {

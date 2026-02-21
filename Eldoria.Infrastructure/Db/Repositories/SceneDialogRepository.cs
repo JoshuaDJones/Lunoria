@@ -23,6 +23,10 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Include(sd => sd.DialogPages)
                     .ThenInclude(p => p.DialogPageSections)
                         .ThenInclude(s => s.Character)
+                .Include(sd => sd.DialogPages)
+                    .ThenInclude(p => p.DialogPageSections)
+                        .ThenInclude(s => s.Character)
+                            .ThenInclude(s => s.CharacterDialogSettings)
                 .Where(d => d.SceneId == sceneId)
                 .ToListAsync(ct);
         }

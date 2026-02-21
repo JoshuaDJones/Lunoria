@@ -22,5 +22,6 @@ namespace Eldoria.Application.Dtos
         public int? AlternateFormId { get; set; }
         public CharacterDto? AlternateForm { get; set; }
         public List<CharacterSpellDto>? CharacterSpells { get; set; } = [];
+        public CharacterDialogSettingsDto? CharacterDialogSettings { get; set; }
     }
 }

@@ -25,6 +25,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Include(c => c.CharacterSpells)
                 .ThenInclude(cp => cp.Spell)
                 .Include(c => c.AlternateForm)
+                    .ThenInclude(c => c.CharacterDialogSettings)
+                .Include(c => c.CharacterDialogSettings)
                 .AsQueryable();
 
             query = typeFilter switch

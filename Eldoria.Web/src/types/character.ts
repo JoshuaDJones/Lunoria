@@ -18,10 +18,17 @@ export interface CharacterDto {
   alternateFormId: number | null;
   alternateForm: CharacterDto | null;
   characterSpells: CharacterSpellDto[] | null;
+  characterDialogSettings: CharacterDialogSettingsDto | null;
 }
 
 export interface CharacterSpellDto {
   id: number;
   characterId: number;
   spell: SpellDto;
+}
+
+export interface CharacterDialogSettingsDto {
+  id: number;
+  dialogActiveColor: string;
+  dialogUnActiveColor: string;
 }
