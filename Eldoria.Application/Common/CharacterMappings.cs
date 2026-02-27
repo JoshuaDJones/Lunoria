@@ -25,7 +25,7 @@ namespace Eldoria.Application.Common
                 AlternateForm = character.AlternateForm?.ToDto(),
                 CreateDate = character.CreateDate,
                 CharacterSpells = character.CharacterSpells.Select(s => s.ToDto()).ToList(),
-                CharacterDialogSettings = character.CharacterDialogSettings.ToDto()                
+                CharacterDialogSettings = character.CharacterDialogSettings == null ? null : character.CharacterDialogSettings.ToDto()
             };
         }
     }

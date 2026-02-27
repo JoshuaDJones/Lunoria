@@ -11,6 +11,7 @@ import ConfirmationModal from "../modals/ConfirmationModal";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
 import { useNavigate } from "react-router";
+import EditJourneyIntroModal from "../modals/EditJourneyIntroModal";
 
 interface JourneyListProps {
   journeys: JourneyDto[] | undefined;
@@ -76,6 +77,12 @@ const JourneyListItem = ({
     );
   };
 
+  const openEditJourneyIntroModal = () => {
+        modalRouter.push(
+      <EditJourneyIntroModal />,
+    );
+  };
+
   return (
     <div
       className="rounded-xl p-3 flex flex-col bg-stone-800/50 cursor-pointer hover:bg-stone-700/80"
@@ -119,6 +126,12 @@ const JourneyListItem = ({
           title={"Delete"}
           onClick={openDeleteModal}
           variant={AppButtonVariant.warning}
+          size={AppButtonSize.sm}
+        />
+        <AppButton
+          title={"Intro"}
+          onClick={openEditJourneyIntroModal}
+          variant={AppButtonVariant.secondary}
           size={AppButtonSize.sm}
         />
       </div>

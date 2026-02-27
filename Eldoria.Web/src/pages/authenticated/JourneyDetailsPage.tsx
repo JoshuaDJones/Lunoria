@@ -15,6 +15,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import JourneyPlayersModal from "../../components/modals/JourneyPlayersModal";
 import AddEditSceneModal from "../../components/modals/AddEditSceneModal";
+import JourneyIntroModal from "../../components/modals/JourneyIntroModal";
 import SceneList from "../../components/lists/SceneList";
 
 const JourneyDetailsPage = () => {
@@ -45,8 +46,6 @@ const JourneyDetailsPage = () => {
     getJourney();
   }, []);
 
-  console.log(journey?.scenes);
-
   const openPlayersModal = () => {
     modalRouter.push(
       <JourneyPlayersModal
@@ -68,18 +67,34 @@ const JourneyDetailsPage = () => {
     );
   };
 
+    const openJourneyIntroModal = () => {
+    modalRouter.push(
+      <JourneyIntroModal />,
+    );
+  };
+
   return (
     <AppPage
       backgroundImage="/Stone_Background.png"
       pane={
-        <AppButton
-          onClick={openPlayersModal}
-          title={"Players"}
+        <div className="flex absolute bottom-[160px] -left-[135px] gap-2 rotate-90 z-20">
+          <AppButton
+          onClick={openJourneyIntroModal}
+          title={"Intro"}
           variant={AppButtonVariant.primary}
           size={AppButtonSize.lg}
           noRounded
-          className="absolute bottom-20 -left-16 rounded-t-2xl rotate-90 z-20"
+          className="rounded-t-2xl"
         />
+                  <AppButton
+          onClick={openPlayersModal}
+          title={"Players"}
+          variant={AppButtonVariant.go}
+          size={AppButtonSize.lg}
+          noRounded
+          className="rounded-t-2xl"
+        />
+        </div>        
       }
     >
       <PageContent useBackButton noTopMargin noCentering className="mt-10">
