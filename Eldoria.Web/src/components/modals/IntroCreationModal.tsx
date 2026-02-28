@@ -10,10 +10,12 @@ import Title, { TitleColor, TitleSize } from "../typography/Title";
 import Text, { TextColor, TextSize } from "../typography/Text";
 import HorizontalDivider from "../layout/HorizontalDivider";
 import IntroCreationTiles from "../lists/IntroCreationTiles";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fromDto, IntroPage, IntroPageDto, toDto } from "../../types/journey";
+import CreateEditIntroPage from "../sections/CreateEditIntroPage";
 
 enum IntroCreationState {
+  None,
   Create,
   Edit,
 }
@@ -25,13 +27,26 @@ interface IntroCreationModalProps {
 
 const IntroCreationModal = ({
   introPages = [],
-  onRefreshRequest
+  onRefreshRequest,
 }: IntroCreationModalProps) => {
   const modalRouter = useModalRouter();
-  const originalIntroPages = introPages.sort((a, b) => a.order - b.order).map((ip) => fromDto(ip));
+  const originalIntroPages = useMemo(() => {
+    return [...introPages]
+      .sort((a, b) => a.order - b.order)
+      .map((ip) => fromDto(ip));
+  }, [introPages]);
 
-  const [introPagesState, setIntroPagesState] = useState<IntroPage[]>(originalIntroPages);
-  const [state, setState] = useState(IntroCreationState.Create);
+  const [workingIntroPages, setWorkingIntroPages] = useState<IntroPage[]>(() =>
+    structuredClone(originalIntroPages),
+  );
+  const [state, setState] = useState(IntroCreationState.None);
+  const [selectedIntroPage, setSelectedIntroPage] = useState<IntroPage | null>(
+    null,
+  );
+
+  useEffect(() => {
+    setWorkingIntroPages(structuredClone(originalIntroPages));
+  }, [originalIntroPages]);
 
   const renderStatusIndicator = () => {
     return state === IntroCreationState.Create ? (
@@ -70,7 +85,14 @@ const IntroCreationModal = ({
         </Title>
         <HorizontalDivider />
 
-        <IntroCreationTiles />
+        <IntroCreationTiles
+          workingIntroPages={workingIntroPages}
+          onAddNew={() => setState(IntroCreationState.Create)}
+          onEdit={(introPage) => {
+            setSelectedIntroPage(introPage);
+            setState(IntroCreationState.Edit);
+          }}
+        />
 
         <HorizontalDivider />
 
@@ -78,16 +100,39 @@ const IntroCreationModal = ({
           {renderStatusIndicator()}
         </div>
 
-        <Title
-          size={TitleSize.small}
-          color={TitleColor.white}
-          className="self-center mt-3 mb-1"
-        >
-          Please Select A Style
-        </Title>
-        <div className="flex-1 flex flex-col justify-start gap-2 px-[300px] overflow-y-auto scrollbar-hide pt-5">
-          <div></div>
-        </div>
+        <CreateEditIntroPage
+          introPage={selectedIntroPage ?? undefined}
+          onSave={(introPage) => {
+            // if id is undefined, it's a new intro page, otherwise it's an edit
+            // put it into the working intro pages state, replacing the old one if it's an edit
+            setWorkingIntroPages((prev) => {
+              if (introPage.id === undefined) {
+                // new intro page, add it to the end of the list with a temporary id
+                const newIntroPage = {
+                  ...introPage,
+                  id: Math.floor(Math.random() * 1000000) * -1, // temporary negative id to avoid conflicts with existing pages
+                  order:
+                    prev.length > 0
+                      ? Math.max(...prev.map((ip) => ip.order)) + 1
+                      : 0, // set order to be last
+                };
+                return [...prev, newIntroPage];
+              } else {
+                // existing intro page, replace it in the list
+                return prev.map((ip) =>
+                  ip.id === introPage.id ? introPage : ip,
+                );
+              }
+            });
+
+            setState(IntroCreationState.None);
+            setSelectedIntroPage(null);
+          }}
+          onCancel={() => {
+            setState(IntroCreationState.None);
+            setSelectedIntroPage(null);
+          }}
+        />
       </div>
     </AppModal>
   );

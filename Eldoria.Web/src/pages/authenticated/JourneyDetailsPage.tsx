@@ -71,9 +71,12 @@ const JourneyDetailsPage = () => {
   };
 
   const openIntroCreateModal = () => {
-    modalRouter.push(<IntroCreationModal 
-      introPages={journey?.introPages ?? []}
-      onRefreshRequest={async () => await getJourney()} />);
+    modalRouter.push(
+      <IntroCreationModal
+        introPages={journey?.introPages ?? []}
+        onRefreshRequest={async () => await getJourney()}
+      />,
+    );
   };
 
   return (
