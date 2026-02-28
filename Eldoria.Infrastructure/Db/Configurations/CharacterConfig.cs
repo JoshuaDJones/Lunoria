@@ -1,12 +1,6 @@
-﻿using Azure.Core.Extensions;
-using Eldoria.Core.Entities;
+﻿using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Eldoria.Infrastructure.Db.Configurations
 {
@@ -58,6 +52,17 @@ namespace Eldoria.Infrastructure.Db.Configurations
 
             builder.Property(c => c.UpdateDate)
                 .IsRequired();
+
+            // Soft delete configuration
+            builder.Property(c => c.IsDeleted)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            builder.Property(c => c.DeletedAt)
+                .IsRequired(false);
+
+            // Global query filter to exclude soft-deleted characters
+            builder.HasQueryFilter(c => !c.IsDeleted);
 
             builder.HasOne(c => c.AlternateForm)
                    .WithOne()

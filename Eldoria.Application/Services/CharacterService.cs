@@ -59,14 +59,11 @@ namespace Eldoria.Application.Services
             if (character is null)
                 return Result.Fail(new Error("Character.NotFound", "Character was not found."));
 
-            var associatedCharacterSpells = await _characterSpellRepository.GetCharacterSpells(id, ct);
+            // Soft delete - set IsDeleted flag and DeletedAt timestamp
+            character.IsDeleted = true;
+            character.DeletedAt = DateTime.UtcNow;
 
-            foreach(var characterSpell in associatedCharacterSpells)
-            {
-                _characterSpellRepository.Remove(characterSpell);
-            }
-
-            _characterRepository.Remove(character);
+            _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);
 
             return Result.Ok();

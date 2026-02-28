@@ -96,16 +96,14 @@ const SceneListItem = ({
             {scene.name}
           </Title>
           <div className="flex flex-col gap-4">
-            <Text textColor={TextColor.white}>
-            {scene.gridUrl}
-          </Text>
-          <Text
-            size={TextSize.xl}
-            textColor={TextColor.custom}
-            className="text-gray-400"
-          >
-            {scene.description}
-          </Text>
+            <Text textColor={TextColor.white}>{scene.gridUrl}</Text>
+            <Text
+              size={TextSize.xl}
+              textColor={TextColor.custom}
+              className="text-gray-400"
+            >
+              {scene.description}
+            </Text>
           </div>
         </div>
         <div className="w-[35%]">

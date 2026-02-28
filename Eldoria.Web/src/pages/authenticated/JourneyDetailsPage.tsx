@@ -9,7 +9,10 @@ import { useParams } from "react-router";
 import { JourneyDto } from "../../types/journey";
 import { BASE_URL, useApi } from "../../hooks/useApi";
 import { ToastType, useToast } from "../../providers/ToastProvider";
-import Title, { TitleColor, TitleSize } from "../../components/typography/Title";
+import Title, {
+  TitleColor,
+  TitleSize,
+} from "../../components/typography/Title";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
@@ -17,6 +20,7 @@ import JourneyPlayersModal from "../../components/modals/JourneyPlayersModal";
 import AddEditSceneModal from "../../components/modals/AddEditSceneModal";
 import JourneyIntroModal from "../../components/modals/JourneyIntroModal";
 import SceneList from "../../components/lists/SceneList";
+import IntroCreationModal from "../../components/modals/IntroCreationModal";
 
 const JourneyDetailsPage = () => {
   const { get } = useApi();
@@ -67,10 +71,8 @@ const JourneyDetailsPage = () => {
     );
   };
 
-    const openJourneyIntroModal = () => {
-    modalRouter.push(
-      <JourneyIntroModal />,
-    );
+  const openIntroCreateModal = () => {
+    modalRouter.push(<IntroCreationModal />);
   };
 
   return (
@@ -79,22 +81,22 @@ const JourneyDetailsPage = () => {
       pane={
         <div className="flex absolute bottom-[160px] -left-[135px] gap-2 rotate-90 z-20">
           <AppButton
-          onClick={openJourneyIntroModal}
-          title={"Intro"}
-          variant={AppButtonVariant.primary}
-          size={AppButtonSize.lg}
-          noRounded
-          className="rounded-t-2xl"
-        />
-                  <AppButton
-          onClick={openPlayersModal}
-          title={"Players"}
-          variant={AppButtonVariant.go}
-          size={AppButtonSize.lg}
-          noRounded
-          className="rounded-t-2xl"
-        />
-        </div>        
+            onClick={openIntroCreateModal}
+            title={"Intro"}
+            variant={AppButtonVariant.primary}
+            size={AppButtonSize.lg}
+            noRounded
+            className="rounded-t-2xl"
+          />
+          <AppButton
+            onClick={openPlayersModal}
+            title={"Players"}
+            variant={AppButtonVariant.go}
+            size={AppButtonSize.lg}
+            noRounded
+            className="rounded-t-2xl"
+          />
+        </div>
       }
     >
       <PageContent useBackButton noTopMargin noCentering className="mt-10">
@@ -104,7 +106,11 @@ const JourneyDetailsPage = () => {
           </div>
           <div className="flex flex-col w-[60%]">
             <div className="flex w-full border-b-4 border-black items-center">
-              <Title className="flex-1" color={TitleColor.default} size={TitleSize.medium}>
+              <Title
+                className="flex-1"
+                color={TitleColor.default}
+                size={TitleSize.medium}
+              >
                 Scenes
               </Title>
               <AppButton

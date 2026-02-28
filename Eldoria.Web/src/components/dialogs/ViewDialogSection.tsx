@@ -11,11 +11,14 @@ const ViewDialogSection = ({ pageSection }: ViewDialogSectionProps) => {
 
   return (
     <div
-      style={{borderColor: !isNarrator ? pageSection.character?.characterDialogSettings?.dialogActiveColor : "gray"}}
+      style={{
+        borderColor: !isNarrator
+          ? pageSection.character?.characterDialogSettings?.dialogActiveColor
+          : "gray",
+      }}
       className={clsx(
         "border-4 relative flex flex-col rounded-xl w-[850px] bg-black/60 opacity-30 hover:bg-black hover:opacity-100",
-        {
-        },
+        {},
       )}
     >
       <div className="flex m-2 items-center gap-3">

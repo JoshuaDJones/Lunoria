@@ -11,8 +11,12 @@ export enum TitleSize {
 
 export enum TitleColor {
   default = "default",
-  stone800 = "stone800",
+  stone300 = "stone300",
+  stone400 = "stone400",
+  stone500 = "stone500",
+  stone600 = "stone600",
   stone700 = "stone700",
+  stone800 = "stone800",
   white = "white",
 }
 
@@ -38,8 +42,12 @@ const Title = ({
 
   const colorClasses: Record<TitleColor, string> = {
     [TitleColor.default]: "text-black",
-    [TitleColor.stone800]: "text-stone-800",
+    [TitleColor.stone300]: "text-stone-300",
+    [TitleColor.stone400]: "text-stone-400",
+    [TitleColor.stone500]: "text-stone-500",
+    [TitleColor.stone600]: "text-stone-600",
     [TitleColor.stone700]: "text-stone-700",
+    [TitleColor.stone800]: "text-stone-800",
     [TitleColor.white]: "text-white",
   };
 

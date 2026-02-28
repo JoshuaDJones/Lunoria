@@ -5,7 +5,7 @@ import AppModal from "./AppModal";
 import {
   faArrowLeft,
   faArrowRight,
-  faSquareXmark
+  faSquareXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import ViewDialogSection from "../dialogs/ViewDialogSection";

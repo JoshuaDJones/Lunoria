@@ -15,5 +15,6 @@
 
         public ICollection<Scene> Scenes { get; set; } = [];
         public ICollection<JourneyCharacter> JourneyCharacters { get; set; } = [];
+        public ICollection<IntroPage> IntroPages { get; set; } = [];
     }
 }
