@@ -30,6 +30,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return await _dbContext.Journeys
                 .AsNoTracking()
                 .Include(j => j.Scenes)
+                .Include(j => j.IntroPages)
                 .Include(j => j.JourneyCharacters)
                     .ThenInclude(jc => jc.Character)
                 .Include(j => j.JourneyCharacters)

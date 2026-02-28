@@ -22,6 +22,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .WithMany(jc => jc.JourneyCharacterItems)
                    .HasForeignKey(c => c.JourneyCharacterId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasQueryFilter(c => !c.JourneyCharacter.Character.IsDeleted);
         }
     }
 }

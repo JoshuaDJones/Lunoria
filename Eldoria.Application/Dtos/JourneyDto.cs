@@ -9,5 +9,6 @@
         public DateTime CreateDate { get; set; }
         public List<SceneDto>? Scenes { get; set; } = [];
         public List<JourneyCharacterDto>? JourneyCharacters { get; set; } = [];
+        public List<IntroPageDto>? IntroPages { get; set; } = [];
     }
 }

@@ -52,6 +52,7 @@ namespace Eldoria.Application.Services
                 CreateDate = journey.CreateDate,
                 Scenes = journey.Scenes.Select(jc => jc.ToDto()).ToList(),
                 JourneyCharacters = journey.JourneyCharacters.Select(jc => jc.ToDto()).ToList(),
+                IntroPages = journey.IntroPages.Select(ip => ip.ToDto()).ToList()
             };
 
             return Result<JourneyDto>.Ok(journeyDto);            

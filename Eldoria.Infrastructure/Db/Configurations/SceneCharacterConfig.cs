@@ -31,6 +31,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .WithOne(i => i.SceneCharacter)
                    .HasForeignKey(i => i.SceneCharacterId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasQueryFilter(c => !c.Character.IsDeleted);
         }
     }
 }

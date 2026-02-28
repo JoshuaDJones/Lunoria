@@ -19,7 +19,6 @@
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
 
-        // Soft delete properties
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
 
