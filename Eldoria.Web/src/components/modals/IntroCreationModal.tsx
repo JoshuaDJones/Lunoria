@@ -40,22 +40,6 @@ const IntroCreationModal = (props: IntroCreationModalProps) => {
     );
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <AppModal centerContent>
       <div className="flex flex-col h-full w-full bg-stone-900/80 backdrop-blur-md px-5 py-2 relative">
