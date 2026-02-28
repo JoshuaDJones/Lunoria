@@ -9,5 +9,6 @@ namespace Eldoria.Application.Dtos
         public int Order { get; set; }
         public IntroPageType Type { get; set; }
         public string Config { get; set; } = "{}";
+        public string? PreviewPhotoUrl { get; set; }
     }
 }

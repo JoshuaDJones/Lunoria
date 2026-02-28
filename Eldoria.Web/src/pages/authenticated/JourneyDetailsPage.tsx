@@ -18,7 +18,6 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useModalRouter } from "../../providers/ModalRouterProvider";
 import JourneyPlayersModal from "../../components/modals/JourneyPlayersModal";
 import AddEditSceneModal from "../../components/modals/AddEditSceneModal";
-import JourneyIntroModal from "../../components/modals/JourneyIntroModal";
 import SceneList from "../../components/lists/SceneList";
 import IntroCreationModal from "../../components/modals/IntroCreationModal";
 
@@ -72,7 +71,9 @@ const JourneyDetailsPage = () => {
   };
 
   const openIntroCreateModal = () => {
-    modalRouter.push(<IntroCreationModal />);
+    modalRouter.push(<IntroCreationModal 
+      introPages={journey?.introPages ?? []}
+      onRefreshRequest={async () => await getJourney()} />);
   };
 
   return (

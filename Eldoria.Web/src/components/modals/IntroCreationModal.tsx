@@ -11,17 +11,26 @@ import Text, { TextColor, TextSize } from "../typography/Text";
 import HorizontalDivider from "../layout/HorizontalDivider";
 import IntroCreationTiles from "../lists/IntroCreationTiles";
 import { useState } from "react";
+import { fromDto, IntroPage, IntroPageDto, toDto } from "../../types/journey";
 
 enum IntroCreationState {
   Create,
   Edit,
 }
 
-interface IntroCreationModalProps {}
+interface IntroCreationModalProps {
+  introPages: IntroPageDto[];
+  onRefreshRequest: () => void;
+}
 
-const IntroCreationModal = (props: IntroCreationModalProps) => {
+const IntroCreationModal = ({
+  introPages = [],
+  onRefreshRequest
+}: IntroCreationModalProps) => {
   const modalRouter = useModalRouter();
+  const originalIntroPages = introPages.sort((a, b) => a.order - b.order).map((ip) => fromDto(ip));
 
+  const [introPagesState, setIntroPagesState] = useState<IntroPage[]>(originalIntroPages);
   const [state, setState] = useState(IntroCreationState.Create);
 
   const renderStatusIndicator = () => {

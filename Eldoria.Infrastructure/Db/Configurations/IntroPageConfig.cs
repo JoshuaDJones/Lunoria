@@ -21,6 +21,10 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(ip => ip.Order)
                 .IsRequired();
 
+            builder.Property(ip => ip.PreviewPhotoUrl)
+                .HasMaxLength(2048)
+                .IsRequired(false);
+
             builder.HasOne(ip => ip.Journey)
                 .WithMany(j => j.IntroPages)
                 .HasForeignKey(ip => ip.JourneyId)

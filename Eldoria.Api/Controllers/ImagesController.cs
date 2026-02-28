@@ -1,4 +1,5 @@
-﻿using Eldoria.Application.Dtos;
+﻿using Eldoria.Api.Requests;
+using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,9 +17,10 @@ namespace Eldoria.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ImageUploadResultDto>> UploadImage([FromForm] IFormFile file, [FromForm] string? name, CancellationToken ct)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ImageUploadResultDto>> UploadImage([FromForm] UploadImageRequest request, CancellationToken ct)
         {
-            var result = await _imagesService.SaveImageAsync(file, ct);
+            var result = await _imagesService.SaveImageAsync(request.File, ct);
 
             if (result.Success)
                 return Ok(result.Value);

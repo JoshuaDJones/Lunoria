@@ -13,7 +13,8 @@ namespace Eldoria.Application.Common
                 JourneyId = introPage.JourneyId,
                 Order = introPage.Order,
                 Type = introPage.Type,
-                Config = introPage.Config
+                Config = introPage.Config,
+                PreviewPhotoUrl = introPage.PreviewPhotoUrl
             };
         }
     }

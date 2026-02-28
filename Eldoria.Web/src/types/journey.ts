@@ -39,6 +39,7 @@ export interface IntroPageDto {
   order: number;
   type: IntroPageType;
   config: string;
+  previewPhotoUrl?: string;
 }
 
 export enum IntroPageType {
@@ -54,6 +55,7 @@ export type IntroPage =
       id?: number;
       journeyId: number;
       order: number;
+      previewPhotoUrl?: string;
       type: IntroPageType.ImageTop_ContentBottom;
       config: {
         imageUrl: string;
@@ -64,6 +66,7 @@ export type IntroPage =
       id?: number;
       journeyId: number;
       order: number;
+      previewPhotoUrl?: string;
       type: IntroPageType.ImageLeft_ContentRight;
       config: {
         imageUrl: string;
@@ -74,6 +77,7 @@ export type IntroPage =
       id?: number;
       journeyId: number;
       order: number;
+      previewPhotoUrl?: string;
       type: IntroPageType.ImageRight_ContentLeft;
       config: {
         imageUrl: string;
@@ -84,6 +88,7 @@ export type IntroPage =
       id?: number;
       journeyId: number;
       order: number;
+      previewPhotoUrl?: string;
       type: IntroPageType.ImageCenter_OverlayCenterText;
       config: {
         imageUrl: string;
@@ -94,6 +99,7 @@ export type IntroPage =
       id?: number;
       journeyId: number;
       order: number;
+      previewPhotoUrl?: string;
       type: IntroPageType.CharacterShowcase;
       config: {
         imageUrl: string;
