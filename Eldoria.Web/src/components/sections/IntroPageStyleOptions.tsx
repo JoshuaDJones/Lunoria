@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { IntroPageType } from "../../types/journey";
 import Text, { TextColor } from "../typography/Text";
 
@@ -28,7 +29,7 @@ const IntroPageStyleOptions = ({
 
     const renderImagePlaceholder = () => {
       return (
-        <div className="flex flex-1 bg-gradient-to-br from-gray-700 to-gray-900" />
+        <div className="flex flex-1 bg-gradient-to-br from-stone-400 to-stone-800" />
       );
     };
 
@@ -75,7 +76,7 @@ const IntroPageStyleOptions = ({
           );
         case IntroPageType.CharacterShowcase:
           return (
-            <div className="flex flex-1 gap-2">
+            <div className={clsx("flex flex-1 gap-2 w-[50%]", className)}>
               <div className="flex flex-1 flex-col">
                 {renderImagePlaceholder()}
                 <div className="flex flex-1 items-center justify-center">
@@ -114,7 +115,7 @@ const IntroPageStyleOptions = ({
         {renderOption(IntroPageType.ImageLeft_ContentRight)}
         {renderOption(IntroPageType.ImageRight_ContentLeft)}
       </div>
-      <div className="flex gap-4 justify-center items-center">
+      <div className="flex w-[50%] self-center">
         {renderOption(IntroPageType.CharacterShowcase, "w-[50%]")}
       </div>
     </div>
