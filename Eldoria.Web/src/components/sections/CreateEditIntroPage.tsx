@@ -4,9 +4,9 @@ import Title, { TitleColor, TitleSize } from "../typography/Title";
 import UpdateIntroPage from "./UpdateIntroPage";
 
 export enum CreateEditIntroPageState {
-  SelectStyle,
-  Create,
-  Edit,
+  CreateStyleSelect,
+  CreateContentSubmission,
+  EditContent,
 }
 
 interface CreateEditIntroPageProps {
@@ -22,8 +22,8 @@ const CreateEditIntroPage = ({
 }: CreateEditIntroPageProps) => {
   const [state, setState] = useState<CreateEditIntroPageState>(
     introPage?.id === undefined
-      ? CreateEditIntroPageState.SelectStyle
-      : CreateEditIntroPageState.Edit,
+      ? CreateEditIntroPageState.CreateStyleSelect
+      : CreateEditIntroPageState.EditContent,
   );
   const [workingIntroPage, setWorkingIntroPage] = useState<
     IntroPage | undefined
@@ -32,18 +32,18 @@ const CreateEditIntroPage = ({
   useEffect(() => {
     setState(
       introPage?.id === undefined
-        ? CreateEditIntroPageState.SelectStyle
-        : CreateEditIntroPageState.Edit,
+        ? CreateEditIntroPageState.CreateStyleSelect
+        : CreateEditIntroPageState.EditContent,
     );
     setWorkingIntroPage(introPage ? structuredClone(introPage) : undefined);
   }, [introPage]);
 
   const renderTitle = () => {
-    if (state === CreateEditIntroPageState.SelectStyle) {
+    if (state === CreateEditIntroPageState.CreateStyleSelect) {
       return "Please Select A Style";
-    } else if (state === CreateEditIntroPageState.Create) {
+    } else if (state === CreateEditIntroPageState.CreateContentSubmission) {
       return "Create Intro Page";
-    } else if (state === CreateEditIntroPageState.Edit) {
+    } else if (state === CreateEditIntroPageState.EditContent) {
       return "Edit Intro Page";
     }
   };

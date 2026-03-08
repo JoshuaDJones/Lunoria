@@ -3,7 +3,6 @@ import { IntroPage, IntroPageType } from "../../types/journey";
 import { CreateEditIntroPageState } from "./CreateEditIntroPage";
 import IntroPageStyleOptions from "./IntroPageStyleOptions";
 import Editor_ImageCenter_OverlayCenterText from "./Editor_ImageCenter_OverlayCenterText";
-import Text, {TextColor} from '../typography/Text';
 
 interface UpdateIntroPageProps {
   workingIntroPage?: IntroPage;
@@ -34,7 +33,7 @@ const UpdateIntroPage = ({
         introPageType={type}
         onSelect={(selectedType) => {
           setType(selectedType);
-          onStateChange && onStateChange(CreateEditIntroPageState.Create);
+          onStateChange && onStateChange(CreateEditIntroPageState.CreateContentSubmission);
         }}
       />
     );
@@ -67,9 +66,9 @@ const UpdateIntroPage = ({
 
   return (
     <div>
-      {state === CreateEditIntroPageState.SelectStyle && renderStyleOptions()}
-      {(state === CreateEditIntroPageState.Create ||
-        state === CreateEditIntroPageState.Edit) &&
+      {state === CreateEditIntroPageState.CreateStyleSelect && renderStyleOptions()}
+      {(state === CreateEditIntroPageState.CreateContentSubmission ||
+        state === CreateEditIntroPageState.EditContent) &&
         renderEditor()}
     </div>
   );
