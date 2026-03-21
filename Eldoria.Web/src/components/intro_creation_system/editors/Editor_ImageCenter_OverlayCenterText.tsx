@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { IntroPage } from '../../types/journey';
-import AppButton, { AppButtonSize, AppButtonVariant } from '../buttons/AppButton';
-import { useModalRouter } from '../../providers/ModalRouterProvider';
-import PhotoPickerModal from '../modals/PhotoPickerModal';
+import { IntroPage } from '../../../types/journey';
+import AppButton, { AppButtonSize, AppButtonVariant } from '../../buttons/AppButton';
+import { useModalRouter } from '../../../providers/ModalRouterProvider';
+import PhotoPickerModal from '../../modals/PhotoPickerModal';
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
 
 enum EditorState {

@@ -13,6 +13,7 @@ import SceneEditorPane from "../../components/panes/SceneEditorPane";
 import DashboardPlayerList from "../../components/lists/DashboardPlayerList";
 import DashboardSceneCharacterList from "../../components/lists/DashboardSceneCharacterList";
 import DashboardNpcList from "../../components/lists/DashboardNpcList";
+import SceneOptionsMenu from "../../components/panes/SceneOptionsMenu";
 
 const SceneDashboard = () => {
   const { id } = useParams();
@@ -86,14 +87,18 @@ const SceneDashboard = () => {
     <AppPage
       backgroundImage={"/Landing_Page.png"}
       pane={
-        <SceneEditorPane
-          sceneId={Number(id)}
-          sceneDialogs={scene?.sceneDialogs ?? []}
-          players={players}
-          enemies={scene?.sceneCharacters.filter((c) => c.character.isEnemy)}
-          npcs={scene?.sceneCharacters.filter((c) => c.character.isNPC)}
-          onRefreshRequest={async () => await getSceneDashboard()}
-        />
+        <>
+          <SceneEditorPane
+            sceneId={Number(id)}
+            sceneDialogs={scene?.sceneDialogs ?? []}
+            players={players}
+            enemies={scene?.sceneCharacters.filter((c) => c.character.isEnemy)}
+            npcs={scene?.sceneCharacters.filter((c) => c.character.isNPC)}
+            onRefreshRequest={async () => await getSceneDashboard()}
+          />
+
+          <SceneOptionsMenu />
+        </>
       }
     >
       <PageContent noTopMargin noCentering className="mt-5">

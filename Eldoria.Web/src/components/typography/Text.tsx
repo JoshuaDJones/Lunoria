@@ -18,6 +18,8 @@ export enum TextSize {
   base = "base",
   lg = "lg",
   xl = "xl",
+  x2l = "x2l",
+  x3l = "x3l"  
 }
 
 interface TextProps {
@@ -38,6 +40,8 @@ const Text = ({
     [TextSize.base]: "text-base",
     [TextSize.lg]: "text-lg",
     [TextSize.xl]: "text-2xl",
+    [TextSize.x2l]: "text-3xl",
+    [TextSize.x3l]: "text-4xl",
   };
 
   const colorClasses: Record<TextColor, string> = {

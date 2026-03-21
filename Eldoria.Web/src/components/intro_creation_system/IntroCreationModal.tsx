@@ -1,5 +1,5 @@
 import { useModalRouter } from "../../providers/ModalRouterProvider";
-import AppModal from "./AppModal";
+import AppModal from "../modals/AppModal";
 import AppButton, {
   AppButtonSize,
   AppButtonVariant,
@@ -12,7 +12,7 @@ import HorizontalDivider from "../layout/HorizontalDivider";
 import IntroCreationTiles from "../lists/IntroCreationTiles";
 import { useEffect, useMemo, useState } from "react";
 import { fromDto, IntroPage, IntroPageDto, toDto } from "../../types/journey";
-import CreateEditIntroPage from "../sections/CreateEditIntroPage";
+import CreateEditIntroPage from "./CreateEditIntroPage";
 
 enum IntroCreationState {
   None,
@@ -67,8 +67,17 @@ const IntroCreationModal = ({
   return (
     <AppModal centerContent>
       <div className="flex flex-col h-full w-full bg-stone-900/80 backdrop-blur-md px-5 py-2 relative">
-        <div className="flex justify-end absolute top-5 right-5">
+        <div className="flex w-full justify-between">
+
+          <Title
+          size={TitleSize.medium}
+          color={TitleColor.stone300}
+          className="self-center my-2"
+        >
+          Intro Creation System
+        </Title>
           <AppButton
+            className="self-center"
             onClick={modalRouter.pop}
             title={"Close"}
             variant={AppButtonVariant.warning}
@@ -76,23 +85,13 @@ const IntroCreationModal = ({
             rightIcon={<FontAwesomeIcon icon={faDoorOpen} />}
           />
         </div>
-        <Title
-          size={TitleSize.large}
-          color={TitleColor.stone300}
-          className="self-center my-2"
-        >
-          Intro Creation System
-        </Title>
-        <HorizontalDivider />
 
-        <IntroCreationTiles
-          workingIntroPages={workingIntroPages}
-          onAddNew={() => setState(IntroCreationState.Create)}
-          onEdit={(introPage) => {
-            setSelectedIntroPage(introPage);
-            setState(IntroCreationState.Edit);
-          }}
-        />
+
+                          {/* <FontAwesomeIcon icon={faPlus} size="lg" className="ml-2" />
+        
+import { faPlus } from "@fortawesome/free-solid-svg-icons"; */}
+
+
 
         <HorizontalDivider />
 
@@ -133,6 +132,16 @@ const IntroCreationModal = ({
             setSelectedIntroPage(null);
           }}
         />
+        
+
+        {/* <IntroCreationTiles
+          workingIntroPages={workingIntroPages}
+          onAddNew={() => setState(IntroCreationState.Create)}
+          onEdit={(introPage) => {
+            setSelectedIntroPage(introPage);
+            setState(IntroCreationState.Edit);
+          }}
+        /> */}
       </div>
     </AppModal>
   );

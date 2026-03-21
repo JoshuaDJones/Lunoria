@@ -19,7 +19,7 @@ import { useModalRouter } from "../../providers/ModalRouterProvider";
 import JourneyPlayersModal from "../../components/modals/JourneyPlayersModal";
 import AddEditSceneModal from "../../components/modals/AddEditSceneModal";
 import SceneList from "../../components/lists/SceneList";
-import IntroCreationModal from "../../components/modals/IntroCreationModal";
+import IntroCreationModal from "../../components/intro_creation_system/IntroCreationModal";
 
 const JourneyDetailsPage = () => {
   const { get } = useApi();
@@ -103,7 +103,7 @@ const JourneyDetailsPage = () => {
         </div>
       }
     >
-      <PageContent useBackButton noTopMargin noCentering className="mt-10">
+      <PageContent noTopMargin noCentering className="mt-10">
         <div className="flex">
           <div className="flex w-[40%] justify-center items-start">
             <img className="w-[80%] rounded-3xl" src={journey?.photoUrl} />

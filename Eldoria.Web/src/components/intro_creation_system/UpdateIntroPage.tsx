@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { IntroPage, IntroPageType } from "../../types/journey";
 import { CreateEditIntroPageState } from "./CreateEditIntroPage";
 import IntroPageStyleOptions from "./IntroPageStyleOptions";
-import Editor_ImageCenter_OverlayCenterText from "./Editor_ImageCenter_OverlayCenterText";
+import Editor_ImageCenter_OverlayCenterText from "./editors/Editor_ImageCenter_OverlayCenterText";
 
 interface UpdateIntroPageProps {
   workingIntroPage?: IntroPage;
