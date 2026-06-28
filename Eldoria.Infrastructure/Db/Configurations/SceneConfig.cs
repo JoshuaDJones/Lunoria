@@ -30,6 +30,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .IsRequired()
                 .HasMaxLength(250);
 
+            builder.Property(s => s.SortOrder)
+                .IsRequired();
+
             builder.Property(s => s.CreateDate)
                 .IsRequired();
 
@@ -45,6 +48,11 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .WithOne(sc => sc.Scene)
                    .HasForeignKey(s => s.SceneId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.ProgressRecords)
+                   .WithOne(p => p.Scene)
+                   .HasForeignKey(p => p.SceneId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

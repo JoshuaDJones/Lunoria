@@ -8,12 +8,14 @@
         public string PhotoUrl { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public string GridUrl { get; set; } = string.Empty;
+        public int SortOrder { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
 
         public int JourneyId { get; set; }
         public Journey Journey { get; set; } = null!;
 
+        public ICollection<SceneProgress> ProgressRecords { get; set; } = [];
         public ICollection<SceneDialog> SceneDialogs { get; set; } = [];
         public ICollection<SceneCharacter> SceneCharacters { get; set; } = [];
     }

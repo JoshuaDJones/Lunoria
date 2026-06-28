@@ -32,16 +32,17 @@ namespace Eldoria.Application.Services
                 Description = description,
                 PhotoUrl = photoUrl,
                 FileName = fileName,
-                MaxHp = maxHp,
-                MaxMp = maxMp,
-                MeleeAttackDamage = meleeAttackDamage,
-                BowAttackDamage = bowAttackDamage,
-                Movement = movement,
-                MaxInventory = maxInventory,
+                BaseMaxHp = maxHp,
+                BaseMaxMp = maxMp,
+                BaseMeleeAttackDamage = meleeAttackDamage,
+                BaseBowAttackDamage = bowAttackDamage,
+                BaseMovement = movement,
+                BaseMaxConsumableInventory = maxInventory,
+                BaseMaxEquippableInventory = maxInventory,
                 IsPlayer = isPlayer,
                 IsNPC = isNPC,
                 IsEnemy = isEnemy,
-                AlternateFormId = alternateFormId,
+                BaseAlternateFormId = alternateFormId,
                 CreateDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow,
             };
@@ -76,8 +77,8 @@ namespace Eldoria.Application.Services
             if (character is null)
                 return Result<CharacterDto>.Fail(new Error("Character.NotFound", "Character was not found"));
 
-            if (character.AlternateFormId is int altId)
-                character.AlternateForm = await _characterRepository.GetByIdAsync(altId, ct);
+            if (character.BaseAlternateFormId is int altId)
+                character.BaseAlternateForm = await _characterRepository.GetByIdAsync(altId, ct);
 
             var associatedCharacterSpells = await _characterSpellRepository.GetCharacterSpells(id, ct);
             var characterSpellDtos = associatedCharacterSpells.Select(s => s.ToDto()).ToList();            
@@ -127,16 +128,17 @@ namespace Eldoria.Application.Services
                 character.FileName = fileName;
             }
 
-            character.MaxHp = maxHp;
-            character.MaxMp = maxMp;
-            character.MeleeAttackDamage = meleeAttackDamage;
-            character.BowAttackDamage = bowAttackDamage;
-            character.Movement = movement;
-            character.MaxInventory = maxInventory;
+            character.BaseMaxHp = maxHp;
+            character.BaseMaxMp = maxMp;
+            character.BaseMeleeAttackDamage = meleeAttackDamage;
+            character.BaseBowAttackDamage = bowAttackDamage;
+            character.BaseMovement = movement;
+            character.BaseMaxConsumableInventory = maxInventory;
+            character.BaseMaxEquippableInventory = maxInventory;
             character.IsPlayer = isPlayer;
             character.IsNPC = isNPC;
             character.IsEnemy = isEnemy;
-            character.AlternateFormId = alternateFormId;
+            character.BaseAlternateFormId = alternateFormId;
 
             _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);

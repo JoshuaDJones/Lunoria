@@ -41,6 +41,11 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(c => c.UpdateDate)
                 .IsRequired();
 
+            builder.HasOne(s => s.SpellType)
+                   .WithMany(st => st.Spells)
+                   .HasForeignKey(s => s.SpellTypeId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasMany(s => s.CharacterSpells)
                    .WithOne(s => s.Spell)
                    .HasForeignKey(s => s.SpellId)

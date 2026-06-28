@@ -45,6 +45,31 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .WithOne(j => j.User)
                    .HasForeignKey(j => j.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(u => u.Characters)
+                   .WithOne(c => c.User)
+                   .HasForeignKey(c => c.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(u => u.Items)
+                   .WithOne(i => i.User)
+                   .HasForeignKey(i => i.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(u => u.EquippableItems)
+                   .WithOne(i => i.User)
+                   .HasForeignKey(i => i.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(u => u.Spells)
+                   .WithOne(s => s.User)
+                   .HasForeignKey(s => s.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(u => u.SpellTypes)
+                   .WithOne(st => st.User)
+                   .HasForeignKey(st => st.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

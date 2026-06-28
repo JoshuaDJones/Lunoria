@@ -26,16 +26,27 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .IsRequired()
                 .HasMaxLength(250);
 
-            builder.Property(c => c.MaxHp)
+            builder.Property(c => c.Portrait)
+                .IsRequired()
+                .HasMaxLength(2048);
+
+            builder.Property(c => c.PortraitFileName)
+                .IsRequired()
+                .HasMaxLength(250);
+
+            builder.Property(c => c.BaseMaxHp)
                 .IsRequired();
 
-            builder.Property(c => c.MaxMp)
+            builder.Property(c => c.BaseMaxMp)
                 .IsRequired();
 
-            builder.Property(c => c.Movement)
+            builder.Property(c => c.BaseMovement)
                 .IsRequired();
 
-            builder.Property(c => c.MaxInventory)
+            builder.Property(c => c.BaseMaxConsumableInventory)
+                .IsRequired();
+
+            builder.Property(c => c.BaseMaxEquippableInventory)
                 .IsRequired();
 
             builder.Property(c => c.IsPlayer)
@@ -64,9 +75,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
             // Global query filter to exclude soft-deleted characters
             builder.HasQueryFilter(c => !c.IsDeleted);
 
-            builder.HasOne(c => c.AlternateForm)
+            builder.HasOne(c => c.BaseAlternateForm)
                    .WithOne()
-                   .HasForeignKey<Character>(c => c.AlternateFormId)
+                   .HasForeignKey<Character>(c => c.BaseAlternateFormId)
                    .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(c => c.CharacterSpells)

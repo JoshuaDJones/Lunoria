@@ -31,8 +31,8 @@ namespace Eldoria.Application.Services
 
             var sceneCharacter = new SceneCharacter
             {
-                CurrentHp = character.MaxHp,
-                CurrentMp = character.MaxMp,
+                CurrentHp = character.BaseMaxHp,
+                CurrentMp = character.BaseMaxMp,
                 IsDown = false,
                 IsAlternateForm = false,
                 SceneId = sceneId,

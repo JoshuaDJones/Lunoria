@@ -24,7 +24,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .AsNoTracking()
                 .Include(c => c.CharacterSpells)
                 .ThenInclude(cp => cp.Spell)
-                .Include(c => c.AlternateForm)
+                .Include(c => c.BaseAlternateForm)
                     .ThenInclude(c => c.CharacterDialogSettings)
                 .Include(c => c.CharacterDialogSettings)
                 .AsQueryable();

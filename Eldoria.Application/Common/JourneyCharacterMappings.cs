@@ -20,7 +20,7 @@ namespace Eldoria.Application.Common
                 CurrentHp = journeyCharacter.CurrentHp,
                 CurrentMp = journeyCharacter.CurrentMp,
                 IsDown = journeyCharacter.IsDown,
-                IsAlternateForm = journeyCharacter.IsAlternateForm,
+                IsAlternateForm = journeyCharacter.IsInAlternateForm,
                 Character = journeyCharacter.Character.ToDto(),
                 JourneyCharacterItems = journeyCharacter.JourneyCharacterItems.Select(jci => jci.ToDto()).ToList()
             };

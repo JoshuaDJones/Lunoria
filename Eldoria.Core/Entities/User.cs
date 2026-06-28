@@ -13,5 +13,10 @@
         public DateTime UpdateDate { get; set; }
 
         public ICollection<Journey> Journeys { get; set; } = [];
+        public ICollection<Character> Characters { get; set; } = [];
+        public ICollection<Item> Items { get; set; } = [];
+        public ICollection<EquippableItem> EquippableItems { get; set; } = [];
+        public ICollection<Spell> Spells { get; set; } = [];
+        public ICollection<SpellType> SpellTypes { get; set; } = [];
     }
 }

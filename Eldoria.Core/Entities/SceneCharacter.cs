@@ -15,5 +15,6 @@
         public Character Character { get; set; } = null!;
 
         public ICollection<SceneCharacterItem> SceneCharacterItems { get; set; } = [];
+        public ICollection<SceneParticipant> SceneParticipants { get; set; } = [];
     }
 }

@@ -16,15 +16,35 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(j => j.CurrentMp)
                 .IsRequired();
 
+            builder.Property(j => j.MaxHp)
+                .IsRequired();
+
+            builder.Property(j => j.MaxMp)
+                .IsRequired();
+
+            builder.Property(j => j.Movement)
+                .IsRequired();
+
+            builder.Property(j => j.MaxConsumableInventory)
+                .IsRequired();
+
+            builder.Property(j => j.MaxEquippableInventory)
+                .IsRequired();
+
             builder.Property(j => j.IsDown)
                 .IsRequired();
 
-            builder.Property(j => j.IsAlternateForm)
+            builder.Property(j => j.IsInAlternateForm)
                 .IsRequired();
 
             builder.HasOne(j => j.Character)
                    .WithMany()
                    .HasForeignKey(j => j.CharacterId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(j => j.AlternateForm)
+                   .WithMany()
+                   .HasForeignKey(j => j.AlternateFormId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(j => j.JourneyCharacterItems)

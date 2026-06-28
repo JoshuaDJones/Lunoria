@@ -26,7 +26,7 @@ namespace Eldoria.Application.Services
 
             journeyCharacter.CurrentHp = newHp;
             journeyCharacter.CurrentMp = newMp;            
-            journeyCharacter.IsAlternateForm = isAlternateForm;
+            journeyCharacter.IsInAlternateForm = isAlternateForm;
 
             await _journeyCharacterRepository.SaveChangesAsync(ct);
             return Result.Ok();
@@ -77,10 +77,17 @@ namespace Eldoria.Application.Services
             {
                 await _journeyCharacterRepository.AddAsync(new JourneyCharacter
                 {
-                    CurrentHp = c.MaxHp,
-                    CurrentMp = c.MaxMp,
+                    CurrentHp = c.BaseMaxHp,
+                    CurrentMp = c.BaseMaxMp,
+                    MaxHp = c.BaseMaxHp,
+                    MaxMp = c.BaseMaxMp,
+                    MeleeAttackDamage = c.BaseMeleeAttackDamage,
+                    BowAttackDamage = c.BaseBowAttackDamage,
+                    Movement = c.BaseMovement,
+                    MaxConsumableInventory = c.BaseMaxConsumableInventory,
+                    MaxEquippableInventory = c.BaseMaxEquippableInventory,
                     IsDown = false,
-                    IsAlternateForm = false,
+                    IsInAlternateForm = false,
                     JourneyId = journeyId,
                     CharacterId = c.Id,
                 }, ct);

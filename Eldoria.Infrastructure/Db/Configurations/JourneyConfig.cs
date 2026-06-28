@@ -42,6 +42,11 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .HasForeignKey(jc => jc.JourneyId)
                    .OnDelete(DeleteBehavior.Cascade);
 
+            builder.HasMany(j => j.Playthroughs)
+                   .WithOne(p => p.Journey)
+                   .HasForeignKey(p => p.JourneyId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasMany(j => j.IntroPages)
                    .WithOne(ip => ip.Journey)
                    .HasForeignKey(ip => ip.JourneyId)

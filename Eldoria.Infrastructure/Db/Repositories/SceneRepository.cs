@@ -44,7 +44,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
                 .Include(s => s.SceneCharacters)
                     .ThenInclude(sc => sc.Character)
-                        .ThenInclude(c => c.AlternateForm)
+                        .ThenInclude(c => c.BaseAlternateForm)
                             .ThenInclude(af => af.CharacterDialogSettings)
 
                 .Include(s => s.SceneCharacters)
