@@ -196,12 +196,12 @@ template-level `CharacterSpell` records for journey characters.
 
 Required changes:
 
-- [ ] Decide when template spells are copied to a journey character.
-- [ ] Seed journey-character spells when a character is added to a journey.
-- [ ] Provide endpoints for granting and removing journey-character spells.
+- [x] Decide when template spells are copied to a journey character.
+- [x] Seed journey-character spells when a character is added to a journey.
+- [x] Provide endpoints for granting and removing journey-character spells.
 - [x] Load journey-character spells in repository queries and DTO mappings.
 - [x] Combine journey-character spells with spells granted by equipped items.
-- [ ] Prevent duplicate spell rows.
+- [x] Prevent duplicate spell rows.
 - [ ] Render effective journey-character spells in React instead of
   `character.characterSpells`.
 

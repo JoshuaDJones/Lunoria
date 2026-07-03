@@ -105,6 +105,12 @@ namespace Eldoria.Application.Services
                     IsInAlternateForm = false,
                     JourneyId = journeyId,
                     CharacterId = character.Id,
+                    JourneyCharacterSpells = character.CharacterSpells
+                        .Select(characterSpell => new JourneyCharacterSpell
+                        {
+                            SpellId = characterSpell.SpellId,
+                        })
+                        .ToList(),
                 }, ct);
             }
 
