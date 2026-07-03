@@ -373,5 +373,5 @@ Current failures are unrelated to the entity redesign and primarily include:
 10. [x] Implement scene progress, participants, and turns.
 11. [ ] Update React screens and state management for the new APIs.
 12. [ ] Resolve the existing React production build errors.
-13. [ ] Add automated tests for ownership, capacity, equipment calculations,
+13. [x] Add automated tests for ownership, capacity, equipment calculations,
     journey-state persistence, and playthrough lifecycle behavior.
