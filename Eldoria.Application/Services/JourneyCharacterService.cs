@@ -49,6 +49,15 @@ namespace Eldoria.Application.Services
             if (character is null)
                 return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey character was not found."));
 
+            if (await _journeyCharacterRepository.HasSceneParticipantReferencesAsync(
+                [journeyCharacterId],
+                ct))
+            {
+                return Result.Fail(new Error(
+                    "JourneyCharacter.InUse",
+                    "The journey character cannot be removed because it is referenced by scene progress."));
+            }
+
             _journeyCharacterRepository.Remove(character);
             await _journeyCharacterRepository.SaveChangesAsync(ct);
             return Result.Ok();
@@ -85,10 +94,32 @@ namespace Eldoria.Application.Services
                     $"The following characters were not found or are not owned by the current user: {string.Join(", ", missingCharacterIds)}"));
 
             var journeyCharacters = await _journeyCharacterRepository.GetJourneyCharacters(journeyId, ct);
-            foreach (var journeyCharacter in journeyCharacters)
+            var selectedCharacterIds = selectedCharacters
+                .Select(character => character.Id)
+                .ToHashSet();
+            var journeyCharactersToRemove = journeyCharacters
+                .Where(journeyCharacter =>
+                    !selectedCharacterIds.Contains(journeyCharacter.CharacterId))
+                .ToList();
+
+            if (await _journeyCharacterRepository.HasSceneParticipantReferencesAsync(
+                journeyCharactersToRemove.Select(character => character.Id).ToList(),
+                ct))
+            {
+                return Result.Fail(new Error(
+                    "JourneyCharacter.InUse",
+                    "One or more journey characters cannot be removed because they are referenced by scene progress."));
+            }
+
+            foreach (var journeyCharacter in journeyCharactersToRemove)
                 _journeyCharacterRepository.Remove(journeyCharacter);
 
-            foreach (var character in selectedCharacters)
+            var existingCharacterIds = journeyCharacters
+                .Select(journeyCharacter => journeyCharacter.CharacterId)
+                .ToHashSet();
+
+            foreach (var character in selectedCharacters.Where(
+                character => !existingCharacterIds.Contains(character.Id)))
             {
                 await _journeyCharacterRepository.AddAsync(new JourneyCharacter
                 {

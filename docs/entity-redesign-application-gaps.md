@@ -219,10 +219,10 @@ journey character and recreates the selected set. This destroys:
 
 Replace this operation with a diff:
 
-- [ ] Preserve rows for characters that remain selected.
-- [ ] Add rows only for newly selected characters.
-- [ ] Explicitly handle removal of characters referenced by scene progress.
-- [ ] Avoid resetting state when starting a new playthrough.
+- [x] Preserve rows for characters that remain selected.
+- [x] Add rows only for newly selected characters.
+- [x] Explicitly handle removal of characters referenced by scene progress.
+- [x] Avoid resetting state when starting a new playthrough.
 
 ### Inventory Capacity Enforcement
 
@@ -368,7 +368,7 @@ Current failures are unrelated to the entity redesign and primarily include:
 5. [x] Implement equipment and effective-stat calculations.
 6. [x] Implement inventory capacity enforcement.
 7. [ ] Implement journey-character spell availability.
-8. [ ] Replace destructive journey-character replacement.
+8. [x] Replace destructive journey-character replacement.
 9. [ ] Implement playthrough lifecycle APIs.
 10. [ ] Implement scene progress, participants, and turns.
 11. [ ] Update React screens and state management for the new APIs.

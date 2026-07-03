@@ -23,6 +23,7 @@ namespace Eldoria.Api.Controllers
             {
                 "Journey.NotFound" => BadRequest(result.Error),
                 "Character.NotFound" => BadRequest(result.Error),
+                "JourneyCharacter.InUse" => Conflict(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -38,6 +39,7 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "JourneyCharacter.NotFound" => BadRequest(result?.Error),
+                "JourneyCharacter.InUse" => Conflict(result?.Error),
                 _ => BadRequest(result?.Error)
             };
         }

@@ -46,5 +46,19 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Where(jc => jc.JourneyId == journeyId)
                 .ToListAsync(ct);
         }
+
+        public Task<bool> HasSceneParticipantReferencesAsync(
+            IReadOnlyCollection<int> journeyCharacterIds,
+            CancellationToken ct)
+        {
+            if (journeyCharacterIds.Count == 0)
+                return Task.FromResult(false);
+
+            return _dbContext.SceneParticipants.AnyAsync(
+                participant =>
+                    participant.JourneyCharacterId.HasValue &&
+                    journeyCharacterIds.Contains(participant.JourneyCharacterId.Value),
+                ct);
+        }
     }
 }
