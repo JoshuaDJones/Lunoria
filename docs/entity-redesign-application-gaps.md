@@ -85,18 +85,18 @@ that value into both `BaseMaxConsumableInventory` and
 
 Replace the old field with two independent fields:
 
-- `BaseMaxConsumableInventory`
-- `BaseMaxEquippableInventory`
+- [ ] `BaseMaxConsumableInventory`
+- [ ] `BaseMaxEquippableInventory`
 
 Update:
 
-- Character DTOs
-- Character create and update requests
-- Character mappings
-- Character service signatures and assignments
-- React character types
-- Character create and edit forms
-- Character detail and list displays
+- [ ] Character DTOs
+- [ ] Character create and update requests
+- [ ] Character mappings
+- [ ] Character service signatures and assignments
+- [ ] React character types
+- [ ] Character create and edit forms
+- [ ] Character detail and list displays
 
 Relevant files:
 
@@ -115,21 +115,21 @@ Relevant files:
 `JourneyCharacterDto` currently omits most mutable journey state. It should
 expose:
 
-- Current HP and MP
-- Maximum HP and MP
-- Melee and bow attack damage
-- Movement
-- Consumable inventory capacity
-- Equipment inventory capacity
-- Alternate-form ID and current alternate-form state
-- Consumable inventory
-- Equipment inventory and equipped state
-- Journey-character spells
-- Effective statistics calculated from stored journey statistics and equipped
+- [ ] Current HP and MP
+- [ ] Maximum HP and MP
+- [ ] Melee and bow attack damage
+- [ ] Movement
+- [ ] Consumable inventory capacity
+- [ ] Equipment inventory capacity
+- [ ] Alternate-form ID and current alternate-form state
+- [ ] Consumable inventory
+- [ ] Equipment inventory and equipped state
+- [ ] Journey-character spells
+- [ ] Effective statistics calculated from stored journey statistics and equipped
   modifiers
 
-The React dashboard currently displays statistics from the character template.
-It should display journey-character effective statistics instead.
+- [ ] Update the React dashboard to display journey-character effective
+  statistics instead of character-template statistics.
 
 Relevant files:
 
@@ -144,9 +144,9 @@ Relevant files:
 
 Two mapping defects should be corrected:
 
-1. `JourneyCharacterDto.JourneyId` is assigned from `journeyCharacter.Id`
+1. [ ] `JourneyCharacterDto.JourneyId` is assigned from `journeyCharacter.Id`
    instead of `journeyCharacter.JourneyId`.
-2. `CharacterDto.AlternateFormId` is declared but is not populated by
+2. [ ] `CharacterDto.AlternateFormId` is declared but is not populated by
    `CharacterMappings.ToDto`.
 
 Relevant files:
@@ -196,13 +196,13 @@ template-level `CharacterSpell` records for journey characters.
 
 Required changes:
 
-- Decide when template spells are copied to a journey character.
-- Seed journey-character spells when a character is added to a journey.
-- Provide endpoints for granting and removing journey-character spells.
-- Load journey-character spells in repository queries and DTO mappings.
-- Combine journey-character spells with spells granted by equipped items.
-- Prevent duplicate spell rows.
-- Render effective journey-character spells in React instead of
+- [ ] Decide when template spells are copied to a journey character.
+- [ ] Seed journey-character spells when a character is added to a journey.
+- [ ] Provide endpoints for granting and removing journey-character spells.
+- [ ] Load journey-character spells in repository queries and DTO mappings.
+- [ ] Combine journey-character spells with spells granted by equipped items.
+- [ ] Prevent duplicate spell rows.
+- [ ] Render effective journey-character spells in React instead of
   `character.characterSpells`.
 
 ### Preserve Journey Character State
@@ -219,10 +219,10 @@ journey character and recreates the selected set. This destroys:
 
 Replace this operation with a diff:
 
-- Preserve rows for characters that remain selected.
-- Add rows only for newly selected characters.
-- Explicitly handle removal of characters referenced by scene progress.
-- Avoid resetting state when starting a new playthrough.
+- [ ] Preserve rows for characters that remain selected.
+- [ ] Add rows only for newly selected characters.
+- [ ] Explicitly handle removal of characters referenced by scene progress.
+- [ ] Avoid resetting state when starting a new playthrough.
 
 ### Inventory Capacity Enforcement
 
@@ -230,12 +230,12 @@ Consumables can currently be added without checking capacity.
 
 Required changes:
 
-- Count the inventory entries that consume capacity.
-- Define whether used consumables remain in inventory history or are removed.
-- Reject additions above effective consumable capacity.
-- Reject equipment additions above effective equipment capacity.
-- Account for capacity modifiers from equipped items.
-- Define safe behavior when unequipping an item lowers capacity below current
+- [ ] Count the inventory entries that consume capacity.
+- [ ] Define whether used consumables remain in inventory history or are removed.
+- [ ] Reject additions above effective consumable capacity.
+- [ ] Reject equipment additions above effective equipment capacity.
+- [ ] Account for capacity modifiers from equipped items.
+- [ ] Define safe behavior when unequipping an item lowers capacity below current
   inventory usage.
 
 ## Effective Statistics and Equipment Rules
@@ -249,17 +249,17 @@ Equip and unequip operations should not mutate the stored journey statistics.
 
 Calculations are needed for:
 
-- Maximum HP and MP
-- Melee and bow attack damage
-- Movement
-- Consumable capacity
-- Equipment capacity
-- Melee, bow, and spell damage reduction
-- General or spell-type-specific spell damage modifiers
-- Spells granted by equipment
+- [ ] Maximum HP and MP
+- [ ] Melee and bow attack damage
+- [ ] Movement
+- [ ] Consumable capacity
+- [ ] Equipment capacity
+- [ ] Melee, bow, and spell damage reduction
+- [ ] General or spell-type-specific spell damage modifiers
+- [ ] Spells granted by equipment
 
-If effective maximum HP decreases below current HP, current HP must be clamped
-to the effective maximum.
+- [ ] Clamp current HP to the effective maximum when effective maximum HP
+  decreases below current HP.
 
 ## Playthrough and Scene Progression
 
@@ -270,35 +270,36 @@ React application.
 
 Add workflows to:
 
-- Start a playthrough.
-- Retrieve the active playthrough.
-- Complete or deactivate a playthrough.
-- List previous playthroughs.
-- Enforce one active playthrough per journey.
-- Preserve journey-character state when transitioning between playthroughs.
+- [ ] Start a playthrough.
+- [ ] Retrieve the active playthrough.
+- [ ] Complete or deactivate a playthrough.
+- [ ] List previous playthroughs.
+- [ ] Enforce one active playthrough per journey.
+- [ ] Preserve journey-character state when transitioning between playthroughs.
 
 ### Scene Progress
 
 Add workflows to:
 
-- Create or retrieve progress for a scene in the active playthrough.
-- Transition progress through `NotStarted`, `InProgress`, and `Completed`.
-- List scene progress for a playthrough.
-- Keep replayed scene progress independent between playthroughs.
+- [ ] Create or retrieve progress for a scene in the active playthrough.
+- [ ] Transition progress through `NotStarted`, `InProgress`, and `Completed`.
+- [ ] List scene progress for a playthrough.
+- [ ] Keep replayed scene progress independent between playthroughs.
 
 ### Participants and Turns
 
 Add workflows to:
 
-- Add journey characters or scene characters as scene participants.
-- Enforce exactly one participant character type.
-- Remove participants safely.
-- Create, reorder, and delete participant turns.
-- Enforce unique turn positions.
-- Prevent turns from referencing participants from another progress record.
+- [ ] Add journey characters or scene characters as scene participants.
+- [ ] Enforce exactly one participant character type.
+- [ ] Remove participants safely.
+- [ ] Create, reorder, and delete participant turns.
+- [ ] Enforce unique turn positions.
+- [ ] Prevent turns from referencing participants from another progress record.
 
-The scene dashboard should load a specific `SceneProgress` and its participants
-rather than directly combining a scene with every journey character.
+- [ ] Update the scene dashboard to load a specific `SceneProgress` and its
+  participants rather than directly combining a scene with every journey
+  character.
 
 Relevant files:
 
@@ -314,34 +315,35 @@ through their parent entities.
 
 These include:
 
-- Journey-character replace, update, and delete
-- Scene-character add, update, and delete
-- Journey consumable assignment and use
-- Scene consumable assignment and use
-- Character-spell replacement
-- Scene list and individual scene retrieval
+- [x] Journey-character replace, update, and delete
+- [x] Scene-character add, update, and delete
+- [x] Journey consumable assignment and use
+- [x] Scene consumable assignment and use
+- [x] Character-spell replacement
+- [x] Scene list and individual scene retrieval
 
-Authorization must follow the complete parent chain. A client-supplied
-`journeyId`, `sceneId`, or character ID must not be treated as proof of access.
+- [x] Enforce authorization through the complete parent chain rather than
+  treating a client-supplied `journeyId`, `sceneId`, or character ID as proof
+  of access.
 
 ## React Changes
 
 Add or update React support for:
 
-- Separate consumable and equipment capacities
-- Spell type management and selection
-- Equipment catalog management
-- Equipment assignment and equip/unequip controls
-- Effective journey-character statistics
-- Journey-character spell availability
-- Active playthrough controls
-- Scene progress status
-- Scene participant selection
-- Turn-order editing
-- Capacity validation and API error display
+- [ ] Separate consumable and equipment capacities
+- [ ] Spell type management and selection
+- [ ] Equipment catalog management
+- [ ] Equipment assignment and equip/unequip controls
+- [ ] Effective journey-character statistics
+- [ ] Journey-character spell availability
+- [ ] Active playthrough controls
+- [ ] Scene progress status
+- [ ] Scene participant selection
+- [ ] Turn-order editing
+- [ ] Capacity validation and API error display
 
-New TypeScript contracts should correspond directly to the revised API DTOs
-rather than continuing to expose template fields as mutable journey state.
+- [ ] Make TypeScript contracts correspond directly to revised API DTOs rather
+  than exposing template fields as mutable journey state.
 
 ## React Build Status
 
@@ -349,29 +351,27 @@ The React production build currently fails before Vite runs.
 
 Current failures are unrelated to the entity redesign and primarily include:
 
-- Unused imports, props, variables, and callback parameters
-- Missing Node type definitions for `vite.config.ts`
-- Missing definitions for `path` and `__dirname`
+- [ ] Unused imports, props, variables, and callback parameters
+- [ ] Missing Node type definitions for `vite.config.ts`
+- [ ] Missing definitions for `path` and `__dirname`
 
-These errors should be resolved before using the production build as validation
-for the redesigned frontend.
+- [ ] Resolve the existing React errors before using the production build to
+  validate the redesigned frontend.
 
 ## Recommended Implementation Order
 
-1. Require authentication and enforce catalog ownership. **Done.**
-2. Implement spell type CRUD and repair spell creation and updates. **In
-   progress: spell type CRUD is done; spell creation and updates remain.**
-3. Update character and journey-character API contracts.
-4. Correct the existing mapping defects.
-5. Implement equipment and effective-stat calculations. **In progress:
-   equipment catalog CRUD is done; journey equipment operations and effective
-   statistics remain.**
-6. Implement inventory capacity enforcement.
-7. Implement journey-character spell availability.
-8. Replace destructive journey-character replacement.
-9. Implement playthrough lifecycle APIs.
-10. Implement scene progress, participants, and turns.
-11. Update React screens and state management for the new APIs.
-12. Resolve the existing React production build errors.
-13. Add automated tests for ownership, capacity, equipment calculations,
+1. [x] Require authentication and enforce catalog ownership.
+2. [x] Implement spell type CRUD and repair spell creation and updates.
+3. [ ] Update character and journey-character API contracts.
+4. [ ] Correct the existing mapping defects.
+5. [ ] Implement equipment and effective-stat calculations. Equipment catalog
+   CRUD is done; journey equipment operations and effective statistics remain.
+6. [ ] Implement inventory capacity enforcement.
+7. [ ] Implement journey-character spell availability.
+8. [ ] Replace destructive journey-character replacement.
+9. [ ] Implement playthrough lifecycle APIs.
+10. [ ] Implement scene progress, participants, and turns.
+11. [ ] Update React screens and state management for the new APIs.
+12. [ ] Resolve the existing React production build errors.
+13. [ ] Add automated tests for ownership, capacity, equipment calculations,
     journey-state persistence, and playthrough lifecycle behavior.
