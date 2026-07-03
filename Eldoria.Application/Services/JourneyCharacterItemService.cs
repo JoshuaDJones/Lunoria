@@ -6,10 +6,12 @@ namespace Eldoria.Application.Services
 {
     public class JourneyCharacterItemService(
         IRepository<JourneyCharacterItem> journeyCharacterItemRepository,
+        IJourneyCharacterEquipmentRepository equipmentRepository,
         IOwnershipRepository ownershipRepository,
         IItemRepository itemRepository) : IJourneyCharacterItemService
     {
         private readonly IRepository<JourneyCharacterItem> _journeyCharacterItemRepository = journeyCharacterItemRepository;
+        private readonly IJourneyCharacterEquipmentRepository _equipmentRepository = equipmentRepository;
         private readonly IOwnershipRepository _ownershipRepository = ownershipRepository;
         private readonly IItemRepository _itemRepository = itemRepository;
 
@@ -19,11 +21,31 @@ namespace Eldoria.Application.Services
             int itemId,
             CancellationToken ct)
         {
-            if (await _ownershipRepository.GetJourneyCharacterAsync(userId, journeyCharacterId, ct) is null)
+            var character = await _equipmentRepository.GetCharacterForUserAsync(
+                userId,
+                journeyCharacterId,
+                ct);
+
+            if (character is null)
                 return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey character was not found."));
 
             if (await _itemRepository.GetByIdForUserAsync(userId, itemId, ct) is null)
                 return Result.Fail(new Error("Item.NotFound", "Item was not found."));
+
+            var effectiveCapacity = Math.Max(
+                0,
+                character.MaxConsumableInventory +
+                character.JourneyCharacterEquippableItems
+                    .Where(assignment => assignment.IsEquipped)
+                    .Sum(assignment =>
+                        assignment.EquippableItem.MaxConsumableInventoryModifier));
+
+            var activeUsage = character.JourneyCharacterItems.Count(item => !item.IsUsed);
+
+            if (activeUsage >= effectiveCapacity)
+                return Result.Fail(new Error(
+                    "Consumable.CapacityExceeded",
+                    $"Consumable capacity is {effectiveCapacity}."));
 
             await _journeyCharacterItemRepository.AddAsync(new JourneyCharacterItem
             {

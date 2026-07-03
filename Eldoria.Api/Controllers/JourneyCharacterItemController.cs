@@ -25,6 +25,7 @@ namespace Eldoria.Api.Controllers
             {
                 "JourneyCharacter.NotFound" => BadRequest(result.Error),
                 "Item.NotFound" => BadRequest(result?.Error),
+                "Consumable.CapacityExceeded" => Conflict(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

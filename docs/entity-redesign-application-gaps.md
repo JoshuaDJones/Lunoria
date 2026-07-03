@@ -233,7 +233,7 @@ Required changes:
 - [x] Count the inventory entries that consume capacity.
 - [x] Keep used consumables in inventory history and exclude them from active
   capacity usage.
-- [ ] Reject additions above effective consumable capacity.
+- [x] Reject additions above effective consumable capacity.
 - [x] Reject equipment additions above effective equipment capacity.
 - [x] Account for capacity modifiers from equipped items.
 - [x] Reject unequip or removal operations that lower capacity below current
@@ -366,7 +366,7 @@ Current failures are unrelated to the entity redesign and primarily include:
 3. [x] Update character and journey-character API contracts.
 4. [x] Correct the existing mapping defects.
 5. [x] Implement equipment and effective-stat calculations.
-6. [ ] Implement inventory capacity enforcement.
+6. [x] Implement inventory capacity enforcement.
 7. [ ] Implement journey-character spell availability.
 8. [ ] Replace destructive journey-character replacement.
 9. [ ] Implement playthrough lifecycle APIs.
