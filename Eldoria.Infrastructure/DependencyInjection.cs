@@ -28,6 +28,7 @@ namespace Eldoria.Infrastructure
             services.AddScoped<IEquippableItemRepository, EquippableItemRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<IOwnershipRepository, OwnershipRepository>();
+            services.AddScoped<IJourneyCharacterEquipmentRepository, JourneyCharacterEquipmentRepository>();
 
             return services;
         }

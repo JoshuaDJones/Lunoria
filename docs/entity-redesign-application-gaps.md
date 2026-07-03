@@ -181,12 +181,12 @@ Required features:
 - [x] All integer modifier fields
 - [x] Optional affected spell type
 - [x] Spells granted by equipment
-- [ ] Assigning and removing equipment from journey characters
-- [ ] Equip and unequip operations
-- [ ] Equipment inventory capacity enforcement
+- [x] Assigning and removing equipment from journey characters
+- [x] Equip and unequip operations
+- [x] Equipment inventory capacity enforcement
 - [x] Effective-stat calculation
 - [x] Effective spell calculation
-- [ ] Current HP clamping when effective maximum HP decreases
+- [x] Current HP clamping when effective maximum HP decreases
 - [ ] React catalog and journey-character equipment interfaces
 
 ### Journey Character Spells
@@ -230,12 +230,13 @@ Consumables can currently be added without checking capacity.
 
 Required changes:
 
-- [ ] Count the inventory entries that consume capacity.
-- [ ] Define whether used consumables remain in inventory history or are removed.
+- [x] Count the inventory entries that consume capacity.
+- [x] Keep used consumables in inventory history and exclude them from active
+  capacity usage.
 - [ ] Reject additions above effective consumable capacity.
-- [ ] Reject equipment additions above effective equipment capacity.
-- [ ] Account for capacity modifiers from equipped items.
-- [ ] Define safe behavior when unequipping an item lowers capacity below current
+- [x] Reject equipment additions above effective equipment capacity.
+- [x] Account for capacity modifiers from equipped items.
+- [x] Reject unequip or removal operations that lower capacity below current
   inventory usage.
 
 ## Effective Statistics and Equipment Rules
@@ -258,7 +259,7 @@ Calculations are needed for:
 - [x] General or spell-type-specific spell damage modifiers
 - [x] Spells granted by equipment
 
-- [ ] Clamp current HP to the effective maximum when effective maximum HP
+- [x] Clamp current HP to the effective maximum when effective maximum HP
   decreases below current HP.
 
 ## Playthrough and Scene Progression
@@ -364,8 +365,7 @@ Current failures are unrelated to the entity redesign and primarily include:
 2. [x] Implement spell type CRUD and repair spell creation and updates.
 3. [x] Update character and journey-character API contracts.
 4. [x] Correct the existing mapping defects.
-5. [ ] Implement equipment and effective-stat calculations. Equipment catalog
-   CRUD is done; journey equipment operations and effective statistics remain.
+5. [x] Implement equipment and effective-stat calculations.
 6. [ ] Implement inventory capacity enforcement.
 7. [ ] Implement journey-character spell availability.
 8. [ ] Replace destructive journey-character replacement.
