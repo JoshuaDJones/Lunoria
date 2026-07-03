@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@import "tailwind-scrollbar-hide/v4";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-cinzel: "Cinzel", serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply m-0 min-w-80 bg-slate-950 text-slate-100 antialiased;
+  }
+}
