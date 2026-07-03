@@ -7,11 +7,12 @@ namespace Eldoria.Application.Services
 {
     public interface ICharacterService
     {
-        Task<Result<List<CharacterDto>>> GetListAsync(int skip, int take, CharacterType characterType, CancellationToken ct);
-        Task<Result<CharacterDto>> GetByIdAsync(int id, CancellationToken ct);
-        Task<Result> DeleteAsync(int id, CancellationToken ct);
+        Task<Result<List<CharacterDto>>> GetListAsync(int userId, int skip, int take, CharacterType characterType, CancellationToken ct);
+        Task<Result<CharacterDto>> GetByIdAsync(int userId, int id, CancellationToken ct);
+        Task<Result> DeleteAsync(int userId, int id, CancellationToken ct);
 
-        Task<Result<CharacterDto>> CreateAsync(string name,
+        Task<Result<CharacterDto>> CreateAsync(int userId, 
+            string name,
             string description,
             IFormFile photo,
             int maxHp,
@@ -26,7 +27,8 @@ namespace Eldoria.Application.Services
             int? alternateFormId,
             CancellationToken ct);
 
-        Task<Result<CharacterDto>> UpdateAsync(int id,
+        Task<Result<CharacterDto>> UpdateAsync(int userId, 
+            int id,
             string name,
             string description,
             IFormFile? photo,

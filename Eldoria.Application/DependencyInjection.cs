@@ -14,6 +14,7 @@ namespace Eldoria.Application
             services.AddScoped<ICharacterService, CharacterService>();
             services.AddScoped<ICharacterSpellService, CharacterSpellService>();
             services.AddScoped<ISpellService, SpellService>();
+            services.AddScoped<ISpellTypeService, SpellTypeService>();
             services.AddScoped<IItemService, ItemService>();
             services.AddScoped<IJourneyService, JourneyService>();
             services.AddScoped<ISceneService, SceneService>();

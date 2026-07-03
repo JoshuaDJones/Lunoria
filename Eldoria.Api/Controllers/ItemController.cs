@@ -1,4 +1,5 @@
-﻿using Eldoria.Api.Requests;
+﻿using Eldoria.Api.Common;
+using Eldoria.Api.Requests;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class ItemController : ControllerBase
+    public class ItemController(IItemService itemService) : ControllerBase
     {
-        private readonly IItemService _itemService;
-
-        public ItemController(IItemService itemService)
-        {
-            _itemService = itemService;
-        }
+        private readonly IItemService _itemService = itemService;
 
         [HttpGet]
         public async Task<ActionResult<List<ItemDto>>> List(
@@ -22,7 +18,9 @@ namespace Eldoria.Api.Controllers
             [FromQuery] int take = 500,
             CancellationToken ct = default)
         {
-            var result = await _itemService.GetListAsync(skip, take, ct);
+            var userId = User.GetUserId();
+
+            var result = await _itemService.GetListAsync(userId, skip, take, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -33,7 +31,9 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ItemDto>> Get(int id, CancellationToken ct)
         {
-            var result = await _itemService.GetByIdAsync(id, ct);
+            var userId = User.GetUserId();
+
+            var result = await _itemService.GetByIdAsync(userId, id, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -48,7 +48,9 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var result = await _itemService.DeleteAsync(id, ct);
+            var userId = User.GetUserId();
+
+            var result = await _itemService.DeleteAsync(userId, id, ct);
 
             if (result.Success)
                 return NoContent();
@@ -64,7 +66,10 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateItemRequest req, CancellationToken ct)
         {
+            var userId = User.GetUserId();
+
             var result = await _itemService.CreateAsync(
+                userId,
                 req.Name,
                 req.Description,
                 req.Photo,
@@ -82,7 +87,10 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateItemRequest req, CancellationToken ct)
         {
+            var userId = User.GetUserId();
+
             var result = await _itemService.UpdateAsync(
+                userId,
                 id,
                 req.Name,
                 req.Description,

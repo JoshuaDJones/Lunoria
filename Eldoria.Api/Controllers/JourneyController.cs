@@ -8,18 +8,15 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class JourneyController : ControllerBase
+    public class JourneyController(IJourneyService journeyService) : ControllerBase
     {
-        private readonly IJourneyService _journeyService;
-        public JourneyController(IJourneyService journeyService)
-        {
-            _journeyService = journeyService;
-        }
+        private readonly IJourneyService _journeyService = journeyService;
 
         [HttpGet]
         public async Task<ActionResult<List<JourneyDto>>> List([FromQuery] int skip = 0, [FromQuery] int take = 500, CancellationToken ct = default)
         {
             var userId = User.GetUserId();
+
             var result = await _journeyService.GetListAsync(userId, skip, take, ct);
 
             if(result.Success)
@@ -32,6 +29,7 @@ namespace Eldoria.Api.Controllers
         public async Task<ActionResult<JourneyDto>> Get(int id, CancellationToken ct)
         {
             var userId = User.GetUserId();
+
             var result = await _journeyService.GetByIdAsync(userId, id, ct);
 
             if(result.Success)
@@ -49,6 +47,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             var userId = User.GetUserId();
+
             var result = await _journeyService.DeleteAsync(userId, id, ct);
 
             if (result.Success)
@@ -67,6 +66,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Create([FromForm] CreateJourneyRequest req, CancellationToken ct)
         {
             var userId = User.GetUserId();
+
             var result = await _journeyService.CreateAsync(userId, req.Name, req.Description, req.Photo, ct);
 
             if(result.Success)
@@ -80,6 +80,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromForm] UpdateJourneyRequest req, CancellationToken ct)
         {
             var userId = User.GetUserId();
+
             var result = await _journeyService.UpdateAsync(id, userId, req.Name, req.Description, req.Photo, ct);
 
             if (result.Success)

@@ -1,4 +1,5 @@
-﻿using Eldoria.Api.Requests;
+﻿using Eldoria.Api.Common;
+using Eldoria.Api.Requests;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
 using Eldoria.Core.Enums;
@@ -8,14 +9,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class CharacterController : ControllerBase
+    public class CharacterController(ICharacterService characterService) : ControllerBase
     {
-        private readonly ICharacterService _characterService;
-
-        public CharacterController(ICharacterService characterService)
-        {
-            _characterService = characterService;
-        }
+        private readonly ICharacterService _characterService = characterService;
 
         [HttpGet]
         public async Task<ActionResult<List<CharacterDto>>> List(
@@ -24,7 +20,9 @@ namespace Eldoria.Api.Controllers
             [FromQuery] CharacterType typeFilter = CharacterType.Any,
             CancellationToken ct = default)
         {
-            var result = await _characterService.GetListAsync(skip, take, typeFilter, ct);
+            var userId = User.GetUserId();
+
+            var result = await _characterService.GetListAsync(userId, skip, take, typeFilter, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -35,7 +33,9 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<CharacterDto>> Get(int id, CancellationToken ct)
         {
-            var result = await _characterService.GetByIdAsync(id, ct);
+            var userId = User.GetUserId();
+
+            var result = await _characterService.GetByIdAsync(userId, id, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -50,7 +50,9 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var result = await _characterService.DeleteAsync(id, ct);
+            var userId = User.GetUserId();
+
+            var result = await _characterService.DeleteAsync(userId, id, ct);
 
             if (result.Success)
                 return NoContent();
@@ -66,7 +68,10 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateCharacterRequest req, CancellationToken ct)
         {
+            var userId = User.GetUserId();
+
             var result = await _characterService.CreateAsync(
+                userId,
                 req.Name,
                 req.Description,
                 req.Photo,
@@ -92,7 +97,10 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateCharacterRequest req, CancellationToken ct)
         {
+            var userId = User.GetUserId();
+
             var result = await _characterService.UpdateAsync(
+                userId,
                 id,
                 req.Name,
                 req.Description,

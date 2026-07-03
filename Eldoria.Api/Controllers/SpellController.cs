@@ -1,4 +1,5 @@
-﻿using Eldoria.Api.Requests;
+﻿using Eldoria.Api.Common;
+using Eldoria.Api.Requests;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SpellController : ControllerBase
+    public class SpellController(ISpellService spellService) : ControllerBase
     {
-        private readonly ISpellService _spellService;
-
-        public SpellController(ISpellService spellService)
-        {
-            _spellService = spellService;
-        }
+        private readonly ISpellService _spellService = spellService;
 
         [HttpGet]
         public async Task<ActionResult<List<SpellDto>>> List(
@@ -22,7 +18,9 @@ namespace Eldoria.Api.Controllers
             [FromQuery] int take = 500,
             CancellationToken ct = default)
         {
-            var result = await _spellService.GetListAsync(skip, take, ct);
+            var userId = User.GetUserId();
+
+            var result = await _spellService.GetListAsync(userId, skip, take, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -33,7 +31,9 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<SpellDto>> Get(int id, CancellationToken ct)
         {
-            var result = await _spellService.GetByIdAsync(id, ct);
+            var userId = User.GetUserId();
+
+            var result = await _spellService.GetByIdAsync(userId, id, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -48,7 +48,9 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var result = await _spellService.DeleteAsync(id, ct);
+            var userId = User.GetUserId();
+
+            var result = await _spellService.DeleteAsync(userId, id, ct);
 
             if (result.Success)
                 return NoContent();
@@ -64,7 +66,10 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateSpellRequest req, CancellationToken ct)
         {
+            var userId = User.GetUserId();
+
             var result = await _spellService.CreateAsync(
+                userId,
                 req.Name,
                 req.Description,
                 req.Photo,
@@ -86,7 +91,10 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateSpellRequest req, CancellationToken ct)
         {
+            var userId = User.GetUserId();
+
             var result = await _spellService.UpdateAsync(
+                userId,
                 id,
                 req.Name,
                 req.Description,

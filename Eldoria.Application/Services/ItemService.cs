@@ -6,18 +6,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace Eldoria.Application.Services
 {
-    public class ItemService : IItemService
+    public class ItemService(IRepository<Item> itemRepository, IAzureStorageBlob azureStorageBlob) : IItemService
     {
-        private readonly IRepository<Item> _itemRepository;
-        private readonly IAzureStorageBlob _azureStorageBlob;
+        private readonly IRepository<Item> _itemRepository = itemRepository;
+        private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
 
-        public ItemService(IRepository<Item> itemRepository, IAzureStorageBlob azureStorageBlob)
-        {
-            _itemRepository = itemRepository;
-            _azureStorageBlob = azureStorageBlob;
-        }
-
-        public async Task<Result<List<ItemDto>>> GetListAsync(int skip, int take, CancellationToken ct)
+        public async Task<Result<List<ItemDto>>> GetListAsync(int userId,
+            int skip,
+            int take,
+            CancellationToken ct)
         {
             var items = await _itemRepository.ListAsync(skip, take, ct);
             var dtos = items.Select(i => i.ToDto()).ToList();
@@ -25,7 +22,7 @@ namespace Eldoria.Application.Services
             return Result<List<ItemDto>>.Ok(dtos);
         }
 
-        public async Task<Result<ItemDto>> GetByIdAsync(int id, CancellationToken ct)
+        public async Task<Result<ItemDto>> GetByIdAsync(int userId, int id, CancellationToken ct)
         {
             var item = await _itemRepository.GetByIdAsync(id, ct);
 
@@ -35,7 +32,13 @@ namespace Eldoria.Application.Services
             return Result<ItemDto>.Ok(item.ToDto());
         }
 
-        public async Task<Result<ItemDto>> CreateAsync(string name, string description, IFormFile photo, int hpEffect, int mpEffect, CancellationToken ct)
+        public async Task<Result<ItemDto>> CreateAsync(int userId,
+            string name,
+            string description,
+            IFormFile photo,
+            int hpEffect,
+            int mpEffect,
+            CancellationToken ct)
         {
             var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
 
@@ -57,7 +60,14 @@ namespace Eldoria.Application.Services
             return Result<ItemDto>.Ok(item.ToDto());
         }
 
-        public async Task<Result<ItemDto>> UpdateAsync(int id, string name, string description, IFormFile? photo, int hpEffect, int mpEffect, CancellationToken ct)
+        public async Task<Result<ItemDto>> UpdateAsync(int userId,
+            int id,
+            string name,
+            string description,
+            IFormFile? photo,
+            int hpEffect,
+            int mpEffect,
+            CancellationToken ct)
         {
             var item = await _itemRepository.GetByIdAsync(id, ct);
 
@@ -67,7 +77,7 @@ namespace Eldoria.Application.Services
             item.Name = name;
             item.Description = description;
 
-            if(photo is not null)
+            if (photo is not null)
             {
                 await _azureStorageBlob.DeletePhotoFromUrl(item.PhotoUrl);
 
@@ -87,7 +97,7 @@ namespace Eldoria.Application.Services
             return Result<ItemDto>.Ok(item.ToDto());
         }
 
-        public async Task<Result> DeleteAsync(int id, CancellationToken ct)
+        public async Task<Result> DeleteAsync(int userId, int id, CancellationToken ct)
         {
             var item = await _itemRepository.GetByIdAsync(id, ct);
 
@@ -98,6 +108,6 @@ namespace Eldoria.Application.Services
             await _itemRepository.SaveChangesAsync(ct);
 
             return Result.Ok();
-        }        
+        }
     }
 }
