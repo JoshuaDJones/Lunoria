@@ -85,15 +85,15 @@ that value into both `BaseMaxConsumableInventory` and
 
 Replace the old field with two independent fields:
 
-- [ ] `BaseMaxConsumableInventory`
-- [ ] `BaseMaxEquippableInventory`
+- [x] `BaseMaxConsumableInventory`
+- [x] `BaseMaxEquippableInventory`
 
 Update:
 
-- [ ] Character DTOs
-- [ ] Character create and update requests
-- [ ] Character mappings
-- [ ] Character service signatures and assignments
+- [x] Character DTOs
+- [x] Character create and update requests
+- [x] Character mappings
+- [x] Character service signatures and assignments
 - [ ] React character types
 - [ ] Character create and edit forms
 - [ ] Character detail and list displays
@@ -115,17 +115,17 @@ Relevant files:
 `JourneyCharacterDto` currently omits most mutable journey state. It should
 expose:
 
-- [ ] Current HP and MP
-- [ ] Maximum HP and MP
-- [ ] Melee and bow attack damage
-- [ ] Movement
-- [ ] Consumable inventory capacity
-- [ ] Equipment inventory capacity
-- [ ] Alternate-form ID and current alternate-form state
-- [ ] Consumable inventory
-- [ ] Equipment inventory and equipped state
-- [ ] Journey-character spells
-- [ ] Effective statistics calculated from stored journey statistics and equipped
+- [x] Current HP and MP
+- [x] Maximum HP and MP
+- [x] Melee and bow attack damage
+- [x] Movement
+- [x] Consumable inventory capacity
+- [x] Equipment inventory capacity
+- [x] Alternate-form ID and current alternate-form state
+- [x] Consumable inventory
+- [x] Equipment inventory and equipped state
+- [x] Journey-character spells
+- [x] Effective statistics calculated from stored journey statistics and equipped
   modifiers
 
 - [ ] Update the React dashboard to display journey-character effective
@@ -144,9 +144,9 @@ Relevant files:
 
 Two mapping defects should be corrected:
 
-1. [ ] `JourneyCharacterDto.JourneyId` is assigned from `journeyCharacter.Id`
+1. [x] `JourneyCharacterDto.JourneyId` is assigned from `journeyCharacter.Id`
    instead of `journeyCharacter.JourneyId`.
-2. [ ] `CharacterDto.AlternateFormId` is declared but is not populated by
+2. [x] `CharacterDto.AlternateFormId` is declared but is not populated by
    `CharacterMappings.ToDto`.
 
 Relevant files:
@@ -184,8 +184,8 @@ Required features:
 - [ ] Assigning and removing equipment from journey characters
 - [ ] Equip and unequip operations
 - [ ] Equipment inventory capacity enforcement
-- [ ] Effective-stat calculation
-- [ ] Effective spell calculation
+- [x] Effective-stat calculation
+- [x] Effective spell calculation
 - [ ] Current HP clamping when effective maximum HP decreases
 - [ ] React catalog and journey-character equipment interfaces
 
@@ -199,8 +199,8 @@ Required changes:
 - [ ] Decide when template spells are copied to a journey character.
 - [ ] Seed journey-character spells when a character is added to a journey.
 - [ ] Provide endpoints for granting and removing journey-character spells.
-- [ ] Load journey-character spells in repository queries and DTO mappings.
-- [ ] Combine journey-character spells with spells granted by equipped items.
+- [x] Load journey-character spells in repository queries and DTO mappings.
+- [x] Combine journey-character spells with spells granted by equipped items.
 - [ ] Prevent duplicate spell rows.
 - [ ] Render effective journey-character spells in React instead of
   `character.characterSpells`.
@@ -249,14 +249,14 @@ Equip and unequip operations should not mutate the stored journey statistics.
 
 Calculations are needed for:
 
-- [ ] Maximum HP and MP
-- [ ] Melee and bow attack damage
-- [ ] Movement
-- [ ] Consumable capacity
-- [ ] Equipment capacity
-- [ ] Melee, bow, and spell damage reduction
-- [ ] General or spell-type-specific spell damage modifiers
-- [ ] Spells granted by equipment
+- [x] Maximum HP and MP
+- [x] Melee and bow attack damage
+- [x] Movement
+- [x] Consumable capacity
+- [x] Equipment capacity
+- [x] Melee, bow, and spell damage reduction
+- [x] General or spell-type-specific spell damage modifiers
+- [x] Spells granted by equipment
 
 - [ ] Clamp current HP to the effective maximum when effective maximum HP
   decreases below current HP.
@@ -362,8 +362,8 @@ Current failures are unrelated to the entity redesign and primarily include:
 
 1. [x] Require authentication and enforce catalog ownership.
 2. [x] Implement spell type CRUD and repair spell creation and updates.
-3. [ ] Update character and journey-character API contracts.
-4. [ ] Correct the existing mapping defects.
+3. [x] Update character and journey-character API contracts.
+4. [x] Correct the existing mapping defects.
 5. [ ] Implement equipment and effective-stat calculations. Equipment catalog
    CRUD is done; journey equipment operations and effective statistics remain.
 6. [ ] Implement inventory capacity enforcement.

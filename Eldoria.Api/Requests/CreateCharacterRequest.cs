@@ -26,7 +26,10 @@ namespace Eldoria.Api.Requests
         public int? Movement { get; set; }
 
         [Required]
-        public int? MaxInventory { get; set; }
+        public int? BaseMaxConsumableInventory { get; set; }
+
+        [Required]
+        public int? BaseMaxEquippableInventory { get; set; }
 
         [Required]
         public bool? IsPlayer { get; set; }

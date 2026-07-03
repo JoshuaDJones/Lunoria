@@ -26,6 +26,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
         {
             return await _dbContext.Journeys
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(j => j.Scenes)
                 .Include(j => j.IntroPages)
                 .Include(j => j.JourneyCharacters)
@@ -50,6 +51,26 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Include(j => j.JourneyCharacters)
                     .ThenInclude(jc => jc.JourneyCharacterItems)
                         .ThenInclude(jci => jci.Item)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.AlternateForm)
+                        .ThenInclude(character => character.CharacterSpells)
+                            .ThenInclude(characterSpell => characterSpell.Spell)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.AlternateForm)
+                        .ThenInclude(character => character.CharacterDialogSettings)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.JourneyCharacterEquippableItems)
+                        .ThenInclude(item => item.EquippableItem)
+                            .ThenInclude(item => item.AddedSpells)
+                                .ThenInclude(spell => spell.SpellType)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.JourneyCharacterEquippableItems)
+                        .ThenInclude(item => item.EquippableItem)
+                            .ThenInclude(item => item.AffectedSpellType)
+                .Include(j => j.JourneyCharacters)
+                    .ThenInclude(jc => jc.JourneyCharacterSpells)
+                        .ThenInclude(item => item.Spell)
+                            .ThenInclude(spell => spell.SpellType)
                 .FirstOrDefaultAsync(j => j.Id == journeyId, ct);
         }
     }

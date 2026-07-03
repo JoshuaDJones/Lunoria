@@ -13,7 +13,8 @@ namespace Eldoria.Application.Dtos
         public int? MeleeAttackDamage { get; set; }
         public int? BowAttackDamage { get; set; }
         public int Movement { get; set; }
-        public int MaxInventory { get; set; }
+        public int BaseMaxConsumableInventory { get; set; }
+        public int BaseMaxEquippableInventory { get; set; }
         public bool IsPlayer { get; set; }
         public bool IsNPC { get; set; }
         public bool IsEnemy { get; set; }

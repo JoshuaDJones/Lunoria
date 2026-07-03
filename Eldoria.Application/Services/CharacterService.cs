@@ -24,7 +24,8 @@ namespace Eldoria.Application.Services
             int? meleeAttackDamage,
             int? bowAttackDamage,
             int movement,
-            int maxInventory,
+            int baseMaxConsumableInventory,
+            int baseMaxEquippableInventory,
             bool isPlayer,
             bool isNPC,
             bool isEnemy,
@@ -49,8 +50,8 @@ namespace Eldoria.Application.Services
                 BaseMeleeAttackDamage = meleeAttackDamage,
                 BaseBowAttackDamage = bowAttackDamage,
                 BaseMovement = movement,
-                BaseMaxConsumableInventory = maxInventory,
-                BaseMaxEquippableInventory = maxInventory,
+                BaseMaxConsumableInventory = baseMaxConsumableInventory,
+                BaseMaxEquippableInventory = baseMaxEquippableInventory,
                 IsPlayer = isPlayer,
                 IsNPC = isNPC,
                 IsEnemy = isEnemy,
@@ -120,7 +121,8 @@ namespace Eldoria.Application.Services
             int? meleeAttackDamage,
             int? bowAttackDamage,
             int movement,
-            int maxInventory,
+            int baseMaxConsumableInventory,
+            int baseMaxEquippableInventory,
             bool isPlayer,
             bool isNPC,
             bool isEnemy,
@@ -153,8 +155,8 @@ namespace Eldoria.Application.Services
             character.BaseMeleeAttackDamage = meleeAttackDamage;
             character.BaseBowAttackDamage = bowAttackDamage;
             character.BaseMovement = movement;
-            character.BaseMaxConsumableInventory = maxInventory;
-            character.BaseMaxEquippableInventory = maxInventory;
+            character.BaseMaxConsumableInventory = baseMaxConsumableInventory;
+            character.BaseMaxEquippableInventory = baseMaxEquippableInventory;
             character.IsPlayer = isPlayer;
             character.IsNPC = isNPC;
             character.IsEnemy = isEnemy;

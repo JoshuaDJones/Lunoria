@@ -15,7 +15,7 @@ namespace Eldoria.Application.Common
             return new JourneyCharacterItemDto
             {
                 Id = journeyCharacterItem.Id,
-                JourneyCharacterId = journeyCharacterItem.Id,
+                JourneyCharacterId = journeyCharacterItem.JourneyCharacterId,
                 IsUsed = journeyCharacterItem.IsUsed,
                 ItemId = journeyCharacterItem.ItemId,
                 Item = journeyCharacterItem.Item.ToDto()
