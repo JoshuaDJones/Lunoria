@@ -271,12 +271,12 @@ React application.
 
 Add workflows to:
 
-- [ ] Start a playthrough.
-- [ ] Retrieve the active playthrough.
-- [ ] Complete or deactivate a playthrough.
-- [ ] List previous playthroughs.
-- [ ] Enforce one active playthrough per journey.
-- [ ] Preserve journey-character state when transitioning between playthroughs.
+- [x] Start a playthrough.
+- [x] Retrieve the active playthrough.
+- [x] Complete or deactivate a playthrough.
+- [x] List previous playthroughs.
+- [x] Enforce one active playthrough per journey.
+- [x] Preserve journey-character state when transitioning between playthroughs.
 
 ### Scene Progress
 
@@ -369,7 +369,7 @@ Current failures are unrelated to the entity redesign and primarily include:
 6. [x] Implement inventory capacity enforcement.
 7. [ ] Implement journey-character spell availability.
 8. [x] Replace destructive journey-character replacement.
-9. [ ] Implement playthrough lifecycle APIs.
+9. [x] Implement playthrough lifecycle APIs.
 10. [ ] Implement scene progress, participants, and turns.
 11. [ ] Update React screens and state management for the new APIs.
 12. [ ] Resolve the existing React production build errors.
