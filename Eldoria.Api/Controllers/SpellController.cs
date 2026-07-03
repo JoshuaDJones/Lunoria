@@ -71,6 +71,7 @@ namespace Eldoria.Api.Controllers
                 req.DamageEffect,
                 req.HealthEffect,
                 req.MagicEffect,
+                req.SpellTypeId!.Value,
                 ct);
 
             if (result.Success)
@@ -95,6 +96,7 @@ namespace Eldoria.Api.Controllers
                 req.DamageEffect,
                 req.HealthEffect,
                 req.MagicEffect,
+                req.SpellTypeId!.Value,
                 ct);
 
             if (result.Success)

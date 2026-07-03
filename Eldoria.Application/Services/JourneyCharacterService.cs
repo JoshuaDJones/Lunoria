@@ -1,95 +1,110 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class JourneyCharacterService : IJourneyCharacterService
+    public class JourneyCharacterService(
+        IJourneyCharacterRepository journeyCharacterRepository,
+        IOwnershipRepository ownershipRepository,
+        ICharacterRepository characterRepository) : IJourneyCharacterService
     {
-        private readonly IJourneyCharacterRepository _journeyCharacterRepository;
-        private readonly IRepository<Character> _characterRepository;
-        private readonly IRepository<Journey> _journeyRepository;
+        private readonly IJourneyCharacterRepository _journeyCharacterRepository = journeyCharacterRepository;
+        private readonly IOwnershipRepository _ownershipRepository = ownershipRepository;
+        private readonly ICharacterRepository _characterRepository = characterRepository;
 
-        public JourneyCharacterService(IJourneyCharacterRepository journeyCharacterRepository, IRepository<Journey> journeyRepository, IRepository<Character> characterRepository)
+        public async Task<Result> UpdateJourneyCharacter(
+            int userId,
+            int journeyCharacterId,
+            int newHp,
+            int newMp,
+            bool isAlternateForm,
+            CancellationToken ct)
         {
-            _journeyCharacterRepository = journeyCharacterRepository;
-            _journeyRepository = journeyRepository;
-            _characterRepository = characterRepository;
-        }
+            var character = await _ownershipRepository.GetJourneyCharacterAsync(
+                userId,
+                journeyCharacterId,
+                ct);
 
-        public async Task<Result> UpdateJourneyCharacter(int journeyCharacterId, int newHp, int newMp, bool isAlternateForm, CancellationToken ct)
-        {
-            var journeyCharacter = await _journeyCharacterRepository.GetByIdAsync(journeyCharacterId, ct);
+            if (character is null)
+                return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey character was not found."));
 
-            if (journeyCharacter == null)
-                return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey Character was not found"));
-
-            journeyCharacter.CurrentHp = newHp;
-            journeyCharacter.CurrentMp = newMp;            
-            journeyCharacter.IsInAlternateForm = isAlternateForm;
-
+            character.CurrentHp = newHp;
+            character.CurrentMp = newMp;
+            character.IsInAlternateForm = isAlternateForm;
             await _journeyCharacterRepository.SaveChangesAsync(ct);
             return Result.Ok();
         }
 
-        public async Task<Result> DeleteAsync(int journeyCharacterId, CancellationToken ct)
+        public async Task<Result> DeleteAsync(
+            int userId,
+            int journeyCharacterId,
+            CancellationToken ct)
         {
-            var journeyCharacter = await _journeyCharacterRepository.GetByIdAsync(journeyCharacterId, ct);
+            var character = await _ownershipRepository.GetJourneyCharacterAsync(
+                userId,
+                journeyCharacterId,
+                ct);
 
-            if (journeyCharacter is null)
-                return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey Character does not exist."));
+            if (character is null)
+                return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey character was not found."));
 
-            _journeyCharacterRepository.Remove(journeyCharacter);
+            _journeyCharacterRepository.Remove(character);
             await _journeyCharacterRepository.SaveChangesAsync(ct);
-
             return Result.Ok();
         }
 
-        public async Task<Result> ReplaceJourneyCharacters(int journeyId, List<int> characterIds, CancellationToken ct)
+        public async Task<Result> ReplaceJourneyCharacters(
+            int userId,
+            int journeyId,
+            List<int> characterIds,
+            CancellationToken ct)
         {
-            var journey = await _journeyRepository.GetByIdAsync(journeyId, ct);
-
-            if (journey is null)
+            if (await _ownershipRepository.GetJourneyAsync(userId, journeyId, ct) is null)
                 return Result.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
-            var missingCharacterIds = new List<int>();
             var selectedCharacters = new List<Character>();
+            var missingCharacterIds = new List<int>();
 
-            foreach (var c in characterIds)
+            foreach (var characterId in characterIds.Distinct())
             {
-                var character = await _characterRepository.GetByIdAsync(c, ct);
+                var character = await _characterRepository.GetByIdForUserAsync(
+                    userId,
+                    characterId,
+                    ct);
 
                 if (character is null)
-                    missingCharacterIds.Add(c);
+                    missingCharacterIds.Add(characterId);
                 else
                     selectedCharacters.Add(character);
             }
 
             if (missingCharacterIds.Count > 0)
-                return Result.Fail(new Error("Character.NotFound", $"The following characters were not found: {string.Join(", ", missingCharacterIds)}"));
+                return Result.Fail(new Error(
+                    "Character.NotFound",
+                    $"The following characters were not found or are not owned by the current user: {string.Join(", ", missingCharacterIds)}"));
 
             var journeyCharacters = await _journeyCharacterRepository.GetJourneyCharacters(journeyId, ct);
+            foreach (var journeyCharacter in journeyCharacters)
+                _journeyCharacterRepository.Remove(journeyCharacter);
 
-            foreach (var jc in journeyCharacters)
-                _journeyCharacterRepository.Remove(jc);
-
-            foreach (var c in selectedCharacters)
+            foreach (var character in selectedCharacters)
             {
                 await _journeyCharacterRepository.AddAsync(new JourneyCharacter
                 {
-                    CurrentHp = c.BaseMaxHp,
-                    CurrentMp = c.BaseMaxMp,
-                    MaxHp = c.BaseMaxHp,
-                    MaxMp = c.BaseMaxMp,
-                    MeleeAttackDamage = c.BaseMeleeAttackDamage,
-                    BowAttackDamage = c.BaseBowAttackDamage,
-                    Movement = c.BaseMovement,
-                    MaxConsumableInventory = c.BaseMaxConsumableInventory,
-                    MaxEquippableInventory = c.BaseMaxEquippableInventory,
+                    CurrentHp = character.BaseMaxHp,
+                    CurrentMp = character.BaseMaxMp,
+                    MaxHp = character.BaseMaxHp,
+                    MaxMp = character.BaseMaxMp,
+                    MeleeAttackDamage = character.BaseMeleeAttackDamage,
+                    BowAttackDamage = character.BaseBowAttackDamage,
+                    Movement = character.BaseMovement,
+                    MaxConsumableInventory = character.BaseMaxConsumableInventory,
+                    MaxEquippableInventory = character.BaseMaxEquippableInventory,
                     IsDown = false,
                     IsInAlternateForm = false,
                     JourneyId = journeyId,
-                    CharacterId = c.Id,
+                    CharacterId = character.Id,
                 }, ct);
             }
 

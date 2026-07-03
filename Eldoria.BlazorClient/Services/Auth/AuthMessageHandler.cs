@@ -3,14 +3,9 @@ using System.Net.Http.Headers;
 
 namespace Eldoria.BlazorClient.Services.Auth
 {
-    public class AuthMessageHandler : DelegatingHandler
+    public class AuthMessageHandler(ILocalStorageService localStorageService) : DelegatingHandler
     {
-        private readonly ILocalStorageService _localStorageService;
-
-        public AuthMessageHandler(ILocalStorageService localStorageService)
-        {
-            _localStorageService = localStorageService;
-        }
+        private readonly ILocalStorageService _localStorageService = localStorageService;
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {

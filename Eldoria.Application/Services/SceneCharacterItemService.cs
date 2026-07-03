@@ -1,56 +1,51 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class SceneCharacterItemService : ISceneCharacterItemService
+    public class SceneCharacterItemService(
+        IRepository<SceneCharacterItem> sceneCharacterItemRepository,
+        IOwnershipRepository ownershipRepository,
+        IItemRepository itemRepository) : ISceneCharacterItemService
     {
-        private readonly IRepository<SceneCharacterItem> _sceneCharacterItemRepository;
-        private readonly IRepository<SceneCharacter> _sceneCharacterRepository;
-        private readonly IRepository<Item> _itemRepository;
+        private readonly IRepository<SceneCharacterItem> _sceneCharacterItemRepository = sceneCharacterItemRepository;
+        private readonly IOwnershipRepository _ownershipRepository = ownershipRepository;
+        private readonly IItemRepository _itemRepository = itemRepository;
 
-        public SceneCharacterItemService(IRepository<SceneCharacterItem> sceneCharacterItemRepository, IRepository<SceneCharacter> sceneCharacterRepository, IRepository<Item> itemRepository)
+        public async Task<Result> AddItem(
+            int userId,
+            int sceneCharacterId,
+            int itemId,
+            CancellationToken ct)
         {
-            _sceneCharacterItemRepository = sceneCharacterItemRepository;
-            _sceneCharacterRepository = sceneCharacterRepository;
-            _itemRepository = itemRepository;
-        }
+            if (await _ownershipRepository.GetSceneCharacterAsync(userId, sceneCharacterId, ct) is null)
+                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene character was not found."));
 
-        public async Task<Result> AddItem(int sceneCharacterId, int itemId, CancellationToken ct)
-        {
-            var sceneCharacter = await _sceneCharacterRepository.GetByIdAsync(sceneCharacterId, ct);
+            if (await _itemRepository.GetByIdForUserAsync(userId, itemId, ct) is null)
+                return Result.Fail(new Error("Item.NotFound", "Item was not found."));
 
-            if (sceneCharacter is null)
-                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene character does not exist."));
-
-            var item = await _itemRepository.GetByIdAsync(itemId, ct);
-
-            if (item is null)
-                return Result.Fail(new Error("Item.NotFound", "Item does not exist"));
-
-            var sceneCharacterItem = new SceneCharacterItem
+            await _sceneCharacterItemRepository.AddAsync(new SceneCharacterItem
             {
                 IsUsed = false,
-                SceneCharacterId = sceneCharacter.Id,
-                ItemId = item.Id,
-            };
-
-            await _sceneCharacterItemRepository.AddAsync(sceneCharacterItem, ct);
+                SceneCharacterId = sceneCharacterId,
+                ItemId = itemId,
+            }, ct);
             await _sceneCharacterItemRepository.SaveChangesAsync(ct);
-
             return Result.Ok();
         }
 
-        public async Task<Result> UseItem(int sceneCharacterItemId, CancellationToken ct)
+        public async Task<Result> UseItem(int userId, int sceneCharacterItemId, CancellationToken ct)
         {
-            var sceneCharacterItem = await _sceneCharacterItemRepository.GetByIdAsync(sceneCharacterItemId, ct);
+            var item = await _ownershipRepository.GetSceneCharacterItemAsync(
+                userId,
+                sceneCharacterItemId,
+                ct);
 
-            if (sceneCharacterItem is null)
-                return Result.Fail(new Error("SceneCharacterItem.NotFound", "Scene character item does not exist."));
+            if (item is null)
+                return Result.Fail(new Error("SceneCharacterItem.NotFound", "Scene character item was not found."));
 
-            sceneCharacterItem.IsUsed = true;
-
+            item.IsUsed = true;
             await _sceneCharacterItemRepository.SaveChangesAsync(ct);
             return Result.Ok();
         }

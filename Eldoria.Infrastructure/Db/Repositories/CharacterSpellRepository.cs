@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class CharacterSpellRepository : Repository<CharacterSpell>, ICharacterSpellRepository
+    public class CharacterSpellRepository(ApplicationDbContext dbContext)
+        : Repository<CharacterSpell>(dbContext), ICharacterSpellRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public CharacterSpellRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task AddCharacterSpells(List<int> spellIds, int characterId, CancellationToken ct)
         {

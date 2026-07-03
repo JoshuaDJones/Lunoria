@@ -1,24 +1,22 @@
 ﻿using Eldoria.Api.Requests;
 using Eldoria.Application.Services;
+using Eldoria.Api.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneCharacterItemController : ControllerBase
+    public class SceneCharacterItemController(
+        ISceneCharacterItemService sceneCharacterItemService) : ControllerBase
     {
-        private readonly ISceneCharacterItemService _sceneCharacterItemService;
-
-        public SceneCharacterItemController(ISceneCharacterItemService sceneCharacterItemService)
-        {   
-            _sceneCharacterItemService = sceneCharacterItemService;
-        }
+        private readonly ISceneCharacterItemService _sceneCharacterItemService =
+            sceneCharacterItemService;
 
         [HttpPost]
         public async Task<IActionResult> AddItem([FromBody] AddSceneCharacterItemRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterItemService.AddItem(req.SceneCharacterId!.Value, req.ItemId!.Value, ct);
+            var result = await _sceneCharacterItemService.AddItem(User.GetUserId(), req.SceneCharacterId!.Value, req.ItemId!.Value, ct);
 
             if(result.Success) 
                 return Ok();
@@ -34,7 +32,7 @@ namespace Eldoria.Api.Controllers
         [HttpPatch]
         public async Task<IActionResult> UseItem([FromBody] UseSceneCharacterItemRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterItemService.UseItem(req.SceneCharacterItemId!.Value, ct); 
+            var result = await _sceneCharacterItemService.UseItem(User.GetUserId(), req.SceneCharacterItemId!.Value, ct);
 
             if(result.Success) 
                 return Ok();

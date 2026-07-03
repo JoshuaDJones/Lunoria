@@ -4,13 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class UserRepository : Repository<User>, IUserRepository
+    public class UserRepository(ApplicationDbContext dbContext)
+        : Repository<User>(dbContext), IUserRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-        public UserRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task<bool> EmailExists(string email, CancellationToken ct)
         {

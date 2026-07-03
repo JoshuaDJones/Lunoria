@@ -1,24 +1,24 @@
 ﻿using Eldoria.Api.Requests;
 using Eldoria.Application.Services;
+using Eldoria.Api.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class CharacterSpellsController : ControllerBase
+    public class CharacterSpellsController(ICharacterSpellService characterSpellService) : ControllerBase
     {
-        private readonly ICharacterSpellService _characterSpellService;
-
-        public CharacterSpellsController(ICharacterSpellService characterSpellService)
-        {
-            _characterSpellService = characterSpellService;
-        }
+        private readonly ICharacterSpellService _characterSpellService = characterSpellService;
 
         [HttpPut("{characterId:int}")]
         public async Task<IActionResult> Replace(int characterId, [FromBody] ReplaceCharacterSpellsRequest req, CancellationToken ct)
         {
-            var result = await _characterSpellService.ReplaceCharacterSpells(characterId, req.SpellIds, ct);
+            var result = await _characterSpellService.ReplaceCharacterSpells(
+                User.GetUserId(),
+                characterId,
+                req.SpellIds,
+                ct);
 
             if (result.Success)
                 return Ok();

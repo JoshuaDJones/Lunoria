@@ -4,13 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class JourneyRepository : Repository<Journey>, IJourneyRepository
+    public class JourneyRepository(ApplicationDbContext dbContext)
+        : Repository<Journey>(dbContext), IJourneyRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-        public JourneyRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task<List<Journey>> GetUsersJourneys(int userId, int skip, int take, CancellationToken ct)
         {

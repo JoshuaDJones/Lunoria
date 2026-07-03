@@ -4,14 +4,9 @@ using System.Net.Http.Json;
 
 namespace Eldoria.BlazorClient.Services.Implementations
 {
-    public class ItemService : IItemService
+    public class ItemService(IHttpClientFactory httpClientFactory) : IItemService
     {
-        private readonly HttpClient _authClient;
-
-        public ItemService(IHttpClientFactory httpClientFactory)
-        {
-            _authClient = httpClientFactory.CreateClient("AuthClient");
-        }
+        private readonly HttpClient _authClient = httpClientFactory.CreateClient("AuthClient");
 
         public async Task<List<ItemDto>> GetItemsListAsync()
         {

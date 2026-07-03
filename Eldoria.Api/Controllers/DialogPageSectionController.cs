@@ -1,5 +1,6 @@
 ﻿using Eldoria.Api.Requests;
 using Eldoria.Application.Services;
+using Eldoria.Api.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,19 +8,14 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class DialogPageSectionController : ControllerBase
+    public class DialogPageSectionController(IDialogPageSectionService dialogPageSectionService) : ControllerBase
     {
-        private readonly IDialogPageSectionService _dialogPageSectionService;
-
-        public DialogPageSectionController(IDialogPageSectionService dialogPageSectionService)
-        {
-            _dialogPageSectionService = dialogPageSectionService;
-        }
+        private readonly IDialogPageSectionService _dialogPageSectionService = dialogPageSectionService;
 
         [HttpPost("{dialogPageId:int}")]
         public async Task<IActionResult> Create(int dialogPageId, [FromBody] CreateDialogPageSectionRequest req, CancellationToken ct)
         {
-            var result = await _dialogPageSectionService.CreateDialogPageSectionAsync(dialogPageId, req.CharacterId, req.OrderNum!.Value, req.ReadingText, req.IsNarrator, ct);
+            var result = await _dialogPageSectionService.CreateDialogPageSectionAsync(User.GetUserId(), dialogPageId, req.CharacterId, req.OrderNum!.Value, req.ReadingText, req.IsNarrator, ct);
 
             if (result.Success)
                 return Ok(result);
@@ -34,7 +30,7 @@ namespace Eldoria.Api.Controllers
         [HttpPatch("{dialogPageSectionId:int}")]
         public async Task<IActionResult> Update(int dialogPageSectionId, [FromBody] UpdateDialogPageSectionRequest req, CancellationToken ct)
         {
-            var result = await _dialogPageSectionService.EditDialogPageSectionAsync(dialogPageSectionId, req.CharacterId, req.OrderNum, req.ReadingText, req.IsNarrator, ct);
+            var result = await _dialogPageSectionService.EditDialogPageSectionAsync(User.GetUserId(), dialogPageSectionId, req.CharacterId, req.OrderNum, req.ReadingText, req.IsNarrator, ct);
 
             if (result.Success)
                 return Ok(result);

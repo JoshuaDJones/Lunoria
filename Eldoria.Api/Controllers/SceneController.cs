@@ -8,14 +8,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneController : ControllerBase
+    public class SceneController(ISceneService sceneService) : ControllerBase
     {
-        private readonly ISceneService _sceneService;
-
-        public SceneController(ISceneService sceneService)
-        {
-            _sceneService = sceneService;
-        }
+        private readonly ISceneService _sceneService = sceneService;
 
         [HttpGet]
         public async Task<ActionResult<List<SceneDto>>> List(

@@ -13,18 +13,14 @@ using System.Text;
 
 namespace Eldoria.Application.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(
+        IUserRepository userRepository,
+        IPasswordHasher<User> passwordHasher,
+        IConfiguration configuration) : IAuthService
     {
-        private IUserRepository _userRepository;
-        private IPasswordHasher<User> _passwordHasher;
-        private IConfiguration _configuration;
-
-        public AuthService(IUserRepository userRepository, IPasswordHasher<User> passwordHasher, IConfiguration configuration)
-        {
-            _userRepository = userRepository;
-            _passwordHasher = passwordHasher;
-            _configuration = configuration;
-        }
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task<Result<AuthenticationTokenDto>> AuthenticateUser(string email, string password, CancellationToken ct)
         {

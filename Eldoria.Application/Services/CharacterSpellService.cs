@@ -1,38 +1,40 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class CharacterSpellService : ICharacterSpellService
+    public class CharacterSpellService(
+        ICharacterSpellRepository characterSpellRepository,
+        ICharacterRepository characterRepository,
+        ISpellRepository spellRepository) : ICharacterSpellService
     {
-        private readonly ICharacterSpellRepository _characterSpellRepository;
-        private readonly ICharacterRepository _characterRepository;
-        private readonly ISpellRepository _spellRepository;
+        private readonly ICharacterSpellRepository _characterSpellRepository = characterSpellRepository;
+        private readonly ICharacterRepository _characterRepository = characterRepository;
+        private readonly ISpellRepository _spellRepository = spellRepository;
 
-        public CharacterSpellService(ICharacterSpellRepository characterSpellRepository, ICharacterRepository characterRepository, ISpellRepository spellRepository)
+        public async Task<Result> ReplaceCharacterSpells(
+            int userId,
+            int characterId,
+            List<int> spellIds,
+            CancellationToken ct)
         {
-            _characterSpellRepository = characterSpellRepository;
-            _characterRepository = characterRepository;
-            _spellRepository = spellRepository;
-        }
-
-        public async Task<Result> ReplaceCharacterSpells(int characterId, List<int> spellIds, CancellationToken ct)
-        {
-            var character = await _characterRepository.GetByIdAsync(characterId, ct);
-
+            var character = await _characterRepository.GetByIdForUserAsync(userId, characterId, ct);
             if (character is null)
                 return Result.Fail(new Error("Character.NotFound", "Character was not found."));
 
-            var spells = await _spellRepository.GetSpellsByIds(spellIds, ct);
+            var distinctSpellIds = spellIds.Distinct().ToList();
+            var spells = await _spellRepository.GetSpellsByIdsForUserAsync(
+                userId,
+                distinctSpellIds,
+                ct);
 
-            var missingIds = spellIds.Where((id, index) => spells[index] is null).ToList();
-
-            if (missingIds.Count > 0)
-                return Result.Fail(new Error("Spell.NotFound", $"One or more of your spell ids do not exist. ids: $\"One or more of your spell ids do not exist. ids: {string.Join(", ", missingIds)}"));
+            if (spells.Count != distinctSpellIds.Count)
+                return Result.Fail(new Error(
+                    "Spell.NotFound",
+                    "One or more spells were not found or are not owned by the current user."));
 
             await _characterSpellRepository.RemoveCharacterSpells(characterId, ct);
-            await _characterSpellRepository.AddCharacterSpells(spellIds, characterId, ct);
-
+            await _characterSpellRepository.AddCharacterSpells(distinctSpellIds, characterId, ct);
             return Result.Ok();
         }
     }

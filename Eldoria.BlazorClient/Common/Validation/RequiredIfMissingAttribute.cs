@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using System.ComponentModel.DataAnnotations;
 
-public class RequiredIfMissingAttribute : ValidationAttribute
+public class RequiredIfMissingAttribute(string otherProperty) : ValidationAttribute
 {
-    private readonly string _otherProperty;
-
-    public RequiredIfMissingAttribute(string otherProperty)
-    {
-        _otherProperty = otherProperty;
-    }
+    private readonly string _otherProperty = otherProperty;
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {

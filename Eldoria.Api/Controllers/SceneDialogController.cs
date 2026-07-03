@@ -7,14 +7,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneDialogController : ControllerBase
+    public class SceneDialogController(ISceneDialogService sceneDialogService) : ControllerBase
     {
-        private readonly ISceneDialogService _sceneDialogService;
-
-        public SceneDialogController(ISceneDialogService sceneDialogService)
-        {
-            _sceneDialogService = sceneDialogService;
-        }
+        private readonly ISceneDialogService _sceneDialogService = sceneDialogService;
 
         [HttpPost("{sceneId:int}")]
         public async Task<IActionResult> Post(int sceneId, [FromBody] CreateSceneDialogRequest req, CancellationToken ct)

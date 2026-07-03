@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class EquippableItemRepository : Repository<EquippableItem>, IEquippableItemRepository
+    public class EquippableItemRepository(ApplicationDbContext dbContext)
+        : Repository<EquippableItem>(dbContext), IEquippableItemRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public EquippableItemRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public Task<List<EquippableItem>> GetListForUserAsync(
             int userId,

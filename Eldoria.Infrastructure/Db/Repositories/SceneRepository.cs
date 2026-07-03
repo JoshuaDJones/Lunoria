@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class SceneRepository : Repository<Scene>, ISceneRepository
+    public class SceneRepository(ApplicationDbContext dbContext)
+        : Repository<Scene>(dbContext), ISceneRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public SceneRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task<List<Scene>> GetJourneyScenes(int journeyId, int skip, int take, CancellationToken ct)
         {

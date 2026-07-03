@@ -6,14 +6,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class DialogPageController : ControllerBase
+    public class DialogPageController(IDialogPageService dialogPageService) : ControllerBase
     {
-        private readonly IDialogPageService _dialogPageService;
-
-        public DialogPageController(IDialogPageService dialogPageService)
-        {
-            _dialogPageService = dialogPageService;
-        }
+        private readonly IDialogPageService _dialogPageService = dialogPageService;
 
         [HttpPost("{sceneDialogId:int}")]
         [Consumes("multipart/form-data")]

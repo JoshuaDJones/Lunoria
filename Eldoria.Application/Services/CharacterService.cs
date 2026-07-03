@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Enums;
@@ -7,29 +7,41 @@ using Microsoft.AspNetCore.Http;
 
 namespace Eldoria.Application.Services
 {
-    public class CharacterService : ICharacterService
+    public class CharacterService(
+        ICharacterRepository characterRepository,
+        IAzureStorageBlob azureStorageBlob) : ICharacterService
     {
-        private readonly ICharacterRepository _characterRepository;
-        private readonly ICharacterSpellRepository _characterSpellRepository;
-        private readonly IRepository<Spell> _spellRepository;
-        private readonly IAzureStorageBlob _azureStorageBlob;
+        private readonly ICharacterRepository _characterRepository = characterRepository;
+        private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
 
-        public CharacterService(ICharacterRepository characterRepository, ICharacterSpellRepository characterSpellRepository, IRepository<Spell> spellRepository, IAzureStorageBlob azureStorageBlob)
+        public async Task<Result<CharacterDto>> CreateAsync(
+            int userId,
+            string name,
+            string description,
+            IFormFile photo,
+            int maxHp,
+            int maxMp,
+            int? meleeAttackDamage,
+            int? bowAttackDamage,
+            int movement,
+            int maxInventory,
+            bool isPlayer,
+            bool isNPC,
+            bool isEnemy,
+            int? alternateFormId,
+            CancellationToken ct)
         {
-            _characterRepository = characterRepository;
-            _characterSpellRepository = characterSpellRepository;
-            _spellRepository = spellRepository;
-            _azureStorageBlob = azureStorageBlob;
-        }
+            var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, ct);
+            if (alternateFormId.HasValue && alternateForm is null)
+                return InvalidAlternateForm();
 
-        public async Task<Result<CharacterDto>> CreateAsync(string name, string description, IFormFile photo, int maxHp, int maxMp, int? meleeAttackDamage, int? bowAttackDamage, int movement, int maxInventory, bool isPlayer, bool isNPC, bool isEnemy, int? alternateFormId, CancellationToken ct)
-        {
             var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
-
+            var now = DateTime.UtcNow;
             var character = new Character
             {
-                Name = name,
-                Description = description,
+                UserId = userId,
+                Name = name.Trim(),
+                Description = description.Trim(),
                 PhotoUrl = photoUrl,
                 FileName = fileName,
                 BaseMaxHp = maxHp,
@@ -43,91 +55,99 @@ namespace Eldoria.Application.Services
                 IsNPC = isNPC,
                 IsEnemy = isEnemy,
                 BaseAlternateFormId = alternateFormId,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
+                BaseAlternateForm = alternateForm,
+                CreateDate = now,
+                UpdateDate = now,
             };
 
             await _characterRepository.AddAsync(character, ct);
             await _characterRepository.SaveChangesAsync(ct);
-
             return Result<CharacterDto>.Ok(character.ToDto());
         }
 
-        public async Task<Result> DeleteAsync(int id, CancellationToken ct)
+        public async Task<Result> DeleteAsync(int userId, int id, CancellationToken ct)
         {
-            var character = await _characterRepository.GetByIdAsync(id, ct);
-
+            var character = await _characterRepository.GetByIdForUserAsync(userId, id, ct);
             if (character is null)
                 return Result.Fail(new Error("Character.NotFound", "Character was not found."));
 
-            // Soft delete - set IsDeleted flag and DeletedAt timestamp
             character.IsDeleted = true;
             character.DeletedAt = DateTime.UtcNow;
+            character.UpdateDate = DateTime.UtcNow;
 
             _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);
-
             return Result.Ok();
         }
 
-        public async Task<Result<CharacterDto>> GetByIdAsync(int id, CancellationToken ct)
+        public async Task<Result<CharacterDto>> GetByIdAsync(
+            int userId,
+            int id,
+            CancellationToken ct)
         {
-            var character = await _characterRepository.GetByIdAsync(id, ct);            
-
-            if (character is null)
-                return Result<CharacterDto>.Fail(new Error("Character.NotFound", "Character was not found"));
-
-            if (character.BaseAlternateFormId is int altId)
-                character.BaseAlternateForm = await _characterRepository.GetByIdAsync(altId, ct);
-
-            var associatedCharacterSpells = await _characterSpellRepository.GetCharacterSpells(id, ct);
-            var characterSpellDtos = associatedCharacterSpells.Select(s => s.ToDto()).ToList();            
-
-            var characterDto = character.ToDto();
-            characterDto.CharacterSpells = characterSpellDtos;
-
-            return Result<CharacterDto>.Ok(characterDto);
+            var character = await _characterRepository.GetByIdForUserAsync(userId, id, ct);
+            return character is null
+                ? Result<CharacterDto>.Fail(new Error("Character.NotFound", "Character was not found."))
+                : Result<CharacterDto>.Ok(character.ToDto());
         }
 
-        public async Task<Result<List<CharacterDto>>> GetListAsync(int skip, int take, CharacterType characterType, CancellationToken ct)
+        public async Task<Result<List<CharacterDto>>> GetListAsync(
+            int userId,
+            int skip,
+            int take,
+            CharacterType characterType,
+            CancellationToken ct)
         {
-            var characters = await _characterRepository.GetCharacters(skip, take, characterType, ct);
+            var characters = await _characterRepository.GetCharactersForUserAsync(
+                userId,
+                skip,
+                take,
+                characterType,
+                ct);
 
-            List<CharacterDto> characterDtos = [];
-
-            foreach(var character in characters)
-            {
-                var spells = character.CharacterSpells.Select(s => s.ToDto()).ToList();
-                var dto = character.ToDto();
-                dto.CharacterSpells = spells;
-
-                characterDtos.Add(dto);
-            }
-
-            return Result<List<CharacterDto>>.Ok(characterDtos);
+            return Result<List<CharacterDto>>.Ok(
+                characters.Select(character => character.ToDto()).ToList());
         }
 
-        public async Task<Result<CharacterDto>> UpdateAsync(int id, string name, string description, IFormFile? photo, int maxHp, int maxMp, int? meleeAttackDamage, int? bowAttackDamage, int movement, int maxInventory, bool isPlayer, bool isNPC, bool isEnemy, int? alternateFormId, CancellationToken ct)
+        public async Task<Result<CharacterDto>> UpdateAsync(
+            int userId,
+            int id,
+            string name,
+            string description,
+            IFormFile? photo,
+            int maxHp,
+            int maxMp,
+            int? meleeAttackDamage,
+            int? bowAttackDamage,
+            int movement,
+            int maxInventory,
+            bool isPlayer,
+            bool isNPC,
+            bool isEnemy,
+            int? alternateFormId,
+            CancellationToken ct)
         {
-            var character = await _characterRepository.GetByIdAsync(id, ct);
-
+            var character = await _characterRepository.GetByIdForUserAsync(userId, id, ct);
             if (character is null)
-                return Result<CharacterDto>.Fail(new Error("Character.NotFound", "Character was not found"));
+                return Result<CharacterDto>.Fail(new Error("Character.NotFound", "Character was not found."));
 
-            character.Name = name;
-            character.Description = description;
+            if (alternateFormId == id)
+                return InvalidAlternateForm();
 
+            var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, ct);
+            if (alternateFormId.HasValue && alternateForm is null)
+                return InvalidAlternateForm();
+
+            var oldPhotoUrl = character.PhotoUrl;
             if (photo is not null)
             {
-                if (!string.IsNullOrEmpty(character.FileName))
-                    await _azureStorageBlob.DeletePhotoFromUrl(character.PhotoUrl);
-
                 var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
-
                 character.PhotoUrl = photoUrl;
                 character.FileName = fileName;
             }
 
+            character.Name = name.Trim();
+            character.Description = description.Trim();
             character.BaseMaxHp = maxHp;
             character.BaseMaxMp = maxMp;
             character.BaseMeleeAttackDamage = meleeAttackDamage;
@@ -139,11 +159,33 @@ namespace Eldoria.Application.Services
             character.IsNPC = isNPC;
             character.IsEnemy = isEnemy;
             character.BaseAlternateFormId = alternateFormId;
+            character.BaseAlternateForm = alternateForm;
+            character.UpdateDate = DateTime.UtcNow;
 
             _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);
 
+            if (photo is not null && !string.IsNullOrWhiteSpace(oldPhotoUrl))
+                await _azureStorageBlob.DeletePhotoFromUrl(oldPhotoUrl);
+
             return Result<CharacterDto>.Ok(character.ToDto());
+        }
+
+        private Task<Character?> ResolveAlternateFormAsync(
+            int userId,
+            int? alternateFormId,
+            CancellationToken ct)
+        {
+            return alternateFormId.HasValue
+                ? _characterRepository.GetByIdForUserAsync(userId, alternateFormId.Value, ct)
+                : Task.FromResult<Character?>(null);
+        }
+
+        private static Result<CharacterDto> InvalidAlternateForm()
+        {
+            return Result<CharacterDto>.Fail(new Error(
+                "Character.InvalidAlternateForm",
+                "The alternate form was not found or is not owned by the current user."));
         }
     }
 }

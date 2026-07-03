@@ -1,35 +1,32 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class SceneCharacterService : ISceneCharacterService
+    public class SceneCharacterService(
+        IRepository<SceneCharacter> sceneCharacterRepository,
+        IOwnershipRepository ownershipRepository,
+        ICharacterRepository characterRepository) : ISceneCharacterService
     {
-        private readonly IRepository<SceneCharacter> _sceneCharacterRepository;
-        private readonly IRepository<Scene> _sceneRepository;
-        private readonly ICharacterRepository _characterRepository;
+        private readonly IRepository<SceneCharacter> _sceneCharacterRepository = sceneCharacterRepository;
+        private readonly IOwnershipRepository _ownershipRepository = ownershipRepository;
+        private readonly ICharacterRepository _characterRepository = characterRepository;
 
-        public SceneCharacterService(IRepository<SceneCharacter> sceneCharacterRepository, IRepository<Scene> sceneRepository, ICharacterRepository characterRepository)
+        public async Task<Result> AddSceneCharacterAsync(
+            int userId,
+            int sceneId,
+            int characterId,
+            CancellationToken ct)
         {
-            _sceneCharacterRepository = sceneCharacterRepository;
-            _sceneRepository = sceneRepository;
-            _characterRepository = characterRepository;
-        }
+            if (await _ownershipRepository.GetSceneAsync(userId, sceneId, ct) is null)
+                return Result.Fail(new Error("Scene.NotFound", "Scene was not found."));
 
-        public async Task<Result> AddSceneCharacterAsync(int sceneId, int characterId, CancellationToken ct)
-        {
-            var scene = await _sceneRepository.GetByIdAsync(sceneId, ct);
-
-            if (scene is null)
-                return Result.Fail(new Error("Scene.NotFound", "Scene does not exist"));
-
-            var character = await _characterRepository.GetByIdAsync(characterId, ct);
-
+            var character = await _characterRepository.GetByIdForUserAsync(userId, characterId, ct);
             if (character is null)
-                return Result.Fail(new Error("Character.NotFound", "Character does not exist"));
+                return Result.Fail(new Error("Character.NotFound", "Character was not found."));
 
-            var sceneCharacter = new SceneCharacter
+            await _sceneCharacterRepository.AddAsync(new SceneCharacter
             {
                 CurrentHp = character.BaseMaxHp,
                 CurrentMp = character.BaseMaxMp,
@@ -37,40 +34,40 @@ namespace Eldoria.Application.Services
                 IsAlternateForm = false,
                 SceneId = sceneId,
                 CharacterId = characterId,
-            };
-
-            await _sceneCharacterRepository.AddAsync(sceneCharacter, ct);
+            }, ct);
             await _sceneCharacterRepository.SaveChangesAsync(ct);
-
             return Result.Ok();
         }
 
-        public async Task<Result> AdjustCharacterHpMpAsync(int sceneCharacterId, int newHp, int newMp, CancellationToken ct)
+        public async Task<Result> AdjustCharacterHpMpAsync(
+            int userId,
+            int sceneCharacterId,
+            int newHp,
+            int newMp,
+            CancellationToken ct)
         {
-            var sceneCharacter = await _sceneCharacterRepository.GetByIdAsync(sceneCharacterId, ct);
+            var character = await _ownershipRepository.GetSceneCharacterAsync(userId, sceneCharacterId, ct);
+            if (character is null)
+                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene character was not found."));
 
-            if (sceneCharacter is null)
-                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene Character does not exist."));
-
-            sceneCharacter.CurrentHp = newHp;
-            sceneCharacter.CurrentMp = newMp;
-
+            character.CurrentHp = newHp;
+            character.CurrentMp = newMp;
             await _sceneCharacterRepository.SaveChangesAsync(ct);
-
             return Result.Ok();
         }
 
-        public async Task<Result> DeleteSceneCharacterAsync(int sceneCharacterId, CancellationToken ct)
+        public async Task<Result> DeleteSceneCharacterAsync(
+            int userId,
+            int sceneCharacterId,
+            CancellationToken ct)
         {
-            var sceneCharacter = await _sceneCharacterRepository.GetByIdAsync(sceneCharacterId, ct);
+            var character = await _ownershipRepository.GetSceneCharacterAsync(userId, sceneCharacterId, ct);
+            if (character is null)
+                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene character was not found."));
 
-            if (sceneCharacter is null)
-                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene Character does not exist."));
-
-            _sceneCharacterRepository.Remove(sceneCharacter);
+            _sceneCharacterRepository.Remove(character);
             await _sceneCharacterRepository.SaveChangesAsync(ct);
-
-            return Result.Ok(); 
+            return Result.Ok();
         }
     }
 }

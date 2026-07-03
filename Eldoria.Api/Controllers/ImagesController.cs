@@ -7,14 +7,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class ImagesController : ControllerBase
+    public class ImagesController(IImagesService imagesService) : ControllerBase
     {
-        private readonly IImagesService _imagesService;
-
-        public ImagesController(IImagesService imagesService)
-        {
-            _imagesService = imagesService;
-        }
+        private readonly IImagesService _imagesService = imagesService;
 
         [HttpPost]
         [Consumes("multipart/form-data")]

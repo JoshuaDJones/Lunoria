@@ -3,10 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : DbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-
         public DbSet<Character> Characters { get; set; }
         public DbSet<CharacterSpell> CharacterSpells { get; set; }
         public DbSet<EquippableItem> EquippableItems { get; set; }

@@ -28,8 +28,8 @@
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        public int? UserId { get; set; }
-        public User? User { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
 
         public int? BaseAlternateFormId { get; set; }
         public Character? BaseAlternateForm { get; set; } = null!;

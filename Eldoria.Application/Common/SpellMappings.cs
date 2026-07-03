@@ -20,6 +20,8 @@ namespace Eldoria.Application.Common
                 HealthEffect = spell.HealthEffect,
                 MagicEffect = spell.MagicEffect,
                 CreateDate = spell.CreateDate,
+                SpellTypeId = spell.SpellTypeId,
+                SpellType = spell.SpellType?.ToDto(),
             };
         }
     }

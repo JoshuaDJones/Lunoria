@@ -4,14 +4,9 @@ using System.Net.Http.Json;
 
 namespace Eldoria.BlazorClient.Services.Implementations
 {
-    public class JourneyService : IJourneyService
+    public class JourneyService(IHttpClientFactory httpClientFactory) : IJourneyService
     {
-        private readonly HttpClient _authClient;
-
-        public JourneyService(IHttpClientFactory httpClientFactory)
-        {
-            _authClient = httpClientFactory.CreateClient("AuthClient");
-        }
+        private readonly HttpClient _authClient = httpClientFactory.CreateClient("AuthClient");
 
         public async Task<List<JourneyDto>> GetJourneysListAsync()
         {

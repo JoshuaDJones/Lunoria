@@ -13,5 +13,7 @@
         public int? HealthEffect { get; set; }
         public int? MagicEffect { get; set; }
         public DateTime CreateDate { get; set; }
+        public int SpellTypeId { get; set; }
+        public SpellTypeDto? SpellType { get; set; }
     }
 }

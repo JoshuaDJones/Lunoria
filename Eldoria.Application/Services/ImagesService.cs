@@ -4,14 +4,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace Eldoria.Application.Services
 {
-    public class ImagesService : IImagesService
+    public class ImagesService(IAzureStorageBlob azureStorageBlob) : IImagesService
     {
-        private readonly IAzureStorageBlob _azureStorageBlob;
-
-        public ImagesService(IAzureStorageBlob azureStorageBlob)
-        {
-            _azureStorageBlob = azureStorageBlob;
-        }
+        private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
 
         public async Task<Result> DeleteImageAsync(string imagePath, CancellationToken ct)
         {

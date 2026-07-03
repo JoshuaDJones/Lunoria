@@ -7,6 +7,11 @@ required after the June 2026 entity and Entity Framework redesign.
 
 The database model is currently ahead of both the API and React application.
 
+Checklist status:
+
+- `[x]` Done
+- `[ ]` Not done or only partially implemented
+
 ## Immediate Runtime Blockers
 
 ### Spell Creation
@@ -16,11 +21,11 @@ and update workflows do not provide it.
 
 Required changes:
 
-- Add `SpellTypeId` to spell create and update requests.
-- Add spell type information to `SpellDto`.
-- Update spell mappings and service method signatures.
-- Set and validate `SpellTypeId` when creating or updating a spell.
-- Add a spell type selector to the React spell form.
+- [x] Add `SpellTypeId` to spell create and update requests.
+- [x] Add spell type information to `SpellDto`.
+- [x] Update spell mappings and service method signatures.
+- [x] Set and validate `SpellTypeId` when creating or updating a spell.
+- [ ] Add a spell type selector to the React spell form.
 
 Relevant files:
 
@@ -39,19 +44,24 @@ Characters, consumables, equipment, spells, and spell types now have optional
 
 Required changes:
 
-- Retrieve the authenticated user ID in all catalog controllers.
-- Pass the user ID into catalog service methods.
-- Assign `UserId` when creating catalog records.
-- Filter list and lookup operations by owner.
-- Require ownership for updates and deletes.
-- Enforce ownership when selecting alternate forms, assigning spells, or
+- [x] Retrieve the authenticated user ID in all catalog controllers.
+- [x] Pass the user ID into catalog service methods.
+- [x] Assign `UserId` when creating all catalog records.
+- [x] Filter all catalog list and lookup operations by owner.
+- [x] Require ownership for all catalog updates and deletes.
+- [x] Enforce ownership when selecting alternate forms, assigning spells, or
   referencing catalog records from another entity.
-- Backfill existing catalog rows with the correct owners.
-- Make ownership foreign keys non-nullable after the backfill is complete.
+- [x] Backfill existing catalog rows with the correct owners.
+- [x] Make ownership foreign keys non-nullable after the backfill is complete.
 
 Authentication should also be required globally or through `[Authorize]` on
 protected controllers. The React application sends bearer tokens, but most API
 controllers are not currently marked as requiring authentication.
+
+Status:
+
+- [x] A global fallback authorization policy requires authenticated users.
+- [x] Authentication endpoints remain available through `[AllowAnonymous]`.
 
 Relevant files include:
 
@@ -150,15 +160,15 @@ Relevant files:
 
 Add complete spell type application support:
 
-- DTOs
-- Create and update requests
-- Controller and service
-- User-scoped list, lookup, create, update, and delete operations
-- Unique-name conflict handling
-- Validation when deleting a type used by spells or equipment
-- React type definitions
-- Spell type management UI or inline creation
-- Spell type selection in spell and equipment forms
+- [x] DTOs
+- [x] Create and update requests
+- [x] Controller and service
+- [x] User-scoped list, lookup, create, update, and delete operations
+- [x] Unique-name conflict handling
+- [x] Validation when deleting a type used by spells or equipment
+- [ ] React type definitions
+- [ ] Spell type management UI or inline creation
+- [ ] Spell type selection in spell and equipment forms
 
 ### Equipment
 
@@ -166,18 +176,18 @@ There is no API, service, DTO, or React workflow for equipment.
 
 Required features:
 
-- Equipment catalog CRUD
-- Ownership enforcement
-- All integer modifier fields
-- Optional affected spell type
-- Spells granted by equipment
-- Assigning and removing equipment from journey characters
-- Equip and unequip operations
-- Equipment inventory capacity enforcement
-- Effective-stat calculation
-- Effective spell calculation
-- Current HP clamping when effective maximum HP decreases
-- React catalog and journey-character equipment interfaces
+- [x] Equipment catalog CRUD
+- [x] Ownership enforcement for equipment catalog operations and references
+- [x] All integer modifier fields
+- [x] Optional affected spell type
+- [x] Spells granted by equipment
+- [ ] Assigning and removing equipment from journey characters
+- [ ] Equip and unequip operations
+- [ ] Equipment inventory capacity enforcement
+- [ ] Effective-stat calculation
+- [ ] Effective spell calculation
+- [ ] Current HP clamping when effective maximum HP decreases
+- [ ] React catalog and journey-character equipment interfaces
 
 ### Journey Character Spells
 
@@ -348,11 +358,14 @@ for the redesigned frontend.
 
 ## Recommended Implementation Order
 
-1. Require authentication and enforce catalog ownership.
-2. Implement spell type CRUD and repair spell creation and updates.
+1. Require authentication and enforce catalog ownership. **Done.**
+2. Implement spell type CRUD and repair spell creation and updates. **In
+   progress: spell type CRUD is done; spell creation and updates remain.**
 3. Update character and journey-character API contracts.
 4. Correct the existing mapping defects.
-5. Implement equipment and effective-stat calculations.
+5. Implement equipment and effective-stat calculations. **In progress:
+   equipment catalog CRUD is done; journey equipment operations and effective
+   statistics remain.**
 6. Implement inventory capacity enforcement.
 7. Implement journey-character spell availability.
 8. Replace destructive journey-character replacement.

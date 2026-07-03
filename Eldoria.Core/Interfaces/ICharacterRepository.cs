@@ -5,6 +5,7 @@ namespace Eldoria.Core.Interfaces
 {
     public interface ICharacterRepository: IRepository<Character>
     { 
-        Task<List<Character>> GetCharacters(int skip, int take, CharacterType typeFilter, CancellationToken ct);
+        Task<List<Character>> GetCharactersForUserAsync(int userId, int skip, int take, CharacterType typeFilter, CancellationToken ct);
+        Task<Character?> GetByIdForUserAsync(int userId, int id, CancellationToken ct);
     }
 }

@@ -5,14 +5,10 @@ using System.Security.Cryptography;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class JourneyCharacterRepository : Repository<JourneyCharacter>, IJourneyCharacterRepository
+    public class JourneyCharacterRepository(ApplicationDbContext dbContext)
+        : Repository<JourneyCharacter>(dbContext), IJourneyCharacterRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public JourneyCharacterRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task<List<JourneyCharacter>> GetJourneyCharacters(int journeyId, CancellationToken ct)
         {

@@ -4,14 +4,9 @@ using System.Net.Http.Json;
 
 namespace Eldoria.BlazorClient.Services.Implementations
 {
-    public class CharacterService : ICharacterService
+    public class CharacterService(IHttpClientFactory httpClientFactory) : ICharacterService
     {
-        private readonly HttpClient _authClient;
-
-        public CharacterService(IHttpClientFactory httpClientFactory)
-        {
-            _authClient = httpClientFactory.CreateClient("AuthClient");
-        }
+        private readonly HttpClient _authClient = httpClientFactory.CreateClient("AuthClient");
 
         public async Task<List<CharacterDto>> GetCharacterListAsync()
         {

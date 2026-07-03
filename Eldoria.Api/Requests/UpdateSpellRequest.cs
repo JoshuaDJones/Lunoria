@@ -23,5 +23,8 @@ namespace Eldoria.Api.Requests
         public int? DamageEffect { get; set; }
         public int? HealthEffect { get; set; }
         public int? MagicEffect { get; set; }
+
+        [Required]
+        public int? SpellTypeId { get; set; }
     }
 }

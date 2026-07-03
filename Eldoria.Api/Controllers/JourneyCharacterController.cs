@@ -1,24 +1,20 @@
 ﻿using Eldoria.Api.Requests;
 using Eldoria.Application.Services;
+using Eldoria.Api.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class JourneyCharacterController : ControllerBase
+    public class JourneyCharacterController(IJourneyCharacterService journeyCharacterService) : ControllerBase
     {
-        private readonly IJourneyCharacterService _journeyCharacterService;
-
-        public JourneyCharacterController(IJourneyCharacterService journeyCharacterService)
-        {
-            _journeyCharacterService = journeyCharacterService;
-        }
+        private readonly IJourneyCharacterService _journeyCharacterService = journeyCharacterService;
 
         [HttpPut("{journeyId:int}")]
         public async Task<IActionResult> Replace(int journeyId, [FromBody] ReplaceJourneyCharactersRequest req, CancellationToken ct)
         {
-            var result = await _journeyCharacterService.ReplaceJourneyCharacters(journeyId, req.CharacterIds, ct);
+            var result = await _journeyCharacterService.ReplaceJourneyCharacters(User.GetUserId(), journeyId, req.CharacterIds, ct);
 
             if (result.Success)
                 return Ok();
@@ -34,7 +30,7 @@ namespace Eldoria.Api.Controllers
         [HttpPatch("{journeyCharacterId:int}")]
         public async Task<IActionResult> Modify(int journeyCharacterId, [FromBody] UpdateJourneyCharacterRequest req, CancellationToken ct)
         {
-            var result = await _journeyCharacterService.UpdateJourneyCharacter(journeyCharacterId, req.Hp!.Value, req.Mp!.Value, req.IsAlternateForm, ct);
+            var result = await _journeyCharacterService.UpdateJourneyCharacter(User.GetUserId(), journeyCharacterId, req.Hp!.Value, req.Mp!.Value, req.IsAlternateForm, ct);
 
             if (result.Success) 
                 return Ok();
@@ -49,7 +45,7 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{journeyCharacterId:int}")]
         public async Task<IActionResult> Delete(int journeyCharacterId, CancellationToken ct)
         {
-            var result = await _journeyCharacterService.DeleteAsync(journeyCharacterId, ct);
+            var result = await _journeyCharacterService.DeleteAsync(User.GetUserId(), journeyCharacterId, ct);
 
             if (result.Success) 
                 return Ok();

@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class SpellTypeRepository : Repository<SpellType>, ISpellTypeRepository
+    public class SpellTypeRepository(ApplicationDbContext dbContext)
+        : Repository<SpellType>(dbContext), ISpellTypeRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public SpellTypeRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public Task<List<SpellType>> GetListForUserAsync(
             int userId,

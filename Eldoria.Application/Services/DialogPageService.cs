@@ -5,18 +5,14 @@ using Microsoft.AspNetCore.Http;
 
 namespace Eldoria.Application.Services
 {
-    public class DialogPageService : IDialogPageService
+    public class DialogPageService(
+        IRepository<DialogPage> dialogRepository,
+        IRepository<SceneDialog> sceneDialogRepository,
+        IAzureStorageBlob azureStorageBlob) : IDialogPageService
     {
-        private readonly IAzureStorageBlob _azureStorageBlob;
-        private readonly IRepository<DialogPage> _dialogPageRepository;
-        private readonly IRepository<SceneDialog> _sceneDialogRepository;
-
-        public DialogPageService(IRepository<DialogPage> dialogRepository, IRepository<SceneDialog> sceneDialogRepository, IAzureStorageBlob azureStorageBlob)
-        {   
-            _dialogPageRepository = dialogRepository;
-            _sceneDialogRepository = sceneDialogRepository;
-            _azureStorageBlob = azureStorageBlob;
-        }
+        private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
+        private readonly IRepository<DialogPage> _dialogPageRepository = dialogRepository;
+        private readonly IRepository<SceneDialog> _sceneDialogRepository = sceneDialogRepository;
 
         public async Task<Result> CreateDialogPageAsync(int sceneDialogId, int orderNum, IFormFile photo, CancellationToken ct)
         {

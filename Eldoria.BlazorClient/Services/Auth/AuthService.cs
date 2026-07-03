@@ -6,16 +6,13 @@ using System.Net.Http.Json;
 
 namespace Eldoria.BlazorClient.Services.Auth
 {
-    public class AuthService : IAuthService
+    public class AuthService(
+        IHttpClientFactory httpClientFactory,
+        ILocalStorageService localStorageService) : IAuthService
     {
-        private readonly HttpClient _publicHttpClient;
-        private readonly ILocalStorageService _localStorageService;
-
-        public AuthService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorageService)
-        {
-            _publicHttpClient = httpClientFactory.CreateClient("PublicClient");
-            _localStorageService = localStorageService;
-        }
+        private readonly HttpClient _publicHttpClient =
+            httpClientFactory.CreateClient("PublicClient");
+        private readonly ILocalStorageService _localStorageService = localStorageService;
 
         public async Task<bool> LoginAsync(string email, string password)
         {

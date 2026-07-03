@@ -3,16 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class
+    public class Repository<T>(ApplicationDbContext db) : IRepository<T> where T : class
     {
-        private readonly ApplicationDbContext _db;
-        private readonly DbSet<T> _set;
-
-        public Repository(ApplicationDbContext db)
-        {
-            _db = db;
-            _set = db.Set<T>();
-        }
+        private readonly ApplicationDbContext _db = db;
+        private readonly DbSet<T> _set = db.Set<T>();
 
         public Task<T?> GetByIdAsync(int id, CancellationToken ct = default)
             => _set.FindAsync([id], ct).AsTask();

@@ -1,24 +1,20 @@
 ﻿using Eldoria.Api.Requests;
 using Eldoria.Application.Services;
+using Eldoria.Api.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneCharacterController : ControllerBase
+    public class SceneCharacterController(ISceneCharacterService sceneCharacterService) : ControllerBase
     {
-        private readonly ISceneCharacterService _sceneCharacterService;
-
-        public SceneCharacterController(ISceneCharacterService sceneCharacterService)
-        {
-            _sceneCharacterService = sceneCharacterService;
-        }
+        private readonly ISceneCharacterService _sceneCharacterService = sceneCharacterService;
 
         [HttpPost]
         public async Task<IActionResult> AddSceneCharacter([FromBody] AddSceneCharacterRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterService.AddSceneCharacterAsync(req.SceneId!.Value, req.CharacterId!.Value, ct);
+            var result = await _sceneCharacterService.AddSceneCharacterAsync(User.GetUserId(), req.SceneId!.Value, req.CharacterId!.Value, ct);
 
             if (result.Success)
                 return Ok(result);
@@ -34,7 +30,7 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{sceneCharacterId:int}")]
         public async Task<IActionResult> Delete(int sceneCharacterId, CancellationToken ct)
         {
-            var result = await _sceneCharacterService.DeleteSceneCharacterAsync(sceneCharacterId, ct);
+            var result = await _sceneCharacterService.DeleteSceneCharacterAsync(User.GetUserId(), sceneCharacterId, ct);
 
             if (result.Success)
                 return Ok();
@@ -49,7 +45,7 @@ namespace Eldoria.Api.Controllers
         [HttpPatch("{sceneCharacterId:int}")]
         public async Task<IActionResult> Modify(int sceneCharacterId, [FromBody] UpdateSceneCharacterHpMpRequest req, CancellationToken ct)
         {
-            var result = await _sceneCharacterService.AdjustCharacterHpMpAsync(sceneCharacterId, req.Hp, req.Mp, ct);
+            var result = await _sceneCharacterService.AdjustCharacterHpMpAsync(User.GetUserId(), sceneCharacterId, req.Hp, req.Mp, ct);
 
             if(result.Success)
                 return Ok();

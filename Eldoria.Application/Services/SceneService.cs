@@ -8,20 +8,16 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Eldoria.Application.Services
 {
-    public class SceneService : ISceneService
+    public class SceneService(
+        IAzureStorageBlob azureStorageBlob,
+        ISceneRepository sceneRepository,
+        IJourneyRepository journeyRepository,
+        IJourneyCharacterRepository journeyCharacterRepository) : ISceneService
     {
-        private readonly IAzureStorageBlob _azureStorageBlob;
-        private readonly ISceneRepository _sceneRepository;
-        private readonly IJourneyRepository _journeyRepository;
-        private readonly IJourneyCharacterRepository _journeyCharacterRepository;
-
-        public SceneService(IAzureStorageBlob azureStorageBlob, ISceneRepository sceneRepository, IJourneyRepository journeyRepository, IJourneyCharacterRepository journeyCharacterRepository)
-        {
-            _azureStorageBlob = azureStorageBlob;
-            _sceneRepository = sceneRepository;
-            _journeyRepository = journeyRepository;
-            _journeyCharacterRepository = journeyCharacterRepository;
-        }
+        private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
+        private readonly ISceneRepository _sceneRepository = sceneRepository;
+        private readonly IJourneyRepository _journeyRepository = journeyRepository;
+        private readonly IJourneyCharacterRepository _journeyCharacterRepository = journeyCharacterRepository;
 
         public async Task<Result<SceneDto>> CreateAsync(int userId, int journeyId, string name, string description, IFormFile photo, string gridUrl, CancellationToken ct)
         {

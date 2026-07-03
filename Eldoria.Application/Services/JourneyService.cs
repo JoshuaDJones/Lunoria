@@ -6,16 +6,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace Eldoria.Application.Services
 {
-    public class JourneyService : IJourneyService
+    public class JourneyService(
+        IJourneyRepository journeyRepository,
+        IAzureStorageBlob azureStorageBlob) : IJourneyService
     {
-        private readonly IJourneyRepository _journeyRepository;
-        private readonly IAzureStorageBlob _azureStorageBlob;
-
-        public JourneyService(IJourneyRepository journeyRepository, IAzureStorageBlob azureStorageBlob)
-        {   
-            _journeyRepository = journeyRepository;
-            _azureStorageBlob = azureStorageBlob;
-        }        
+        private readonly IJourneyRepository _journeyRepository = journeyRepository;
+        private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
 
         public async Task<Result<List<JourneyDto>>> GetListAsync(int userId, int skip, int take, CancellationToken ct = default)
         {

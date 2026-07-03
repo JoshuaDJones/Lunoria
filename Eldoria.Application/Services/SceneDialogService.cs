@@ -5,16 +5,12 @@ using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class SceneDialogService : ISceneDialogService
+    public class SceneDialogService(
+        ISceneDialogRepository sceneDialogRepository,
+        IRepository<Scene> sceneRepository) : ISceneDialogService
     {
-        private readonly ISceneDialogRepository _sceneDialogRepository;
-        private readonly IRepository<Scene> _sceneRepository;
-
-        public SceneDialogService(ISceneDialogRepository sceneDialogRepository, IRepository<Scene> sceneRepository)
-        {
-            _sceneDialogRepository = sceneDialogRepository;
-            _sceneRepository = sceneRepository;
-        }
+        private readonly ISceneDialogRepository _sceneDialogRepository = sceneDialogRepository;
+        private readonly IRepository<Scene> _sceneRepository = sceneRepository;
 
         public async Task<Result> CreateSceneDialogAsync(int sceneId, string sceneDialogTitle, CancellationToken ct)
         {

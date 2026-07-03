@@ -5,16 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class CharacterRepository : Repository<Character>, ICharacterRepository
+    public class CharacterRepository(ApplicationDbContext dbContext)
+        : Repository<Character>(dbContext), ICharacterRepository
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public CharacterRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
-
-        public async Task<List<Character>> GetCharacters(
+        public async Task<List<Character>> GetCharactersForUserAsync(
+            int userId,
             int skip,
             int take,
             CharacterType typeFilter,
@@ -22,6 +19,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
         {
             var query = _dbContext.Characters
                 .AsNoTracking()
+                .Where(c => c.UserId == userId)
                 .Include(c => c.CharacterSpells)
                 .ThenInclude(cp => cp.Spell)
                 .Include(c => c.BaseAlternateForm)
@@ -41,6 +39,19 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync(ct);
+        }
+
+        public Task<Character?> GetByIdForUserAsync(int userId, int id, CancellationToken ct)
+        {
+            return _dbContext.Characters
+                .Include(c => c.CharacterSpells)
+                    .ThenInclude(characterSpell => characterSpell.Spell)
+                .Include(c => c.BaseAlternateForm)
+                    .ThenInclude(alternateForm => alternateForm.CharacterDialogSettings)
+                .Include(c => c.CharacterDialogSettings)
+                .SingleOrDefaultAsync(
+                    character => character.Id == id && character.UserId == userId,
+                    ct);
         }
     }
 }

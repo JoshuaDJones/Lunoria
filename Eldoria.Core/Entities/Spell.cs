@@ -16,8 +16,8 @@
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
 
-        public int? UserId { get; set; }
-        public User? User { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
 
         public int SpellTypeId { get; set; }
         public SpellType SpellType { get; set; } = null!;

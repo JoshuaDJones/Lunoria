@@ -5,25 +5,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace Eldoria.Application.Services
 {
-    public class AzureStorageBlob : IAzureStorageBlob
+    public class AzureStorageBlob(IConfiguration config) : IAzureStorageBlob
     {
-        private readonly string _storageAccount;
-        private readonly string _containerName;
-        private readonly string _accessKey;
-
-        private readonly BlobServiceClient _blobServiceClient;
-
-        public AzureStorageBlob(IConfiguration config)
-        {
-            _storageAccount = config["AzureStorage:AccountName"] ?? "";
-            _containerName = config["AzureStorage:ContainerName"] ?? "";
-            _accessKey = config["AzureStorage:AccessKey"] ?? "";
-
-            var credential = new StorageSharedKeyCredential(_storageAccount, _accessKey);
-            var blobUri = $"https://{_storageAccount}.blob.core.windows.net";
-
-            _blobServiceClient = new BlobServiceClient(new Uri(blobUri), credential);
-        }
+        private readonly string _containerName = config["AzureStorage:ContainerName"] ?? "";
+        private readonly BlobServiceClient _blobServiceClient = CreateClient(config);
 
         public async Task<(string, string)> UploadPhoto(IFormFile photo)
         {
@@ -35,6 +20,16 @@ namespace Eldoria.Application.Services
             using var stream = photo.OpenReadStream();
             var result = await blobClient.UploadAsync(stream, true);
             return (blobClient.Uri.ToString(), newFileName);
+        }
+
+        private static BlobServiceClient CreateClient(IConfiguration config)
+        {
+            var account = config["AzureStorage:AccountName"] ?? "";
+            var accessKey = config["AzureStorage:AccessKey"] ?? "";
+            var credential = new StorageSharedKeyCredential(account, accessKey);
+            return new BlobServiceClient(
+                new Uri($"https://{account}.blob.core.windows.net"),
+                credential);
         }
 
         public async Task<bool> DeletePhotoFromUrl(string blobUrl)

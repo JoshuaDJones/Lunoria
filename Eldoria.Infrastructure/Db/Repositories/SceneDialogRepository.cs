@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
-    public class SceneDialogRepository : Repository<SceneDialog>, ISceneDialogRepository
+    public class SceneDialogRepository(ApplicationDbContext dbContext)
+        : Repository<SceneDialog>(dbContext), ISceneDialogRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public SceneDialogRepository(ApplicationDbContext dbContext) : base(dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task<List<SceneDialog>> GetSceneDialogs(int sceneId, CancellationToken ct)
         {

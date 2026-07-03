@@ -4,30 +4,33 @@ using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class DialogPageSectionService : IDialogPageSectionService
+    public class DialogPageSectionService(
+        IRepository<DialogPage> dialogPageRepository,
+        IRepository<DialogPageSection> dialogPageSectionRepository,
+        ICharacterRepository characterRepository) : IDialogPageSectionService
     {
-        private readonly IRepository<DialogPage> _dialogPageRepository;
-        private readonly IRepository<DialogPageSection> _dialogPageSectionRepository;
-        private readonly IRepository<Character> _characterRepository;
+        private readonly IRepository<DialogPage> _dialogPageRepository = dialogPageRepository;
+        private readonly IRepository<DialogPageSection> _dialogPageSectionRepository = dialogPageSectionRepository;
+        private readonly ICharacterRepository _characterRepository = characterRepository;
 
-        public DialogPageSectionService(IRepository<DialogPage> dialogPageRepository, IRepository<DialogPageSection> dialogPageSectionRepository, ICharacterRepository characterRepository)
-        {
-            _dialogPageRepository = dialogPageRepository;
-            _dialogPageSectionRepository = dialogPageSectionRepository;
-            _characterRepository = characterRepository;
-        }
-
-        public async Task<Result> CreateDialogPageSectionAsync(int dialogPageId, int? characterId, int orderNum, string readingText, bool isNarrator, CancellationToken ct)
+        public async Task<Result> CreateDialogPageSectionAsync(int userId, int dialogPageId, int? characterId, int orderNum, string readingText, bool isNarrator, CancellationToken ct)
         {
             var dialogPage = await _dialogPageRepository.GetByIdAsync(dialogPageId, ct);
 
             if (dialogPage is null)
                 return Result.Fail(new Error("DialogPage.NotFound", "Dialog page does not exist."));
 
-            var character = characterId is not null ? await _characterRepository.GetByIdAsync((int)characterId, ct) : null;
+            var character = characterId is not null
+                ? await _characterRepository.GetByIdForUserAsync(userId, characterId.Value, ct)
+                : null;
 
-            if (character is null && isNarrator is false)
-                return Result.Fail(new Error("Character.NotFound", "Character does not exist."));
+            if (characterId.HasValue && character is null)
+                return Result.Fail(new Error(
+                    "Character.NotFound",
+                    "Character was not found or is not owned by the current user."));
+
+            if (!characterId.HasValue && isNarrator is false)
+                return Result.Fail(new Error("Character.NotFound", "A character is required for non-narrator sections."));
 
             var dialogPageSection = new DialogPageSection
             {
@@ -59,12 +62,20 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        public async Task<Result> EditDialogPageSectionAsync(int dialogPageSectionId, int? characterId, int? orderNum, string? readingText, bool? isNarrator, CancellationToken ct)
+        public async Task<Result> EditDialogPageSectionAsync(int userId, int dialogPageSectionId, int? characterId, int? orderNum, string? readingText, bool? isNarrator, CancellationToken ct)
         {
             var dialogPageSection = await _dialogPageSectionRepository.GetByIdAsync(dialogPageSectionId, ct);
 
             if (dialogPageSection is null)
                 return Result.Fail(new Error("DialogPageSection.NotFound", "Dialog page section does not exist."));
+
+            if (characterId.HasValue &&
+                await _characterRepository.GetByIdForUserAsync(userId, characterId.Value, ct) is null)
+            {
+                return Result.Fail(new Error(
+                    "Character.NotFound",
+                    "Character was not found or is not owned by the current user."));
+            }
 
             dialogPageSection.CharacterId = characterId;
 

@@ -26,6 +26,8 @@ namespace Eldoria.Infrastructure
             services.AddScoped<ISpellRepository, SpellRepository>();
             services.AddScoped<ISpellTypeRepository, SpellTypeRepository>();
             services.AddScoped<IEquippableItemRepository, EquippableItemRepository>();
+            services.AddScoped<IItemRepository, ItemRepository>();
+            services.AddScoped<IOwnershipRepository, OwnershipRepository>();
 
             return services;
         }
