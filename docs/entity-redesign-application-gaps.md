@@ -282,21 +282,21 @@ Add workflows to:
 
 Add workflows to:
 
-- [ ] Create or retrieve progress for a scene in the active playthrough.
-- [ ] Transition progress through `NotStarted`, `InProgress`, and `Completed`.
-- [ ] List scene progress for a playthrough.
-- [ ] Keep replayed scene progress independent between playthroughs.
+- [x] Create or retrieve progress for a scene in the active playthrough.
+- [x] Transition progress through `NotStarted`, `InProgress`, and `Completed`.
+- [x] List scene progress for a playthrough.
+- [x] Keep replayed scene progress independent between playthroughs.
 
 ### Participants and Turns
 
 Add workflows to:
 
-- [ ] Add journey characters or scene characters as scene participants.
-- [ ] Enforce exactly one participant character type.
-- [ ] Remove participants safely.
-- [ ] Create, reorder, and delete participant turns.
-- [ ] Enforce unique turn positions.
-- [ ] Prevent turns from referencing participants from another progress record.
+- [x] Add journey characters or scene characters as scene participants.
+- [x] Enforce exactly one participant character type.
+- [x] Remove participants safely.
+- [x] Create, reorder, and delete participant turns.
+- [x] Enforce unique turn positions.
+- [x] Prevent turns from referencing participants from another progress record.
 
 - [ ] Update the scene dashboard to load a specific `SceneProgress` and its
   participants rather than directly combining a scene with every journey
@@ -370,7 +370,7 @@ Current failures are unrelated to the entity redesign and primarily include:
 7. [ ] Implement journey-character spell availability.
 8. [x] Replace destructive journey-character replacement.
 9. [x] Implement playthrough lifecycle APIs.
-10. [ ] Implement scene progress, participants, and turns.
+10. [x] Implement scene progress, participants, and turns.
 11. [ ] Update React screens and state management for the new APIs.
 12. [ ] Resolve the existing React production build errors.
 13. [ ] Add automated tests for ownership, capacity, equipment calculations,

@@ -29,6 +29,8 @@ namespace Eldoria.Application
             services.AddScoped<IJourneyCharacterEquipmentService, JourneyCharacterEquipmentService>();
             services.AddScoped<IJourneyCharacterSpellService, JourneyCharacterSpellService>();
             services.AddScoped<IJourneyPlaythroughService, JourneyPlaythroughService>();
+            services.AddScoped<ISceneProgressService, SceneProgressService>();
+            services.AddScoped<ISceneParticipantService, SceneParticipantService>();
             services.AddScoped<IImagesService, ImagesService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IAzureStorageBlob, AzureStorageBlob>();
