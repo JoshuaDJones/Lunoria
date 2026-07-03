@@ -1,4 +1,4 @@
-import { apiClient, setAccessToken } from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
 import type {
   AuthenticationToken,
   LoginRequest,
@@ -7,7 +7,6 @@ import type {
 
 export async function login(request: LoginRequest): Promise<AuthenticationToken> {
   const { data } = await apiClient.post<AuthenticationToken>("/Auth/login", request);
-  setAccessToken(data.accessToken);
   return data;
 }
 
@@ -18,10 +17,5 @@ export async function register(
     "/Auth/register",
     request,
   );
-  setAccessToken(data.accessToken);
   return data;
-}
-
-export function logout(): void {
-  setAccessToken();
 }
