@@ -25,5 +25,15 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
             return result;
         }
+
+        public Task<List<Spell>> GetSpellsByIdsForUserAsync(
+            int userId,
+            IReadOnlyCollection<int> spellIds,
+            CancellationToken ct)
+        {
+            return _dbContext.Spells
+                .Where(spell => spell.UserId == userId && spellIds.Contains(spell.Id))
+                .ToListAsync(ct);
+        }
     }
 }

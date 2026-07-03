@@ -18,9 +18,7 @@ namespace Eldoria.Api.Controllers
             [FromQuery] int take = 500,
             CancellationToken ct = default)
         {
-            var userId = User.GetUserId();
-
-            var result = await _spellService.GetListAsync(userId, skip, take, ct);
+            var result = await _spellService.GetListAsync(User.GetUserId(), skip, take, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -31,9 +29,7 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<SpellDto>> Get(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _spellService.GetByIdAsync(userId, id, ct);
+            var result = await _spellService.GetByIdAsync(User.GetUserId(), id, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -48,9 +44,7 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _spellService.DeleteAsync(userId, id, ct);
+            var result = await _spellService.DeleteAsync(User.GetUserId(), id, ct);
 
             if (result.Success)
                 return NoContent();
@@ -66,10 +60,8 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateSpellRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
             var result = await _spellService.CreateAsync(
-                userId,
+                User.GetUserId(),
                 req.Name,
                 req.Description,
                 req.Photo,
@@ -91,10 +83,8 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateSpellRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
             var result = await _spellService.UpdateAsync(
-                userId,
+                User.GetUserId(),
                 id,
                 req.Name,
                 req.Description,

@@ -20,9 +20,7 @@ namespace Eldoria.Api.Controllers
             [FromQuery] CharacterType typeFilter = CharacterType.Any,
             CancellationToken ct = default)
         {
-            var userId = User.GetUserId();
-
-            var result = await _characterService.GetListAsync(userId, skip, take, typeFilter, ct);
+            var result = await _characterService.GetListAsync(User.GetUserId(), skip, take, typeFilter, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -33,9 +31,7 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<CharacterDto>> Get(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _characterService.GetByIdAsync(userId, id, ct);
+            var result = await _characterService.GetByIdAsync(User.GetUserId(), id, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -50,9 +46,7 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _characterService.DeleteAsync(userId, id, ct);
+            var result = await _characterService.DeleteAsync(User.GetUserId(), id, ct);
 
             if (result.Success)
                 return NoContent();
@@ -68,10 +62,8 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateCharacterRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
             var result = await _characterService.CreateAsync(
-                userId,
+                User.GetUserId(),
                 req.Name,
                 req.Description,
                 req.Photo,
@@ -97,10 +89,8 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateCharacterRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
             var result = await _characterService.UpdateAsync(
-                userId,
+                User.GetUserId(),
                 id,
                 req.Name,
                 req.Description,

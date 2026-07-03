@@ -15,9 +15,7 @@ namespace Eldoria.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<List<JourneyDto>>> List([FromQuery] int skip = 0, [FromQuery] int take = 500, CancellationToken ct = default)
         {
-            var userId = User.GetUserId();
-
-            var result = await _journeyService.GetListAsync(userId, skip, take, ct);
+            var result = await _journeyService.GetListAsync(User.GetUserId(), skip, take, ct);
 
             if(result.Success)
                 return Ok(result.Value);
@@ -28,9 +26,7 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<JourneyDto>> Get(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _journeyService.GetByIdAsync(userId, id, ct);
+            var result = await _journeyService.GetByIdAsync(User.GetUserId(), id, ct);
 
             if(result.Success)
                 return Ok(result.Value);
@@ -46,9 +42,7 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _journeyService.DeleteAsync(userId, id, ct);
+            var result = await _journeyService.DeleteAsync(User.GetUserId(), id, ct);
 
             if (result.Success)
                 return NoContent();
@@ -65,9 +59,7 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateJourneyRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _journeyService.CreateAsync(userId, req.Name, req.Description, req.Photo, ct);
+            var result = await _journeyService.CreateAsync(User.GetUserId(), req.Name, req.Description, req.Photo, ct);
 
             if(result.Success)
                 return CreatedAtAction(nameof(Get), new { id = result.Value?.Id }, result.Value);
@@ -79,9 +71,7 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateJourneyRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
-            var result = await _journeyService.UpdateAsync(id, userId, req.Name, req.Description, req.Photo, ct);
+            var result = await _journeyService.UpdateAsync(id, User.GetUserId(), req.Name, req.Description, req.Photo, ct);
 
             if (result.Success)
                 return Ok(result.Value);

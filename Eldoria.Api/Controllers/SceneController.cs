@@ -24,8 +24,7 @@ namespace Eldoria.Api.Controllers
             [FromQuery] int take = 500,
             CancellationToken ct = default)
         {
-            var userId = User.GetUserId();
-            var result = await _sceneService.GetListAsync(userId, journeyId, skip, take, ct);
+            var result = await _sceneService.GetListAsync(User.GetUserId(), journeyId, skip, take, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -36,8 +35,7 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<SceneDto>> Get(int id, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-            var result = await _sceneService.GetByIdAsync(userId, id, ct);
+            var result = await _sceneService.GetByIdAsync(User.GetUserId(), id, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -53,8 +51,7 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{id:int}/dashboard")]
         public async Task<ActionResult<SceneDashboardDto>> GetDashboard(int id, [FromQuery] int journeyId, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-            var result = await _sceneService.GetSceneDashboardAsync(userId, id, journeyId, ct);
+            var result = await _sceneService.GetSceneDashboardAsync(User.GetUserId(), id, journeyId, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -71,8 +68,7 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] int journeyId, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-            var result = await _sceneService.DeleteAsync(userId, id, journeyId, ct);
+            var result = await _sceneService.DeleteAsync(User.GetUserId(), id, journeyId, ct);
 
             if (result.Success)
                 return NoContent();
@@ -90,10 +86,8 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateSceneRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
-
             var result = await _sceneService.CreateAsync(
-                userId,
+                User.GetUserId(),
                 req.JourneyId!.Value,
                 req.Name,
                 req.Description,
@@ -111,9 +105,8 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateSceneRequest req, CancellationToken ct)
         {
-            var userId = User.GetUserId();
             var result = await _sceneService.UpdateAsync(
-                userId,
+                User.GetUserId(),
                 req.JourneyId!.Value,
                 id,
                 req.Name,
