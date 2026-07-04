@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 
 const BreakpointIndicator = () => {
-  if (import.meta.env.PROD) return null;
-
   const [size, setSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
+    if (import.meta.env.PROD) return;
+
     const handler = () =>
       setSize({ width: window.innerWidth, height: window.innerHeight });
     handler();
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
+
+  if (import.meta.env.PROD) return null;
 
   return (
     <div className="fixed bottom-2 right-2 z-9999 flex gap-2">

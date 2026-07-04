@@ -111,7 +111,7 @@ const Sidebar = ({
         <button
           type="button"
           onClick={() => setCollapsed((value) => !value)}
-          className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+          className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white cursor-pointer"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <FontAwesomeIcon icon={collapsed ? faAnglesRight : faAnglesLeft} />
