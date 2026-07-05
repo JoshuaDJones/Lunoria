@@ -65,10 +65,16 @@ export function LoginPage() {
         </button>
       </form>
       <div className="mt-6 flex items-center justify-between gap-4 text-sm">
-        <Link to="/register" className="text-brand-hover hover:text-brand-subtle">
+        <Link
+          to="/register"
+          className="text-brand-hover hover:text-brand-subtle"
+        >
           Register
         </Link>
-        <Link to="/forgot-password" className="text-content-secondary hover:text-content">
+        <Link
+          to="/forgot-password"
+          className="text-content-secondary hover:text-content"
+        >
           Forgot password?
         </Link>
       </div>

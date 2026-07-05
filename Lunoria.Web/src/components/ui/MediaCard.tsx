@@ -1,0 +1,40 @@
+import { Card } from "@/components/ui/Card";
+import type { ReactNode } from "react";
+
+interface MediaCardProps {
+  title: string;
+  description: string;
+  imageUrl?: string | null;
+  children?: ReactNode;
+}
+
+export function MediaCard({
+  title,
+  description,
+  imageUrl,
+  children,
+}: MediaCardProps) {
+  return (
+    <Card className="flex min-h-52 flex-col transition hover:border-brand-subtle/50 hover:bg-surface-raised/90">
+      <div className="flex flex-1 gap-4 p-4">
+        <div className="min-w-0 flex-1">
+          <h2 className="wrap-break-word text-2xl font-semibold text-content">
+            {title}
+          </h2>
+          <p className="mt-2 line-clamp-4 wrap-break-word text-sm text-content-secondary">
+            {description}
+          </p>
+        </div>
+
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt=""
+            className="h-auto w-[39%] shrink-0 self-start rounded-lg object-contain"
+          />
+        )}
+      </div>
+      {children}
+    </Card>
+  );
+}

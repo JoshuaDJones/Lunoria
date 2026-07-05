@@ -32,7 +32,7 @@ interface SidebarProps {
 }
 
 const defaultItems: SidebarItem[] = [
-  { label: "Journeys", to: "/home",  icon: faBookOpen },
+  { label: "Journeys", to: "/home", icon: faBookOpen },
   { label: "Characters", to: "/characters", icon: faUser },
   { label: "Spells", to: "/spells", icon: faWandMagicSparkles },
   { label: "Consumables", to: "/consumables", icon: faBottleDroplet },
@@ -66,9 +66,7 @@ const Sidebar = ({
       <div className="mb-8 flex items-center gap-3">
         {!collapsed && (
           <div>
-            <p className="text-md font-semibold text-white">
-              {title}
-            </p>
+            <p className="text-md font-semibold text-white">{title}</p>
             <p className="text-xs text-slate-400">{subtitle}</p>
           </div>
         )}
@@ -116,17 +114,21 @@ const Sidebar = ({
           );
         })}
       </nav>
-      
+
       <div className="mt-auto pt-6">
         {children}
         <button
-        type="button"
-        onClick={signOut}
-        className="rounded-lg border border-slate-600 px-5 py-2 w-full text-sm text-slate-200 transition hover:border-amber-400 hover:text-amber-300 cursor-pointer flex items-center justify-center"
-      >
-        {collapsed ? <FontAwesomeIcon icon={faArrowRightFromBracket} /> : "Sign out"}
-      </button>
-        
+          type="button"
+          onClick={signOut}
+          className="rounded-lg border border-slate-600 px-5 py-2 w-full text-sm text-slate-200 transition hover:border-amber-400 hover:text-amber-300 cursor-pointer flex items-center justify-center"
+        >
+          {collapsed ? (
+            <FontAwesomeIcon icon={faArrowRightFromBracket} />
+          ) : (
+            "Sign out"
+          )}
+        </button>
+
         <button
           type="button"
           onClick={() => setCollapsed((value) => !value)}

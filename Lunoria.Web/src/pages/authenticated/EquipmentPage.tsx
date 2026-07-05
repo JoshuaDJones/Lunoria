@@ -1,15 +1,13 @@
-import AppLayout from "@/app/layouts/AppLayout";
+import { CollectionPage } from "@/components/layout/CollectionPage";
+import { EquipmentGrid, listEquipment } from "@/features/equipment";
 
 export function EquipmentPage() {
   return (
-    <AppLayout
-      background={
-        <div className="absolute right-0 left-0 w-full h-full top-0 bottom-0 z-0 stone-image" />
-      }
-    >
-      <main className="p-10">
-        <h1 className="text-5xl font-semibold text-content">Equipment</h1>
-      </main>
-    </AppLayout>
+    <CollectionPage
+      title="Equipment"
+      itemName="equipment"
+      loadItems={listEquipment}
+      renderItems={(equipment) => <EquipmentGrid equipment={equipment} />}
+    />
   );
 }

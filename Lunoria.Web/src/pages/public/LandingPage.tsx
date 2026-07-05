@@ -14,9 +14,7 @@ export function LandingPage() {
           <p className="mb-3 text-sm uppercase tracking-[0.35em] text-brand-hover">
             A new journey begins
           </p>
-          <h1 className="text-5xl font-bold sm:text-7xl">
-            Lunoria
-          </h1>
+          <h1 className="text-5xl font-bold sm:text-7xl">Lunoria</h1>
           <p className="mx-auto mt-5 max-w-md text-content-secondary">
             Create your party, guide your heroes, and keep every adventure in
             one place.

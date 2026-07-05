@@ -1,15 +1,49 @@
-import AppLayout from "@/app/layouts/AppLayout";
+import { useCallback, useState } from "react";
+import { CollectionPage } from "@/components/layout/CollectionPage";
+import {
+  CharacterGrid,
+  CharacterType,
+  listCharacters,
+} from "@/features/characters";
 
 export function CharactersPage() {
+  const [typeFilter, setTypeFilter] = useState(CharacterType.Any);
+
+  const loadCharacters = useCallback(
+    () => listCharacters({ typeFilter }),
+    [typeFilter],
+  );
+
   return (
-    <AppLayout
-      background={
-        <div className="absolute right-0 left-0 w-full h-full top-0 bottom-0 z-0 stone-image" />
+    <CollectionPage
+      key={typeFilter}
+      title="Characters"
+      itemName="character"
+      loadItems={loadCharacters}
+      toolbar={
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="character-type-filter"
+            className="text-sm font-semibold text-content-secondary"
+          >
+            Character type
+          </label>
+          <select
+            id="character-type-filter"
+            value={typeFilter}
+            onChange={(event) =>
+              setTypeFilter(Number(event.target.value) as CharacterType)
+            }
+            className="rounded-lg border border-border bg-surface-raised px-3 py-2 text-content outline-none transition focus:border-brand-hover focus:ring-2 focus:ring-brand-hover/20"
+          >
+            <option value={CharacterType.Any}>All characters</option>
+            <option value={CharacterType.Player}>Playable characters</option>
+            <option value={CharacterType.NPC}>NPCs</option>
+            <option value={CharacterType.Enemy}>Enemies</option>
+          </select>
+        </div>
       }
-    >
-      <main className="p-10">
-        <h1 className="text-5xl font-semibold text-content">Characters</h1>
-      </main>
-    </AppLayout>
+      renderItems={(characters) => <CharacterGrid characters={characters} />}
+    />
   );
 }
