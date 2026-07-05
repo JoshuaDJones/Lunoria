@@ -58,13 +58,13 @@ export function JourneyScenesPage() {
         loadItems={loadJourneyScenes}
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
-        toolbar={
-          <Link
-            to="/home"
-            className="inline-flex rounded-lg border border-border px-4 py-2 text-sm text-content-secondary transition hover:border-brand-hover hover:text-brand-hover"
-          >
-            Back to journeys
-          </Link>
+        toolbar={            
+                      <Link
+              to="/home"
+              className="text-sm text-content-secondary hover:text-brand-hover"
+            >
+              ← Back to journeys
+            </Link>
         }
         renderItems={(scenes) => (
           <SceneGrid

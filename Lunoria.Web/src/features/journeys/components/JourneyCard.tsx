@@ -1,5 +1,6 @@
 import { MediaCard } from "@/components/ui/MediaCard";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
+import { Button } from "@/components/ui";
 import type { Journey } from "@/features/journeys/types";
 
 interface JourneyCardProps {
@@ -18,7 +19,6 @@ export function JourneyCard({
       title={journey.name}
       description={journey.description}
       imageUrl={journey.photoUrl}
-      onClick={onSelect ? () => onSelect(journey) : undefined}
     >
       <StatGrid className="mt-4 px-4 pb-4">
         <Stat
@@ -27,17 +27,22 @@ export function JourneyCard({
         />
       </StatGrid>
       {onViewScenes && (
-        <div className="mt-auto border-t border-border px-4 py-3">
-          <button
-            type="button"
+        <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end">
+          <Button
             onClick={(event) => {
               event.stopPropagation();
               onViewScenes(journey);
             }}
-            className="w-full rounded-lg border border-brand-subtle/50 px-4 py-2 text-sm font-semibold text-brand-hover transition hover:bg-brand/10"
+            variant="accent"
           >
             View scenes
-          </button>
+          </Button>
+          <Button
+            onClick={onSelect ? () => onSelect(journey) : undefined}
+            variant="secondary"
+          >
+            Edit
+          </Button>
         </div>
       )}
     </MediaCard>

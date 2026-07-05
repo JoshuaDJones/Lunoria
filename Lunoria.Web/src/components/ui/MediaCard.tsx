@@ -27,7 +27,7 @@ export function MediaCard({
       }}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className="flex min-h-52 flex-col transition hover:border-brand-subtle/50 hover:bg-surface-raised/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-hover"
+      className="flex min-h-52 flex-col transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-hover"
     >
       <div className="flex flex-1 gap-4 p-4">
         <div className="min-w-0 flex-1">

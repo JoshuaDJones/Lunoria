@@ -10,7 +10,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Drawer } from "@/components/ui/Drawer";
+import { Button, Drawer } from "@/components/ui";
 import {
   createEquipment,
   EquipmentGrid,
@@ -189,13 +189,12 @@ export function EquipmentPage() {
                       : `${selectedSpellIds.length} spell${selectedSpellIds.length === 1 ? "" : "s"} selected`}
                   </p>
                 </div>
-                <button
-                  type="button"
+                <Button
                   onClick={() => setIsSpellPickerOpen(true)}
-                  className="rounded-lg border border-brand-subtle/50 px-4 py-2 text-sm font-semibold text-brand-hover transition hover:bg-brand/10"
+                  variant="accent"
                 >
                   Select spells
-                </button>
+                </Button>
               </div>
             </div>
           </ResourceForm>

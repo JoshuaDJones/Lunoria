@@ -11,7 +11,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Drawer } from "@/components/ui/Drawer";
+import { Drawer, Select } from "@/components/ui";
 import {
   CharacterGrid,
   CharacterType,
@@ -84,19 +84,19 @@ export function CharactersPage() {
             >
               Character type
             </label>
-            <select
+            <Select
               id="character-type-filter"
               value={typeFilter}
               onChange={(event) =>
                 setTypeFilter(Number(event.target.value) as CharacterType)
               }
-              className="rounded-lg border border-border bg-surface-raised px-3 py-2 text-content outline-none transition focus:border-brand-hover focus:ring-2 focus:ring-brand-hover/20"
+              className="w-auto px-3 py-2"
             >
               <option value={CharacterType.Any}>All characters</option>
               <option value={CharacterType.Player}>Playable characters</option>
               <option value={CharacterType.NPC}>NPCs</option>
               <option value={CharacterType.Enemy}>Enemies</option>
-            </select>
+            </Select>
           </div>
         }
         renderItems={(characters) => (

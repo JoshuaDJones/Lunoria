@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthField } from "@/features/auth/components/AuthField";
 import { AuthPage } from "@/features/auth/components/AuthPage";
+import { Button } from "@/components/ui";
 import { getApiError } from "@/lib/apiClient";
 import { register, useAuth } from "@/features/auth";
 
@@ -67,13 +68,15 @@ export function RegisterPage() {
             {error}
           </p>
         )}
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-brand px-5 py-3 font-semibold text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+          variant="primary"
+          size="lg"
+          className="w-full"
         >
           {isSubmitting ? "Creating account..." : "Create account"}
-        </button>
+        </Button>
       </form>
       <p className="mt-6 text-center text-sm text-content-muted">
         Already registered?{" "}

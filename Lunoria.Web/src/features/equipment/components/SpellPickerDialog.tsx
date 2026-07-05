@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listSpells, type Spell } from "@/features/spells";
 import { getApiError } from "@/lib/apiClient";
+import { Button } from "@/components/ui";
 
 interface SpellPickerDialogProps {
   selectedIds: number[];
@@ -94,13 +95,9 @@ export function SpellPickerDialog({
               {selection.size} selected
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border px-3 py-2 text-content-secondary hover:border-brand-hover hover:text-brand-hover"
-          >
+          <Button onClick={onClose}>
             Close
-          </button>
+          </Button>
         </header>
 
         <div className="flex-1 overflow-y-auto p-6">
@@ -155,20 +152,17 @@ export function SpellPickerDialog({
         </div>
 
         <footer className="flex justify-end gap-3 border-t border-border px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border px-5 py-2.5 text-content-secondary transition hover:border-brand-hover"
-          >
+          <Button onClick={onClose} size="lg" className="py-2.5">
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={() => onApply(Array.from(selection))}
-            className="rounded-lg bg-brand px-5 py-2.5 font-semibold text-on-brand transition hover:bg-brand-hover"
+            variant="primary"
+            size="lg"
+            className="py-2.5"
           >
             Apply selection
-          </button>
+          </Button>
         </footer>
       </section>
     </div>

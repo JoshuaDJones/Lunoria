@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { getApiError } from "@/lib/apiClient";
+import { Button, FormField, Input, Textarea } from "@/components/ui";
 
 export type FormValue = string | boolean;
 export type FormValues = Record<string, FormValue>;
@@ -121,23 +122,17 @@ export function ResourceForm({
               ...current,
               [field.name]: event.target.value,
             })),
-          className:
-            "w-full rounded-lg border border-border bg-surface px-4 py-3 text-content outline-none transition focus:border-brand-hover focus:ring-2 focus:ring-brand-hover/20",
+          className: "bg-surface",
         };
 
         return (
-          <label
-            key={field.name}
-            htmlFor={field.name}
-            className="block text-sm font-medium text-content-secondary"
-          >
-            <span className="mb-2 block">{field.label}</span>
+          <FormField key={field.name} htmlFor={field.name} label={field.label}>
             {field.type === "textarea" ? (
-              <textarea {...commonProps} rows={4} />
+              <Textarea {...commonProps} rows={4} />
             ) : (
-              <input {...commonProps} type={field.type ?? "text"} />
+              <Input {...commonProps} type={field.type ?? "text"} />
             )}
-          </label>
+          </FormField>
         );
       })}
 
@@ -182,13 +177,15 @@ export function ResourceForm({
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-brand px-5 py-3 font-semibold text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+        variant="primary"
+        size="lg"
+        className="w-full"
       >
         {isSubmitting ? "Saving..." : "Save"}
-      </button>
+      </Button>
     </form>
   );
 }

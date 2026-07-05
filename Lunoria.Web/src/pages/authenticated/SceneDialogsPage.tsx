@@ -12,7 +12,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Drawer } from "@/components/ui/Drawer";
+import { Button, Drawer } from "@/components/ui";
 import {
   createDialogPage,
   createDialogPageSection,
@@ -74,14 +74,14 @@ function EditorColumn({
     <section className="flex min-h-80 flex-col rounded-2xl border border-border bg-surface/90">
       <header className="flex items-center justify-between gap-3 border-b border-border p-4">
         <h2 className="text-xl font-semibold text-content">{title}</h2>
-        <button
-          type="button"
+        <Button
           onClick={onAdd}
           disabled={!canAdd}
-          className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          variant="primary"
+          className="px-3"
         >
           {addLabel}
-        </button>
+        </Button>
       </header>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {hasItems ? (
@@ -104,37 +104,36 @@ function ItemActions({ onView, onEdit, onDelete }: ItemActionsProps) {
   return (
     <div className="mt-3 flex gap-2">
       {onView && (
-        <button
-          type="button"
+        <Button
           onClick={(event) => {
             event.stopPropagation();
             onView();
           }}
-          className="rounded-md border border-brand-subtle/50 px-3 py-1.5 text-xs text-brand-hover hover:bg-brand/10"
+          variant="accent"
+          size="sm"
         >
           View
-        </button>
+        </Button>
       )}
-      <button
-        type="button"
+      <Button
         onClick={(event) => {
           event.stopPropagation();
           onEdit();
         }}
-        className="rounded-md border border-border px-3 py-1.5 text-xs text-content-secondary hover:border-brand-hover hover:text-brand-hover"
+        size="sm"
       >
         Edit
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
         onClick={(event) => {
           event.stopPropagation();
           onDelete();
         }}
-        className="rounded-md border border-danger/50 px-3 py-1.5 text-xs text-danger hover:bg-danger/10"
+        variant="danger"
+        size="sm"
       >
         Delete
-      </button>
+      </Button>
     </div>
   );
 }
@@ -232,15 +231,15 @@ export function SceneDialogsPage() {
       <main className="flex min-h-full flex-col p-5 sm:p-8">
         <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Link
+            <h1 className="mt-2 text-4xl font-semibold text-content">
+              Dialog editor
+            </h1>
+                        <Link
               to={`/journeys/${journeyId}/scenes`}
               className="text-sm text-content-secondary hover:text-brand-hover"
             >
               ← Back to scenes
             </Link>
-            <h1 className="mt-2 text-4xl font-semibold text-content">
-              Dialog editor
-            </h1>
           </div>
         </header>
 

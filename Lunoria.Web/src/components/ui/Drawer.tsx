@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { Button } from "./Button";
 
 interface DrawerProps {
   title: string;
@@ -49,15 +50,13 @@ export function Drawer({ title, children, onClose }: DrawerProps) {
           <h2 id="drawer-title" className="text-2xl font-semibold text-content">
             {title}
           </h2>
-          <button
+          <Button
             ref={closeButtonRef}
-            type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg border border-border px-3 py-2 text-content-secondary transition hover:border-brand-hover hover:text-brand-hover"
           >
             Close
-          </button>
+          </Button>
         </header>
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
       </section>

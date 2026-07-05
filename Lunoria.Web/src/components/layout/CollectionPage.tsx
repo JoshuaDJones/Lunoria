@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import AppLayout from "@/app/layouts/AppLayout";
 import { getApiError } from "@/lib/apiClient";
+import { Button } from "@/components/ui";
 
 interface CollectionPageProps<T> {
   title: string;
@@ -76,17 +77,17 @@ export function CollectionPage<T>({
           <h1 className="text-4xl font-semibold text-content sm:text-5xl">
             {title}
           </h1>
-          <button
-            type="button"
+          <Button
             onClick={onAdd}
             disabled={!onAdd}
             title={
               onAdd ? `Add ${itemName}` : `${itemName} creation coming soon`
             }
-            className="rounded-lg bg-brand px-5 py-3 font-semibold text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+            variant="primary"
+            size="lg"
           >
             Add {itemName}
-          </button>
+          </Button>
         </header>
 
         {toolbar && <div className="mb-6">{toolbar}</div>}
@@ -103,13 +104,12 @@ export function CollectionPage<T>({
             role="alert"
           >
             <p className="text-danger">{error}</p>
-            <button
-              type="button"
+            <Button
               onClick={() => void retryLoad()}
-              className="mt-4 rounded-lg border border-border px-4 py-2 text-content transition hover:border-brand-hover hover:text-brand-hover"
+              className="mt-4 text-content"
             >
               Try again
-            </button>
+            </Button>
           </div>
         )}
 
