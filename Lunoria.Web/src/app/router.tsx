@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth } from "@/app/routing/RequireAuth";
 import { RequireGuest } from "@/app/routing/RequireGuest";
 import { HomePage } from "@/pages/authenticated/HomePage";
-import { ComponentShowCasePage } from "@/pages/authenticated/ComponentShowCasePage";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
@@ -11,6 +10,8 @@ import { CharactersPage } from "@/pages/authenticated/CharactersPage";
 import { SpellsPage } from "@/pages/authenticated/SpellsPage";
 import { ConsumablesPage } from "@/pages/authenticated/ConsumablesPage";
 import { EquipmentPage } from "@/pages/authenticated/EquipmentPage";
+import { JourneyScenesPage } from "@/pages/authenticated/JourneyScenesPage";
+import { SceneDialogsPage } from "@/pages/authenticated/SceneDialogsPage";
 
 export const router = createBrowserRouter([
   {
@@ -42,10 +43,6 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "/componentshowcase",
-        element: <ComponentShowCasePage />,
-      },
-      {
         path: "/characters",
         element: <CharactersPage />,
       },
@@ -60,6 +57,14 @@ export const router = createBrowserRouter([
       {
         path: "/equipment",
         element: <EquipmentPage />,
+      },
+      {
+        path: "/journeys/:journeyId/scenes",
+        element: <JourneyScenesPage />,
+      },
+      {
+        path: "/journeys/:journeyId/scenes/:sceneId/dialogs",
+        element: <SceneDialogsPage />,
       },
     ],
   },

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import {
   requiredPhoto,
@@ -28,6 +29,7 @@ const fields: ResourceFormField[] = [
 ];
 
 export function HomePage() {
+  const navigate = useNavigate();
   const [editing, setEditing] = useState<Journey | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -45,7 +47,13 @@ export function HomePage() {
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
         renderItems={(journeys) => (
-          <JourneyGrid journeys={journeys} onSelect={setEditing} />
+          <JourneyGrid
+            journeys={journeys}
+            onSelect={setEditing}
+            onViewScenes={(journey) =>
+              navigate(`/journeys/${journey.id}/scenes`)
+            }
+          />
         )}
       />
 

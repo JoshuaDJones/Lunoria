@@ -22,6 +22,7 @@ interface ResourceFormProps {
   initialValues: FormValues;
   existingPhotoUrl?: string;
   requirePhoto?: boolean;
+  showPhoto?: boolean;
   onSubmit: (values: FormValues, photo?: File) => Promise<void>;
   children?: ReactNode;
 }
@@ -31,6 +32,7 @@ export function ResourceForm({
   initialValues,
   existingPhotoUrl,
   requirePhoto,
+  showPhoto = true,
   onSubmit,
   children,
 }: ResourceFormProps) {
@@ -141,7 +143,7 @@ export function ResourceForm({
 
       {children}
 
-      <label className="block text-sm font-medium text-content-secondary">
+      {showPhoto && <label className="block text-sm font-medium text-content-secondary">
         <span className="mb-2 block">
           Photo{existingPhotoUrl ? " (leave empty to keep current photo)" : ""}
         </span>
@@ -152,9 +154,9 @@ export function ResourceForm({
           onChange={(event) => handlePhotoChange(event.target.files?.[0])}
           className="block w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-content file:mr-4 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:font-semibold file:text-on-brand"
         />
-      </label>
+      </label>}
 
-      {(photoPreviewUrl || existingPhotoUrl) && (
+      {showPhoto && (photoPreviewUrl || existingPhotoUrl) && (
         <figure className="rounded-xl border border-border bg-surface p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <figcaption className="text-sm font-semibold text-content-secondary">
