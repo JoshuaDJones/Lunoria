@@ -38,17 +38,48 @@ export function RegisterPage() {
   return (
     <AuthPage title="Create an account" subtitle="Begin building your world.">
       <form onSubmit={handleSubmit} className="space-y-5">
-        <AuthField id="email" label="Email" type="email" value={email} autoComplete="email" onChange={setEmail} />
-        <AuthField id="password" label="Password" type="password" value={password} autoComplete="new-password" onChange={setPassword} />
-        <AuthField id="confirm-password" label="Confirm password" type="password" value={confirmPassword} autoComplete="new-password" onChange={setConfirmPassword} />
-        {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
-        <button type="submit" disabled={isSubmitting} className="w-full rounded-lg bg-amber-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60">
+        <AuthField
+          id="email"
+          label="Email"
+          type="email"
+          value={email}
+          autoComplete="email"
+          onChange={setEmail}
+        />
+        <AuthField
+          id="password"
+          label="Password"
+          type="password"
+          value={password}
+          autoComplete="new-password"
+          onChange={setPassword}
+        />
+        <AuthField
+          id="confirm-password"
+          label="Confirm password"
+          type="password"
+          value={confirmPassword}
+          autoComplete="new-password"
+          onChange={setConfirmPassword}
+        />
+        {error && (
+          <p className="text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-lg bg-brand px-5 py-3 font-semibold text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {isSubmitting ? "Creating account..." : "Create account"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-400">
+      <p className="mt-6 text-center text-sm text-content-muted">
         Already registered?{" "}
-        <Link to="/login" className="text-amber-400 hover:text-amber-300">Sign in</Link>
+        <Link to="/login" className="text-brand-hover hover:text-brand-subtle">
+          Sign in
+        </Link>
       </p>
     </AuthPage>
   );

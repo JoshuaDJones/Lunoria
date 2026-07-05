@@ -5,6 +5,23 @@
 
 @theme {
   --font-cinzel: "Cinzel", serif;
+
+  --color-brand: var(--color-amber-500);
+  --color-brand-hover: var(--color-amber-400);
+  --color-brand-subtle: var(--color-amber-300);
+
+  --color-canvas: var(--color-slate-950);
+  --color-surface: var(--color-slate-950);
+  --color-surface-raised: var(--color-slate-900);
+
+  --color-content: var(--color-slate-100);
+  --color-content-secondary: var(--color-slate-300);
+  --color-content-muted: var(--color-slate-400);
+  --color-content-placeholder: var(--color-slate-600);
+  --color-on-brand: var(--color-slate-950);
+
+  --color-border: var(--color-slate-700);
+  --color-danger: var(--color-red-400);
 }
 
 @layer base {
@@ -13,7 +30,7 @@
   }
 
   body {
-    @apply m-0 min-w-80 bg-slate-950 text-slate-100 antialiased;
+    @apply m-0 min-w-80 bg-canvas text-content antialiased;
   }
 }
 
@@ -22,6 +39,16 @@
     background-image:
       linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
       url("/Stone_Background.png");
+
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .valley-village-image {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+      url("/Valley_Village_Background.png");
 
     background-size: cover;
     background-repeat: no-repeat;

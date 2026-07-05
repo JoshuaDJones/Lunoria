@@ -120,7 +120,9 @@ export async function useSceneCharacterItem(
   await apiClient.patch("/SceneCharacterItem", { sceneCharacterItemId });
 }
 
-export async function listSceneDialogs(sceneId: number): Promise<SceneDialog[]> {
+export async function listSceneDialogs(
+  sceneId: number,
+): Promise<SceneDialog[]> {
   const { data } = await apiClient.get<ApiResult<SceneDialog[]>>(
     `/SceneDialog/${sceneId}`,
   );
@@ -178,10 +180,7 @@ export async function updateDialogPageSection(
   dialogPageSectionId: number,
   request: UpdateDialogPageSectionRequest,
 ): Promise<void> {
-  await apiClient.patch(
-    `/DialogPageSection/${dialogPageSectionId}`,
-    request,
-  );
+  await apiClient.patch(`/DialogPageSection/${dialogPageSectionId}`, request);
 }
 
 export async function deleteDialogPageSection(
@@ -278,7 +277,5 @@ export async function removeSceneParticipantTurn(
   sceneProgressId: number,
   turnId: number,
 ): Promise<void> {
-  await apiClient.delete(
-    `/scene-progress/${sceneProgressId}/turns/${turnId}`,
-  );
+  await apiClient.delete(`/scene-progress/${sceneProgressId}/turns/${turnId}`);
 }

@@ -33,10 +33,7 @@ export async function getJourney(id: number): Promise<Journey> {
 export async function createJourney(
   input: CreateJourneyInput,
 ): Promise<Journey> {
-  const { data } = await apiClient.post<Journey>(
-    "/Journey",
-    toFormData(input),
-  );
+  const { data } = await apiClient.post<Journey>("/Journey", toFormData(input));
   return data;
 }
 

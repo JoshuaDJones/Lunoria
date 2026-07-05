@@ -53,14 +53,16 @@ export function getApiError(error: unknown): ApiError {
     const responseError = error.response?.data as Partial<ApiError> | undefined;
 
     return {
-      code: responseError?.code ?? `Http.${error.response?.status ?? "Unknown"}`,
+      code:
+        responseError?.code ?? `Http.${error.response?.status ?? "Unknown"}`,
       message: responseError?.message ?? error.message,
     };
   }
 
   return {
     code: "Client.Unknown",
-    message: error instanceof Error ? error.message : "An unknown error occurred.",
+    message:
+      error instanceof Error ? error.message : "An unknown error occurred.",
   };
 }
 

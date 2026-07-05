@@ -5,8 +5,13 @@ import type {
   RegisterRequest,
 } from "@/features/auth/types";
 
-export async function login(request: LoginRequest): Promise<AuthenticationToken> {
-  const { data } = await apiClient.post<AuthenticationToken>("/Auth/login", request);
+export async function login(
+  request: LoginRequest,
+): Promise<AuthenticationToken> {
+  const { data } = await apiClient.post<AuthenticationToken>(
+    "/Auth/login",
+    request,
+  );
   return data;
 }
 

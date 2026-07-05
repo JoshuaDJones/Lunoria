@@ -22,9 +22,7 @@ export async function listEquipment(
 }
 
 export async function getEquipment(id: number): Promise<EquippableItem> {
-  const { data } = await apiClient.get<EquippableItem>(
-    `/EquippableItem/${id}`,
-  );
+  const { data } = await apiClient.get<EquippableItem>(`/EquippableItem/${id}`);
   return data;
 }
 

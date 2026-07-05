@@ -1,19 +1,13 @@
 import { apiClient } from "@/lib/apiClient";
 import { toFormData } from "@/lib/formData";
-import type {
-  CreateItemInput,
-  Item,
-  ItemInput,
-} from "@/features/items/types";
+import type { CreateItemInput, Item, ItemInput } from "@/features/items/types";
 
 export interface ListItemsParams {
   skip?: number;
   take?: number;
 }
 
-export async function listItems(
-  params: ListItemsParams = {},
-): Promise<Item[]> {
+export async function listItems(params: ListItemsParams = {}): Promise<Item[]> {
   const { data } = await apiClient.get<Item[]>("/Item", { params });
   return data;
 }
@@ -29,10 +23,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
 }
 
 export async function updateItem(id: number, input: ItemInput): Promise<Item> {
-  const { data } = await apiClient.put<Item>(
-    `/Item/${id}`,
-    toFormData(input),
-  );
+  const { data } = await apiClient.put<Item>(`/Item/${id}`, toFormData(input));
   return data;
 }
 

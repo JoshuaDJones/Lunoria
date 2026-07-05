@@ -51,23 +51,24 @@ export function LoginPage() {
           autoComplete="current-password"
           onChange={setPassword}
         />
-        {error && <p className="text-sm text-red-400" role="alert">{error}</p>}
+        {error && (
+          <p className="text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-amber-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-lg bg-brand px-5 py-3 font-semibold text-on-brand transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
       <div className="mt-6 flex items-center justify-between gap-4 text-sm">
-        <Link to="/register" className="text-amber-400 hover:text-amber-300">
+        <Link to="/register" className="text-brand-hover hover:text-brand-subtle">
           Register
         </Link>
-        <Link
-          to="/forgot-password"
-          className="text-slate-300 hover:text-white"
-        >
+        <Link to="/forgot-password" className="text-content-secondary hover:text-content">
           Forgot password?
         </Link>
       </div>

@@ -1,10 +1,8 @@
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import {
-  type ReactNode,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
-import { AuthContext, type AuthContextValue } from "@/features/auth/authContext";
+  AuthContext,
+  type AuthContextValue,
+} from "@/features/auth/authContext";
 import { getAccessToken, setAccessToken } from "@/lib/apiClient";
 
 interface AuthProviderProps {
