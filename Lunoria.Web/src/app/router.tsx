@@ -1,12 +1,12 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth } from "@/app/routing/RequireAuth";
 import { RequireGuest } from "@/app/routing/RequireGuest";
-import { HomePage } from "@/pages/HomePage";
-import { LandingPage } from "@/pages/LandingPage";
-import { LoginPage } from "@/pages/LoginPage";
-import { RegisterPage } from "@/pages/RegisterPage";
-import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
-import { ComponentShowCasePage } from "@/pages/ComponentShowCasePage";
+import { HomePage } from "@/pages/authenticated/HomePage";
+import { ComponentShowCasePage } from "@/pages/authenticated/ComponentShowCasePage";
+import { LoginPage } from "@/pages/auth/LoginPage";
+import { RegisterPage } from "@/pages/auth/RegisterPage";
+import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
+import { LandingPage } from "@/pages/public/LandingPage";
 
 export const router = createBrowserRouter([
   {

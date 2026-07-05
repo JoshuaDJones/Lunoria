@@ -1,5 +1,4 @@
 import AppLayout from "@/app/layouts/AppLayout";
-import { useAuth } from "@/features/auth";
 
 export function HomePage() {
   return (
