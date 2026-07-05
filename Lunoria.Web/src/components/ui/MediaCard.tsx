@@ -6,6 +6,7 @@ interface MediaCardProps {
   description: string;
   imageUrl?: string | null;
   children?: ReactNode;
+  onClick?: () => void;
 }
 
 export function MediaCard({
@@ -13,9 +14,21 @@ export function MediaCard({
   description,
   imageUrl,
   children,
+  onClick,
 }: MediaCardProps) {
   return (
-    <Card className="flex min-h-52 flex-col transition hover:border-brand-subtle/50 hover:bg-surface-raised/90">
+    <Card
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (onClick && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className="flex min-h-52 flex-col transition hover:border-brand-subtle/50 hover:bg-surface-raised/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-hover"
+    >
       <div className="flex flex-1 gap-4 p-4">
         <div className="min-w-0 flex-1">
           <h2 className="wrap-break-word text-2xl font-semibold text-content">

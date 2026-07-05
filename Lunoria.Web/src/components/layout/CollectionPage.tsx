@@ -9,6 +9,7 @@ interface CollectionPageProps<T> {
   renderItems: (items: T[]) => ReactNode;
   toolbar?: ReactNode;
   onAdd?: () => void;
+  reloadKey?: unknown;
 }
 
 export function CollectionPage<T>({
@@ -18,6 +19,7 @@ export function CollectionPage<T>({
   renderItems,
   toolbar,
   onAdd,
+  reloadKey,
 }: CollectionPageProps<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +49,7 @@ export function CollectionPage<T>({
     return () => {
       isCurrent = false;
     };
-  }, [loadItems]);
+  }, [loadItems, reloadKey]);
 
   const retryLoad = async () => {
     setIsLoading(true);

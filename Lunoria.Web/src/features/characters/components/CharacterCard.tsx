@@ -4,9 +4,10 @@ import type { Character } from "@/features/characters/types";
 
 interface CharacterCardProps {
   character: Character;
+  onSelect?: (character: Character) => void;
 }
 
-export function CharacterCard({ character }: CharacterCardProps) {
+export function CharacterCard({ character, onSelect }: CharacterCardProps) {
   const roles = [
     character.isPlayer && "Player",
     character.isNPC && "NPC",
@@ -14,7 +15,18 @@ export function CharacterCard({ character }: CharacterCardProps) {
   ].filter((role): role is string => Boolean(role));
 
   return (
-    <Card className="flex flex-col p-4 transition hover:border-brand-subtle/50 hover:bg-surface-raised/90">
+    <Card
+      onClick={onSelect ? () => onSelect(character) : undefined}
+      onKeyDown={(event) => {
+        if (onSelect && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onSelect(character);
+        }
+      }}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      className="flex flex-col p-4 transition hover:border-brand-subtle/50 hover:bg-surface-raised/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-hover"
+    >
       <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1">
           <h2 className="wrap-break-word text-2xl font-semibold text-content">

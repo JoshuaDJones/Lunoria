@@ -1,13 +1,84 @@
+import { useState } from "react";
 import { CollectionPage } from "@/components/layout/CollectionPage";
-import { JourneyGrid, listJourneys } from "@/features/journeys";
+import {
+  requiredPhoto,
+  textValue,
+} from "@/components/forms/formValues";
+import {
+  ResourceForm,
+  type ResourceFormField,
+} from "@/components/forms/ResourceForm";
+import { Drawer } from "@/components/ui/Drawer";
+import {
+  createJourney,
+  JourneyGrid,
+  listJourneys,
+  updateJourney,
+  type Journey,
+} from "@/features/journeys";
+
+const fields: ResourceFormField[] = [
+  { name: "name", label: "Name", required: true },
+  {
+    name: "description",
+    label: "Description",
+    type: "textarea",
+    required: true,
+  },
+];
 
 export function HomePage() {
+  const [editing, setEditing] = useState<Journey | null | undefined>();
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const handleSaved = () => {
+    setEditing(undefined);
+    setReloadKey((value) => value + 1);
+  };
+
   return (
-    <CollectionPage
-      title="Journeys"
-      itemName="journey"
-      loadItems={listJourneys}
-      renderItems={(journeys) => <JourneyGrid journeys={journeys} />}
-    />
+    <>
+      <CollectionPage
+        title="Journeys"
+        itemName="journey"
+        loadItems={listJourneys}
+        reloadKey={reloadKey}
+        onAdd={() => setEditing(null)}
+        renderItems={(journeys) => (
+          <JourneyGrid journeys={journeys} onSelect={setEditing} />
+        )}
+      />
+
+      {editing !== undefined && (
+        <Drawer
+          title={editing ? "Edit journey" : "Create journey"}
+          onClose={() => setEditing(undefined)}
+        >
+          <ResourceForm
+            fields={fields}
+            initialValues={{
+              name: editing?.name ?? "",
+              description: editing?.description ?? "",
+            }}
+            existingPhotoUrl={editing?.photoUrl}
+            requirePhoto={!editing}
+            onSubmit={async (values, photo) => {
+              const input = {
+                name: textValue(values, "name"),
+                description: textValue(values, "description"),
+              };
+
+              if (editing) {
+                await updateJourney(editing.id, { ...input, photo });
+              } else {
+                await createJourney({ ...input, photo: requiredPhoto(photo) });
+              }
+
+              handleSaved();
+            }}
+          />
+        </Drawer>
+      )}
+    </>
   );
 }

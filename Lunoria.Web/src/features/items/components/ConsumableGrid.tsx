@@ -4,13 +4,14 @@ import type { Item } from "@/features/items/types";
 
 interface ConsumableGridProps {
   items: Item[];
+  onSelect?: (item: Item) => void;
 }
 
-export function ConsumableGrid({ items }: ConsumableGridProps) {
+export function ConsumableGrid({ items, onSelect }: ConsumableGridProps) {
   return (
     <CardGrid>
       {items.map((item) => (
-        <ConsumableCard key={item.id} item={item} />
+        <ConsumableCard key={item.id} item={item} onSelect={onSelect} />
       ))}
     </CardGrid>
   );

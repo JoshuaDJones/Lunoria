@@ -4,13 +4,14 @@ import type { EquippableItem } from "@/features/equipment/types";
 
 interface EquipmentGridProps {
   equipment: EquippableItem[];
+  onSelect?: (item: EquippableItem) => void;
 }
 
-export function EquipmentGrid({ equipment }: EquipmentGridProps) {
+export function EquipmentGrid({ equipment, onSelect }: EquipmentGridProps) {
   return (
     <CardGrid>
       {equipment.map((item) => (
-        <EquipmentCard key={item.id} item={item} />
+        <EquipmentCard key={item.id} item={item} onSelect={onSelect} />
       ))}
     </CardGrid>
   );

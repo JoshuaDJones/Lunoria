@@ -4,13 +4,14 @@ import type { Journey } from "@/features/journeys/types";
 
 interface JourneyGridProps {
   journeys: Journey[];
+  onSelect?: (journey: Journey) => void;
 }
 
-export function JourneyGrid({ journeys }: JourneyGridProps) {
+export function JourneyGrid({ journeys, onSelect }: JourneyGridProps) {
   return (
     <CardGrid>
       {journeys.map((journey) => (
-        <JourneyCard key={journey.id} journey={journey} />
+        <JourneyCard key={journey.id} journey={journey} onSelect={onSelect} />
       ))}
     </CardGrid>
   );

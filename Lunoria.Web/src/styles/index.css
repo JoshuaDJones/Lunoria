@@ -3,6 +3,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
 @theme {
   --font-cinzel: "Cinzel", serif;
 

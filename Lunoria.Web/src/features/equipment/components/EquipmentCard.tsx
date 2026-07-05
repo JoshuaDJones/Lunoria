@@ -4,18 +4,20 @@ import type { EquippableItem } from "@/features/equipment/types";
 
 interface EquipmentCardProps {
   item: EquippableItem;
+  onSelect?: (item: EquippableItem) => void;
 }
 
 function signed(value: number): string {
   return value > 0 ? `+${value}` : value.toString();
 }
 
-export function EquipmentCard({ item }: EquipmentCardProps) {
+export function EquipmentCard({ item, onSelect }: EquipmentCardProps) {
   return (
     <MediaCard
       title={item.name}
       description={item.description}
       imageUrl={item.photoUrl}
+      onClick={onSelect ? () => onSelect(item) : undefined}
     >
       <StatGrid className="mt-4 px-4">
         <Stat

@@ -4,14 +4,16 @@ import type { Spell } from "@/features/spells/types";
 
 interface SpellCardProps {
   spell: Spell;
+  onSelect?: (spell: Spell) => void;
 }
 
-export function SpellCard({ spell }: SpellCardProps) {
+export function SpellCard({ spell, onSelect }: SpellCardProps) {
   return (
     <MediaCard
       title={spell.name}
       description={spell.description}
       imageUrl={spell.photoUrl}
+      onClick={onSelect ? () => onSelect(spell) : undefined}
     >
       <StatGrid className="mt-4 px-4 pb-4">
         <Stat label="Spell type" value={spell.spellType?.name ?? "Unknown"} />
