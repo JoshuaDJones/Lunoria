@@ -30,7 +30,7 @@
   }
 
   body {
-    @apply m-0 min-w-80 bg-canvas text-content antialiased;
+    @apply m-0 min-w-80 bg-canvas font-cinzel text-content antialiased;
   }
 }
 

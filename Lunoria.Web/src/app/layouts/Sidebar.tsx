@@ -32,7 +32,7 @@ interface SidebarProps {
 }
 
 const defaultItems: SidebarItem[] = [
-  { label: "Journeys", to: "/", active: true, icon: faBookOpen },
+  { label: "Journeys", to: "/home",  icon: faBookOpen },
   { label: "Characters", to: "/characters", icon: faUser },
   { label: "Spells", to: "/spells", icon: faWandMagicSparkles },
   { label: "Consumables", to: "/consumables", icon: faBottleDroplet },
@@ -48,12 +48,17 @@ const Sidebar = ({
 }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const { signOut } = useAuth();
+  const activePath = window.location.pathname;
 
+  const updatedItems = items.map((item) => ({
+    ...item,
+    active: item.to === activePath,
+  }));
 
   return (
     <aside
       className={clsx(
-        "absolute inset-y-0 left-0 z-20 flex flex-col border-r border-white/10 bg-slate-900/85 p-5 text-slate-100 shadow-xl backdrop-blur-sm transition-all duration-200",
+        "relative z-20 flex h-full shrink-0 flex-col border-r border-white/10 bg-slate-900/85 p-5 text-slate-100 shadow-xl backdrop-blur-sm transition-all duration-200",
         collapsed ? "w-20" : "w-72",
         className,
       )}
@@ -61,16 +66,16 @@ const Sidebar = ({
       <div className="mb-8 flex items-center gap-3">
         {!collapsed && (
           <div>
-            <p className="text-md text-white font-semibold font-cinzel">
+            <p className="text-md font-semibold text-white">
               {title}
             </p>
-            <p className="text-xs text-slate-400 font-cinzel">{subtitle}</p>
+            <p className="text-xs text-slate-400">{subtitle}</p>
           </div>
         )}
       </div>
 
       <nav className="flex flex-col gap-2">
-        {items.map((item) => {
+        {updatedItems.map((item) => {
           const content = (
             <>
               <span className="text-base">

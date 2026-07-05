@@ -20,13 +20,13 @@ const AppLayout = ({
   children,
 }: PropsWithChildren<AppLayoutProps>) => {
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-slate-800">
+    <div className="relative flex h-screen w-screen overflow-hidden bg-slate-800">
       {background}
       {pane}
       {sidebar ?? <Sidebar />}
 
       <div
-        className={clsx("absolute inset-0 z-10 flex flex-col", {
+        className={clsx("relative z-10 flex min-w-0 flex-1 flex-col", {
           "pb-20": !bottomPadding,
           "overflow-y-auto scrollbar-hide": scrolling,
         })}

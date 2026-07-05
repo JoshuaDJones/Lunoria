@@ -7,6 +7,10 @@ import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
 import { LandingPage } from "@/pages/public/LandingPage";
+import { CharactersPage } from "@/pages/authenticated/CharactersPage";
+import { SpellsPage } from "@/pages/authenticated/SpellsPage";
+import { ConsumablesPage } from "@/pages/authenticated/ConsumablesPage";
+import { EquipmentPage } from "@/pages/authenticated/EquipmentPage";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +44,22 @@ export const router = createBrowserRouter([
       {
         path: "/componentshowcase",
         element: <ComponentShowCasePage />,
+      },
+      {
+        path: "/characters",
+        element: <CharactersPage />,
+      },
+      {
+        path: "/spells",
+        element: <SpellsPage />,
+      },
+      {
+        path: "/consumables",
+        element: <ConsumablesPage />,
+      },
+      {
+        path: "/equipment",
+        element: <EquipmentPage />,
       },
     ],
   },

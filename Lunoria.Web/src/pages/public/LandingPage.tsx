@@ -10,11 +10,11 @@ export function LandingPage() {
       }
     >
       <main className="flex h-full w-full items-center justify-center">
-        <section className="max-w-xl rounded-2xl border border-brand-subtle/20 bg-surface/80 px-8 py-14 text-center shadow-2xl backdrop-blur-sm sm:px-14 font-cinzel">
+        <section className="max-w-xl rounded-2xl border border-brand-subtle/20 bg-surface/80 px-8 py-14 text-center shadow-2xl backdrop-blur-sm sm:px-14">
           <p className="mb-3 text-sm uppercase tracking-[0.35em] text-brand-hover">
             A new journey begins
           </p>
-          <h1 className="font-cinzel text-5xl font-bold sm:text-7xl">
+          <h1 className="text-5xl font-bold sm:text-7xl">
             Lunoria
           </h1>
           <p className="mx-auto mt-5 max-w-md text-content-secondary">
