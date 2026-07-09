@@ -30,6 +30,7 @@ import {
   type SceneDialog,
 } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
+import { useConfirmDialog } from "@/app/providers";
 
 const dialogFields: ResourceFormField[] = [
   { name: "title", label: "Title", required: true },
@@ -139,6 +140,7 @@ function ItemActions({ onView, onEdit, onDelete }: ItemActionsProps) {
 }
 
 export function SceneDialogsPage() {
+  const { confirm } = useConfirmDialog();
   const { journeyId: journeyIdParam, sceneId: sceneIdParam } = useParams();
   const journeyId = Number(journeyIdParam);
   const sceneId = Number(sceneIdParam);
@@ -148,12 +150,15 @@ export function SceneDialogsPage() {
   const [selectedPageId, setSelectedPageId] = useState<number>();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [editingDialog, setEditingDialog] =
-    useState<SceneDialog | null | undefined>();
-  const [editingPage, setEditingPage] =
-    useState<DialogPage | null | undefined>();
-  const [editingSection, setEditingSection] =
-    useState<DialogPageSection | null | undefined>();
+  const [editingDialog, setEditingDialog] = useState<
+    SceneDialog | null | undefined
+  >();
+  const [editingPage, setEditingPage] = useState<
+    DialogPage | null | undefined
+  >();
+  const [editingSection, setEditingSection] = useState<
+    DialogPageSection | null | undefined
+  >();
   const [viewingDialog, setViewingDialog] = useState<SceneDialog>();
 
   useEffect(() => {
@@ -206,11 +211,15 @@ export function SceneDialogsPage() {
     setError("");
   };
 
-  const remove = async (
-    message: string,
-    operation: () => Promise<void>,
-  ) => {
-    if (!window.confirm(message)) {
+  const remove = async (message: string, operation: () => Promise<void>) => {
+    const confirmed = await confirm({
+      title: message,
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -234,7 +243,7 @@ export function SceneDialogsPage() {
             <h1 className="mt-2 text-4xl font-semibold text-content">
               Dialog editor
             </h1>
-                        <Link
+            <Link
               to={`/journeys/${journeyId}/scenes`}
               className="text-sm text-content-secondary hover:text-brand-hover"
             >
@@ -363,7 +372,7 @@ export function SceneDialogsPage() {
                     <span className="text-xs text-content-muted">
                       {section.isNarrator
                         ? "Narrator"
-                        : section.character?.name ?? "No character"}
+                        : (section.character?.name ?? "No character")}
                     </span>
                   </div>
                   <p className="mt-3 whitespace-pre-wrap text-sm text-content-secondary">

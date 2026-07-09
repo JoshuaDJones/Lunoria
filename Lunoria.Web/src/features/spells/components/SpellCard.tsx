@@ -1,6 +1,9 @@
+import { Button } from "@/components/ui";
 import { MediaCard } from "@/components/ui/MediaCard";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import type { Spell } from "@/features/spells/types";
+import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface SpellCardProps {
   spell: Spell;
@@ -24,6 +27,24 @@ export function SpellCard({ spell, onSelect }: SpellCardProps) {
         <Stat label="Health effect" value={spell.healthEffect ?? "None"} />
         <Stat label="Magic effect" value={spell.magicEffect ?? "None"} />
       </StatGrid>
+      <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end">
+        <Button
+          variant="danger"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faTrash} />}
+        >
+          Delete
+        </Button>
+        <Button
+          variant="primary"
+          size="md"
+          inverted
+          leftIcon={<FontAwesomeIcon icon={faPen} />}
+        >
+          Edit
+        </Button>
+      </div>
     </MediaCard>
   );
 }

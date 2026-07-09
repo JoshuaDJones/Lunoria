@@ -8,11 +8,7 @@ interface SceneGridProps {
   onEdit: (scene: Scene) => void;
 }
 
-export function SceneGrid({
-  scenes,
-  onViewDialogs,
-  onEdit,
-}: SceneGridProps) {
+export function SceneGrid({ scenes, onViewDialogs, onEdit }: SceneGridProps) {
   return (
     <CardGrid>
       {scenes.map((scene) => (

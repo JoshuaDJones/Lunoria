@@ -2,12 +2,7 @@ import { ReactNode, type ComponentPropsWithRef } from "react";
 import { twMerge } from "tailwind-merge";
 
 type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "accent"
-  | "add"
-  | "magic"
-  | "danger";
+  "primary" | "secondary" | "accent" | "add" | "magic" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 export type ButtonProps = ComponentPropsWithRef<"button"> & {

@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CollectionPage } from "@/components/layout/CollectionPage";
-import {
-  requiredPhoto,
-  textValue,
-} from "@/components/forms/formValues";
+import { requiredPhoto, textValue } from "@/components/forms/formValues";
 import {
   ResourceForm,
   type ResourceFormField,

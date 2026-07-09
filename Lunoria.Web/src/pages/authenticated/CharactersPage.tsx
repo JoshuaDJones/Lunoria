@@ -152,10 +152,7 @@ export function CharactersPage() {
                   values,
                   "baseMaxEquippableInventory",
                 ),
-                alternateFormId: nullableNumberValue(
-                  values,
-                  "alternateFormId",
-                ),
+                alternateFormId: nullableNumberValue(values, "alternateFormId"),
                 isPlayer: booleanValue(values, "isPlayer"),
                 isNPC: booleanValue(values, "isNPC"),
                 isEnemy: booleanValue(values, "isEnemy"),

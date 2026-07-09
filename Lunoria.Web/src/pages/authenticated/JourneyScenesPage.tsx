@@ -1,10 +1,7 @@
 import { useCallback, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { CollectionPage } from "@/components/layout/CollectionPage";
-import {
-  requiredPhoto,
-  textValue,
-} from "@/components/forms/formValues";
+import { requiredPhoto, textValue } from "@/components/forms/formValues";
 import {
   ResourceForm,
   type ResourceFormField,
@@ -58,13 +55,13 @@ export function JourneyScenesPage() {
         loadItems={loadJourneyScenes}
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
-        toolbar={            
-                      <Link
-              to="/home"
-              className="text-sm text-content-secondary hover:text-brand-hover"
-            >
-              ← Back to journeys
-            </Link>
+        toolbar={
+          <Link
+            to="/home"
+            className="text-sm text-content-secondary hover:text-brand-hover"
+          >
+            ← Back to journeys
+          </Link>
         }
         renderItems={(scenes) => (
           <SceneGrid

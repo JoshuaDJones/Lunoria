@@ -59,9 +59,7 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
                 : "No pages"}
             </p>
           </div>
-          <Button onClick={onClose}>
-            Close
-          </Button>
+          <Button onClick={onClose}>Close</Button>
         </header>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-canvas">
@@ -79,36 +77,38 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
             <div className="scrollbar-hide absolute inset-x-4 bottom-4 h-full py-10 space-y-3 overflow-y-auto sm:inset-x-[10%] flex items-center justify-center">
               <div className="flex flex-col items-center gap-5 w-[60%]">
                 {sections.map((section) => {
-                const speaker = section.isNarrator
-                  ? "Narrator"
-                  : section.character?.name ?? "Unknown character";
+                  const speaker = section.isNarrator
+                    ? "Narrator"
+                    : (section.character?.name ?? "Unknown character");
 
-                return (
-                  <article
-                    key={section.id}
-                    style={{
-                      borderColor:
-                        section.character?.characterDialogSettings
-                          ?.dialogActiveColor || undefined,
-                    }}
-                    className="rounded-xl border-4 border-border bg-canvas/85 p-4 shadow-xl backdrop-blur-sm w-full opacity-50 transition-opacity hover:opacity-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      {!section.isNarrator && section.character?.photoUrl && (
-                        <img
-                          src={section.character.photoUrl}
-                          alt=""
-                          className="h-10 w-10 rounded-md object-cover"
-                        />
-                      )}
-                      <h3 className="font-semibold text-4xl text-content">{speaker}</h3>
-                    </div>
-                    <p className="mt-2 whitespace-pre-wrap text-2xl text-content-secondary">
-                      {section.readingText}
-                    </p>
-                  </article>
-                );
-              })}
+                  return (
+                    <article
+                      key={section.id}
+                      style={{
+                        borderColor:
+                          section.character?.characterDialogSettings
+                            ?.dialogActiveColor || undefined,
+                      }}
+                      className="rounded-xl border-4 border-border bg-canvas/85 p-4 shadow-xl backdrop-blur-sm w-full opacity-50 transition-opacity hover:opacity-100"
+                    >
+                      <div className="flex items-center gap-3">
+                        {!section.isNarrator && section.character?.photoUrl && (
+                          <img
+                            src={section.character.photoUrl}
+                            alt=""
+                            className="h-10 w-10 rounded-md object-cover"
+                          />
+                        )}
+                        <h3 className="font-semibold text-4xl text-content">
+                          {speaker}
+                        </h3>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap text-2xl text-content-secondary">
+                        {section.readingText}
+                      </p>
+                    </article>
+                  );
+                })}
               </div>
             </div>
           )}

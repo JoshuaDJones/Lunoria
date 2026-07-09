@@ -2,6 +2,8 @@ import { MediaCard } from "@/components/ui/MediaCard";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import { Button } from "@/components/ui";
 import type { Journey } from "@/features/journeys/types";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faImages, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 interface JourneyCardProps {
   journey: Journey;
@@ -33,13 +35,26 @@ export function JourneyCard({
               event.stopPropagation();
               onViewScenes(journey);
             }}
-            variant="accent"
+            variant="primary"
+            inverted
+            leftIcon={<FontAwesomeIcon icon={faImages} />}
           >
             View scenes
           </Button>
           <Button
-            onClick={onSelect ? () => onSelect(journey) : undefined}
+            variant="danger"
+            inverted
+            size="md"
+            leftIcon={<FontAwesomeIcon icon={faTrash} />}
+          >
+            Delete
+          </Button>
+          <Button
             variant="secondary"
+            size="md"
+            inverted
+            onClick={onSelect ? () => onSelect(journey) : undefined}
+            leftIcon={<FontAwesomeIcon icon={faPen} />}
           >
             Edit
           </Button>

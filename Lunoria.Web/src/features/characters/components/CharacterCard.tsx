@@ -116,6 +116,7 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
       <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
         <Button
           variant="magic"
+          inverted
           size="md"
           leftIcon={<FontAwesomeIcon icon={faWandMagicSparkles} />}
         >
@@ -132,6 +133,7 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
         <Button
           variant="primary"
           size="md"
+          inverted
           onClick={onSelect ? () => onSelect(character) : undefined}
           leftIcon={<FontAwesomeIcon icon={faPen} />}
         >

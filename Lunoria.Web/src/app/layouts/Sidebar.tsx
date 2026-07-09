@@ -61,8 +61,8 @@ const Sidebar = ({
     <aside
       className={clsx(
         "relative z-20 flex h-full shrink-0 flex-col border-r border-white/10 bg-stone-900/85 p-5 text-stone-100 shadow-xl backdrop-blur-sm transition-all duration-200",
-          collapsed ? "w-20" : "w-72",
-          className,
+        collapsed ? "w-20" : "w-72",
+        className,
       )}
     >
       <div className="mb-8 flex items-center gap-3">

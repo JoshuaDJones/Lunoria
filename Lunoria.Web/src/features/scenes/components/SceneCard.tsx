@@ -9,16 +9,12 @@ interface SceneCardProps {
   onEdit: (scene: Scene) => void;
 }
 
-export function SceneCard({
-  scene,
-  onViewDialogs,
-  onEdit,
-}: SceneCardProps) {
+export function SceneCard({ scene, onViewDialogs, onEdit }: SceneCardProps) {
   return (
     <MediaCard
       title={scene.name}
       description={scene.description}
-      imageUrl={scene.photoUrl}      
+      imageUrl={scene.photoUrl}
     >
       <StatGrid className="mt-4 px-4">
         <Stat label="Grid URL" value={scene.gridUrl || "None"} />

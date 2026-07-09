@@ -76,9 +76,7 @@ export function CollectionPage<T>({
     >
       <main className="w-full p-6 sm:p-10">
         <header className="mb-6 flex items-center justify-between">
-          <h1 className="text-6xl text-content">
-            {title}
-          </h1>
+          <h1 className="text-6xl text-content">{title}</h1>
           <Button
             onClick={onAdd}
             disabled={!onAdd}

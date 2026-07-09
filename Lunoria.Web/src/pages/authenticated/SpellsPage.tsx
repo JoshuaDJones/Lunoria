@@ -28,7 +28,12 @@ const fields: ResourceFormField[] = [
     type: "textarea",
     required: true,
   },
-  { name: "spellTypeId", label: "Spell type ID", type: "number", required: true },
+  {
+    name: "spellTypeId",
+    label: "Spell type ID",
+    type: "number",
+    required: true,
+  },
   { name: "range", label: "Range", type: "number", required: true },
   { name: "mpCost", label: "MP cost", type: "number", required: true },
   { name: "isRadius", label: "Area effect", type: "checkbox" },

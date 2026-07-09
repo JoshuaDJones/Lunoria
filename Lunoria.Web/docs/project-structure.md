@@ -37,8 +37,8 @@ Application-wide composition and configuration.
 
 - `router.tsx` defines routes and connects them to page components.
 - `layouts/` contains route layouts such as `AppLayout` and `AuthLayout`.
-- Application-wide providers can be composed in `app/providers.tsx` when they
-  are introduced.
+- `providers/` contains application-wide providers and hooks such as auth,
+  confirmation dialogs, and the modal stack.
 
 Do not place feature business logic here.
 
@@ -94,6 +94,10 @@ Examples:
 
 A modal should remain in its feature instead of going into a global `modals`
 directory.
+
+Feature-owned modal content can still be displayed by the shared modal stack
+when the workflow needs nesting. See `docs/dialogs-and-modals.md` for when to
+use page-owned drawers, confirmation dialogs, and stacked modals.
 
 ### `hooks`
 

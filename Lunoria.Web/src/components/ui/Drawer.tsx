@@ -14,7 +14,9 @@ export function Drawer({ title, children, onClose }: DrawerProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === "Escape" &&
-        !document.querySelector('[data-nested-dialog="true"]')
+        !document.querySelector(
+          '[data-nested-dialog="true"], [data-confirm-dialog="true"]',
+        )
       ) {
         onClose();
       }
@@ -50,11 +52,7 @@ export function Drawer({ title, children, onClose }: DrawerProps) {
           <h2 id="drawer-title" className="text-2xl font-semibold text-content">
             {title}
           </h2>
-          <Button
-            ref={closeButtonRef}
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <Button ref={closeButtonRef} onClick={onClose} aria-label="Close">
             Close
           </Button>
         </header>

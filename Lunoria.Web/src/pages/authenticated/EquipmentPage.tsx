@@ -11,6 +11,7 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Button, Drawer } from "@/components/ui";
+import { useModalStack } from "@/app/providers";
 import {
   createEquipment,
   EquipmentGrid,
@@ -28,8 +29,16 @@ const fields: ResourceFormField[] = [
     type: "textarea",
     required: true,
   },
-  { name: "meleeAttackDamageModifier", label: "Melee damage modifier", type: "number" },
-  { name: "bowAttackDamageModifier", label: "Bow damage modifier", type: "number" },
+  {
+    name: "meleeAttackDamageModifier",
+    label: "Melee damage modifier",
+    type: "number",
+  },
+  {
+    name: "bowAttackDamageModifier",
+    label: "Bow damage modifier",
+    type: "number",
+  },
   { name: "movementModifier", label: "Movement modifier", type: "number" },
   { name: "maxHpModifier", label: "Max HP modifier", type: "number" },
   { name: "maxMpModifier", label: "Max MP modifier", type: "number" },
@@ -43,19 +52,34 @@ const fields: ResourceFormField[] = [
     label: "Equipment capacity modifier",
     type: "number",
   },
-  { name: "meleeDamageReduction", label: "Melee damage reduction", type: "number" },
+  {
+    name: "meleeDamageReduction",
+    label: "Melee damage reduction",
+    type: "number",
+  },
   { name: "bowDamageReduction", label: "Bow damage reduction", type: "number" },
-  { name: "spellDamageReduction", label: "Spell damage reduction", type: "number" },
-  { name: "affectedSpellTypeId", label: "Affected spell type ID", type: "number" },
-  { name: "spellDamageModifier", label: "Spell damage modifier", type: "number" },
+  {
+    name: "spellDamageReduction",
+    label: "Spell damage reduction",
+    type: "number",
+  },
+  {
+    name: "affectedSpellTypeId",
+    label: "Affected spell type ID",
+    type: "number",
+  },
+  {
+    name: "spellDamageModifier",
+    label: "Spell damage modifier",
+    type: "number",
+  },
 ];
 
 export function EquipmentPage() {
-  const [editing, setEditing] =
-    useState<EquippableItem | null | undefined>();
+  const modalStack = useModalStack();
+  const [editing, setEditing] = useState<EquippableItem | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
   const [selectedSpellIds, setSelectedSpellIds] = useState<number[]>([]);
-  const [isSpellPickerOpen, setIsSpellPickerOpen] = useState(false);
 
   const openCreate = () => {
     setSelectedSpellIds([]);
@@ -70,6 +94,23 @@ export function EquipmentPage() {
   const handleSaved = () => {
     setEditing(undefined);
     setReloadKey((value) => value + 1);
+  };
+
+  const openSpellPicker = () => {
+    modalStack.push({
+      title: "Select spells",
+      placement: "center",
+      content: (
+        <SpellPickerDialog
+          selectedIds={selectedSpellIds}
+          onClose={modalStack.pop}
+          onApply={(spellIds) => {
+            setSelectedSpellIds(spellIds);
+            modalStack.pop();
+          }}
+        />
+      ),
+    });
   };
 
   return (
@@ -110,16 +151,10 @@ export function EquipmentPage() {
               maxEquippableInventoryModifier: String(
                 editing?.maxEquippableInventoryModifier ?? 0,
               ),
-              meleeDamageReduction: String(
-                editing?.meleeDamageReduction ?? 0,
-              ),
+              meleeDamageReduction: String(editing?.meleeDamageReduction ?? 0),
               bowDamageReduction: String(editing?.bowDamageReduction ?? 0),
-              spellDamageReduction: String(
-                editing?.spellDamageReduction ?? 0,
-              ),
-              affectedSpellTypeId: String(
-                editing?.affectedSpellTypeId ?? "",
-              ),
+              spellDamageReduction: String(editing?.spellDamageReduction ?? 0),
+              affectedSpellTypeId: String(editing?.affectedSpellTypeId ?? ""),
               spellDamageModifier: String(editing?.spellDamageModifier ?? 0),
             }}
             existingPhotoUrl={editing?.photoUrl}
@@ -160,10 +195,7 @@ export function EquipmentPage() {
                   values,
                   "affectedSpellTypeId",
                 ),
-                spellDamageModifier: numberValue(
-                  values,
-                  "spellDamageModifier",
-                ),
+                spellDamageModifier: numberValue(values, "spellDamageModifier"),
                 addedSpellIds: selectedSpellIds,
               };
 
@@ -189,27 +221,13 @@ export function EquipmentPage() {
                       : `${selectedSpellIds.length} spell${selectedSpellIds.length === 1 ? "" : "s"} selected`}
                   </p>
                 </div>
-                <Button
-                  onClick={() => setIsSpellPickerOpen(true)}
-                  variant="accent"
-                >
+                <Button onClick={openSpellPicker} variant="accent">
                   Select spells
                 </Button>
               </div>
             </div>
           </ResourceForm>
         </Drawer>
-      )}
-
-      {isSpellPickerOpen && (
-        <SpellPickerDialog
-          selectedIds={selectedSpellIds}
-          onClose={() => setIsSpellPickerOpen(false)}
-          onApply={(spellIds) => {
-            setSelectedSpellIds(spellIds);
-            setIsSpellPickerOpen(false);
-          }}
-        />
       )}
     </>
   );

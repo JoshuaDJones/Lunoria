@@ -83,18 +83,18 @@ specifically "readable content on the brand background."
 
 ### Actions, resources, and feedback
 
-| Token          | Current color | Purpose                                                       |
-| -------------- | ------------- | ------------------------------------------------------------- |
-| `border`       | `stone-700`   | Default border for controls, cards, and separators.           |
-| `add`          | `emerald-500` | Constructive creation actions, such as adding a new resource. |
-| `add-hover`    | `emerald-400` | Hover or focus treatment for an add-colored element.          |
-| `on-add`       | `stone-950`   | Content displayed on an add-colored background.               |
-| `magic`        | `purple-500`  | Spell and magic-related actions or highlights.                |
-| `magic-hover`  | `purple-400`  | Hover or focus treatment for a magic-colored element.         |
-| `on-magic`     | `stone-100`   | Content displayed on a magic-colored background.              |
-| `danger`       | `red-400`     | Errors, destructive actions, or harmful states.               |
-| `health`       | `red-400`     | HP and health-related resource values.                        |
-| `mana`         | `emerald-400` | MP and mana-related resource values.                          |
+| Token         | Current color | Purpose                                                       |
+| ------------- | ------------- | ------------------------------------------------------------- |
+| `border`      | `stone-700`   | Default border for controls, cards, and separators.           |
+| `add`         | `emerald-500` | Constructive creation actions, such as adding a new resource. |
+| `add-hover`   | `emerald-400` | Hover or focus treatment for an add-colored element.          |
+| `on-add`      | `stone-950`   | Content displayed on an add-colored background.               |
+| `magic`       | `purple-500`  | Spell and magic-related actions or highlights.                |
+| `magic-hover` | `purple-400`  | Hover or focus treatment for a magic-colored element.         |
+| `on-magic`    | `stone-100`   | Content displayed on a magic-colored background.              |
+| `danger`      | `red-400`     | Errors, destructive actions, or harmful states.               |
+| `health`      | `red-400`     | HP and health-related resource values.                        |
+| `mana`        | `emerald-400` | MP and mana-related resource values.                          |
 
 `add`, `magic`, `danger`, `health`, and `mana` describe meaning rather than
 literal colors. `add` is for constructive creation actions. `magic` is for

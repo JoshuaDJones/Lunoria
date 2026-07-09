@@ -1,13 +1,17 @@
 import AppLayout from "@/app/layouts/AppLayout";
+import { useConfirmDialog, useModalStack } from "@/app/providers";
 import { Button } from "@/components/ui";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowRight,
+  faClone,
   faEye,
   faHatWizard,
+  faLayerGroup,
   faPen,
   faPlus,
   faTrash,
+  faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 
 const buttonExamples = [
@@ -20,6 +24,71 @@ const buttonExamples = [
 ] as const;
 
 export function ComponentDisplayPage() {
+  const { confirm } = useConfirmDialog();
+  const modalStack = useModalStack();
+
+  const openConfirmDialog = () => {
+    void confirm({
+      title: "Delete component sample?",
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+  };
+
+  const openCenteredModal = () => {
+    modalStack.push({
+      title: "Centered modal",
+      placement: "center",
+      content: (
+        <div className="space-y-4">
+          <p className="text-content-secondary">
+            This modal uses the shared stack shell.
+          </p>
+          <div className="flex justify-end">
+            <Button onClick={modalStack.pop}>Done</Button>
+          </div>
+        </div>
+      ),
+    });
+  };
+
+  const openNestedModal = () => {
+    modalStack.push({
+      title: "Stack drawer",
+      placement: "drawer",
+      content: (
+        <div className="space-y-4">
+          <p className="text-content-secondary">
+            This drawer can open another modal above it.
+          </p>
+          <Button
+            variant="primary"
+            leftIcon={<FontAwesomeIcon icon={faClone} />}
+            onClick={() =>
+              modalStack.push({
+                title: "Nested modal",
+                placement: "center",
+                content: (
+                  <div className="space-y-4">
+                    <p className="text-content-secondary">
+                      Escape or Close dismisses the top modal first.
+                    </p>
+                    <div className="flex justify-end">
+                      <Button onClick={modalStack.pop}>Done</Button>
+                    </div>
+                  </div>
+                ),
+              })
+            }
+          >
+            Open nested modal
+          </Button>
+        </div>
+      ),
+    });
+  };
+
   return (
     <AppLayout
       scrolling
@@ -83,6 +152,36 @@ export function ComponentDisplayPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-border bg-surface/85 p-6">
+          <h2 className="text-2xl font-semibold text-content">Dialogs</h2>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <Button
+              variant="danger"
+              inverted
+              leftIcon={<FontAwesomeIcon icon={faTriangleExclamation} />}
+              onClick={openConfirmDialog}
+            >
+              Confirm delete
+            </Button>
+            <Button
+              variant="secondary"
+              inverted
+              leftIcon={<FontAwesomeIcon icon={faClone} />}
+              onClick={openCenteredModal}
+            >
+              Center modal
+            </Button>
+            <Button
+              variant="accent"
+              leftIcon={<FontAwesomeIcon icon={faLayerGroup} />}
+              onClick={openNestedModal}
+            >
+              Nested stack
+            </Button>
           </div>
         </section>
       </main>
