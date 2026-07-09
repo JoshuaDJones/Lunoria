@@ -12,6 +12,7 @@ import {
   faBottleDroplet,
   faShield,
   faArrowRightFromBracket,
+  faTableCellsLarge,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -37,6 +38,7 @@ const defaultItems: SidebarItem[] = [
   { label: "Spells", to: "/spells", icon: faWandMagicSparkles },
   { label: "Consumables", to: "/consumables", icon: faBottleDroplet },
   { label: "Equipment", to: "/equipment", icon: faShield },
+  { label: "Components", to: "/components", icon: faTableCellsLarge },
 ];
 
 const Sidebar = ({
@@ -58,16 +60,16 @@ const Sidebar = ({
   return (
     <aside
       className={clsx(
-        "relative z-20 flex h-full shrink-0 flex-col border-r border-white/10 bg-slate-900/85 p-5 text-slate-100 shadow-xl backdrop-blur-sm transition-all duration-200",
-        collapsed ? "w-20" : "w-72",
-        className,
+        "relative z-20 flex h-full shrink-0 flex-col border-r border-white/10 bg-stone-900/85 p-5 text-stone-100 shadow-xl backdrop-blur-sm transition-all duration-200",
+          collapsed ? "w-20" : "w-72",
+          className,
       )}
     >
       <div className="mb-8 flex items-center gap-3">
         {!collapsed && (
           <div>
             <p className="text-md font-semibold text-white">{title}</p>
-            <p className="text-xs text-slate-400">{subtitle}</p>
+            <p className="text-xs text-stone-400">{subtitle}</p>
           </div>
         )}
       </div>
@@ -87,8 +89,8 @@ const Sidebar = ({
             "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
             collapsed ? "justify-center px-2" : "",
             item.active
-              ? "text-amber-400 bg-white/10"
-              : "text-slate-300 hover:bg-white/10 hover:text-white",
+              ? "text-blue-500 bg-white/10"
+              : "text-stone-300 hover:bg-white/10 hover:text-white",
           );
 
           if (item.to) {
@@ -120,7 +122,7 @@ const Sidebar = ({
         <button
           type="button"
           onClick={signOut}
-          className="rounded-lg border border-slate-600 px-5 py-2 w-full text-sm text-slate-200 transition hover:border-amber-400 hover:text-amber-300 cursor-pointer flex items-center justify-center"
+          className="rounded-lg border border-stone-600 px-5 py-2 w-full text-sm text-stone-200 transition hover:border-danger hover:text-danger cursor-pointer flex items-center justify-center"
         >
           {collapsed ? (
             <FontAwesomeIcon icon={faArrowRightFromBracket} />

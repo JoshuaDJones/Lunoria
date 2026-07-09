@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import AppLayout from "@/app/layouts/AppLayout";
 import { getApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 interface CollectionPageProps<T> {
   title: string;
@@ -73,8 +75,8 @@ export function CollectionPage<T>({
       }
     >
       <main className="w-full p-6 sm:p-10">
-        <header className="mb-6 flex items-center justify-between gap-4">
-          <h1 className="text-4xl font-semibold text-content sm:text-5xl">
+        <header className="mb-6 flex items-center justify-between">
+          <h1 className="text-6xl text-content">
             {title}
           </h1>
           <Button
@@ -83,8 +85,9 @@ export function CollectionPage<T>({
             title={
               onAdd ? `Add ${itemName}` : `${itemName} creation coming soon`
             }
-            variant="primary"
+            variant="add"
             size="lg"
+            leftIcon={<FontAwesomeIcon icon={faPlus} />}
           >
             Add {itemName}
           </Button>

@@ -16,22 +16,31 @@
 @theme {
   --font-cinzel: "Cinzel", serif;
 
-  --color-brand: var(--color-amber-500);
-  --color-brand-hover: var(--color-amber-400);
-  --color-brand-subtle: var(--color-amber-300);
+  --color-brand: var(--color-blue-600);
+  --color-brand-hover: var(--color-blue-500);
+  --color-brand-subtle: var(--color-blue-300);
 
-  --color-canvas: var(--color-slate-950);
-  --color-surface: var(--color-slate-950);
-  --color-surface-raised: var(--color-slate-800);
+  --color-canvas: var(--color-stone-950);
+  --color-surface: var(--color-stone-950);
+  --color-surface-raised: var(--color-stone-800);
 
-  --color-content: var(--color-slate-100);
-  --color-content-secondary: var(--color-slate-300);
-  --color-content-muted: var(--color-slate-400);
-  --color-content-placeholder: var(--color-slate-600);
-  --color-on-brand: var(--color-slate-950);
+  --color-content: var(--color-stone-100);
+  --color-content-secondary: var(--color-stone-300);
+  --color-content-muted: var(--color-stone-400);
+  --color-content-placeholder: var(--color-stone-600);
+  --color-on-brand: var(--color-stone-100);
 
-  --color-border: var(--color-slate-700);
+  --color-border: var(--color-stone-700);
+  --color-add: var(--color-emerald-500);
+  --color-add-hover: var(--color-emerald-400);
+  --color-on-add: var(--color-stone-950);
+  --color-magic: var(--color-purple-500);
+  --color-magic-hover: var(--color-purple-400);
+  --color-on-magic: var(--color-stone-100);
   --color-danger: var(--color-red-400);
+
+  --color-health: var(--color-red-400);
+  --color-mana: var(--color-emerald-400);
 }
 
 @layer base {
@@ -48,7 +57,7 @@
   .stone-image {
     background-image:
       linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
-      url("/Stone_Background.png");
+      url("/Stone_Background_Lighter.png");
 
     background-size: cover;
     background-repeat: no-repeat;

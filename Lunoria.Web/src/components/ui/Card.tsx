@@ -7,7 +7,7 @@ export function Card({ className, ...props }: CardProps) {
   return (
     <article
       className={clsx(
-        "overflow-hidden rounded-xl border border-border bg-surface/80 shadow-lg backdrop-blur-sm",
+        "overflow-hidden rounded-xl border border-border bg-surface/90 shadow-lg ",
         className,
       )}
       {...props}

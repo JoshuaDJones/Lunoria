@@ -12,6 +12,7 @@ import { ConsumablesPage } from "@/pages/authenticated/ConsumablesPage";
 import { EquipmentPage } from "@/pages/authenticated/EquipmentPage";
 import { JourneyScenesPage } from "@/pages/authenticated/JourneyScenesPage";
 import { SceneDialogsPage } from "@/pages/authenticated/SceneDialogsPage";
+import { ComponentDisplayPage } from "@/pages/authenticated/ComponentDisplayPage";
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +58,10 @@ export const router = createBrowserRouter([
       {
         path: "/equipment",
         element: <EquipmentPage />,
+      },
+      {
+        path: "/components",
+        element: <ComponentDisplayPage />,
       },
       {
         path: "/journeys/:journeyId/scenes",

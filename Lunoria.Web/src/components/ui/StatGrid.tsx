@@ -12,13 +12,15 @@ export function StatGrid({ className, ...props }: StatGridProps) {
 interface StatProps {
   label: string;
   value: ReactNode;
+  labelTone?: string;
+  valueTone?: string;
 }
 
-export function Stat({ label, value }: StatProps) {
+export function Stat({ label, value, labelTone = "text-content-muted", valueTone = "text-content" }: StatProps) {
   return (
-    <div className="rounded-lg bg-surface-raised/70 px-3 py-2">
-      <dt className="text-xs text-content-muted">{label}</dt>
-      <dd className="mt-1 wrap-break-word font-semibold text-content">
+    <div className="rounded-lg bg-surface-raised/90 px-3 py-2">
+      <dt className={clsx("text-lg", labelTone)}>{label}</dt>
+      <dd className={clsx("mt-1 wrap-break-word font-semibold", valueTone)}>
         {value}
       </dd>
     </div>

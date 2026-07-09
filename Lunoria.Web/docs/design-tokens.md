@@ -12,8 +12,8 @@ For example:
 ```
 
 The component communicates its intent without knowing that the current brand
-color is amber. The application can later change from amber to gold, support
-another theme, or adjust contrast by editing the tokens in one place.
+color is blue. The application can later change from blue to another accent,
+support another theme, or adjust contrast by editing the tokens in one place.
 
 The tokens are defined in `src/styles/index.css` inside Tailwind's `@theme`
 block. Tailwind generates utilities such as `bg-brand`, `text-content-muted`,
@@ -25,9 +25,9 @@ and `border-border` from variables whose names start with `--color-`.
 
 | Token          | Current color | Purpose                                                                                        |
 | -------------- | ------------- | ---------------------------------------------------------------------------------------------- |
-| `brand`        | `amber-500`   | Primary brand and interactive accent. Use for primary buttons and other high-emphasis actions. |
-| `brand-hover`  | `amber-400`   | Hover or focus treatment for a brand-colored element.                                          |
-| `brand-subtle` | `amber-300`   | Lower-intensity brand treatment, usually with opacity for decorative borders or highlights.    |
+| `brand`        | `blue-600`    | Primary brand and interactive accent. Use for primary buttons and other high-emphasis actions. |
+| `brand-hover`  | `blue-500`    | Hover or focus treatment for a brand-colored element.                                          |
+| `brand-subtle` | `blue-300`    | Lower-intensity brand treatment, usually with opacity for decorative borders or highlights.    |
 
 Examples:
 
@@ -38,16 +38,16 @@ className = "border-brand-subtle/20";
 ```
 
 `brand-subtle` means lower visual emphasis, not necessarily a numerically
-darker color. In the current dark theme, a lighter amber with low opacity
+darker color. In the current dark theme, a lighter blue with low opacity
 creates a subtle border.
 
 ### Backgrounds and surfaces
 
 | Token            | Current color | Purpose                                                                                                  |
 | ---------------- | ------------- | -------------------------------------------------------------------------------------------------------- |
-| `canvas`         | `slate-950`   | The application's lowest, page-level background.                                                         |
-| `surface`        | `slate-950`   | A contained region placed on the canvas, such as a card, panel, or dialog.                               |
-| `surface-raised` | `slate-900`   | A surface that should appear one level above or distinct from its surrounding surface, such as an input. |
+| `canvas`         | `stone-950`   | The application's lowest, page-level background.                                                         |
+| `surface`        | `stone-950`   | A contained region placed on the canvas, such as a card, panel, or dialog.                               |
+| `surface-raised` | `stone-800`   | A surface that should appear one level above or distinct from its surrounding surface, such as an input. |
 
 `canvas` and `surface` currently resolve to the same color, but they represent
 different roles. Keeping both names allows their colors to diverge later
@@ -65,11 +65,11 @@ Examples:
 
 | Token                 | Current color | Purpose                                                         |
 | --------------------- | ------------- | --------------------------------------------------------------- |
-| `content`             | `slate-100`   | Primary text and icons that need the strongest normal emphasis. |
-| `content-secondary`   | `slate-300`   | Supporting text and labels that remain easy to read.            |
-| `content-muted`       | `slate-400`   | Metadata, descriptions, hints, and lower-priority copy.         |
-| `content-placeholder` | `slate-600`   | Placeholder text inside form controls.                          |
-| `on-brand`            | `slate-950`   | Content displayed on a brand-colored background.                |
+| `content`             | `stone-100`   | Primary text and icons that need the strongest normal emphasis. |
+| `content-secondary`   | `stone-300`   | Supporting text and labels that remain easy to read.            |
+| `content-muted`       | `stone-400`   | Metadata, descriptions, hints, and lower-priority copy.         |
+| `content-placeholder` | `stone-600`   | Placeholder text inside form controls.                          |
+| `on-brand`            | `stone-100`   | Content displayed on a brand-colored background.                |
 
 The `on-*` convention describes a foreground chosen specifically for contrast
 against a background:
@@ -81,17 +81,27 @@ against a background:
 Do not use `on-brand` for ordinary dark text elsewhere. Its contract is
 specifically "readable content on the brand background."
 
-### Structure and feedback
+### Actions, resources, and feedback
 
-| Token    | Current color | Purpose                                             |
-| -------- | ------------- | --------------------------------------------------- |
-| `border` | `slate-700`   | Default border for controls, cards, and separators. |
-| `danger` | `red-400`     | Errors, destructive actions, or harmful states.     |
+| Token          | Current color | Purpose                                                       |
+| -------------- | ------------- | ------------------------------------------------------------- |
+| `border`       | `stone-700`   | Default border for controls, cards, and separators.           |
+| `add`          | `emerald-500` | Constructive creation actions, such as adding a new resource. |
+| `add-hover`    | `emerald-400` | Hover or focus treatment for an add-colored element.          |
+| `on-add`       | `stone-950`   | Content displayed on an add-colored background.               |
+| `magic`        | `purple-500`  | Spell and magic-related actions or highlights.                |
+| `magic-hover`  | `purple-400`  | Hover or focus treatment for a magic-colored element.         |
+| `on-magic`     | `stone-100`   | Content displayed on a magic-colored background.              |
+| `danger`       | `red-400`     | Errors, destructive actions, or harmful states.               |
+| `health`       | `red-400`     | HP and health-related resource values.                        |
+| `mana`         | `emerald-400` | MP and mana-related resource values.                          |
 
-`danger` describes meaning rather than a component. It can therefore be used
-for error text, an invalid border, a destructive button, or an alert icon.
-Those usages may eventually need separate variants such as
-`danger-surface` and `on-danger`.
+`add`, `magic`, `danger`, `health`, and `mana` describe meaning rather than
+literal colors. `add` is for constructive creation actions. `magic` is for
+spell-related UI. `danger` is for errors, invalid states, destructive buttons,
+or alert icons. `health` and `mana` are game resource colors; keep them
+separate from `danger` and `add` even when they share similar red or green
+values.
 
 ## Naming convention
 
@@ -118,6 +128,10 @@ brand-hover
 surface-raised
 content-muted
 on-brand
+add
+magic
+health
+mana
 danger
 danger-surface
 on-danger
@@ -130,7 +144,7 @@ Avoid names tied to:
 - A particular element when the role is reusable: `submit-button-yellow`
 - Unclear numbering without a documented scale: `surface-2`, `text-3`
 
-Literal palette names such as `amber-500` are appropriate in the token
+Literal palette names such as `blue-600` are appropriate in the token
 definitions. Components should normally use semantic names.
 
 ## How to choose a token
@@ -140,14 +154,16 @@ When adding or styling an element, ask these questions in order:
 1. Is this a page background, contained surface, or raised surface?
 2. Is this primary, secondary, muted, or placeholder content?
 3. Is this the primary brand action or accent?
-4. Does it communicate a state such as danger, success, warning, or info?
-5. Is it a default structural border?
-6. Is this foreground displayed on a strongly colored background?
+4. Is this a domain action such as add or magic?
+5. Is this a game resource such as health or mana?
+6. Does it communicate a state such as danger, success, warning, or info?
+7. Is it a default structural border?
+8. Is this foreground displayed on a strongly colored background?
 
 Use an existing token when its purpose matches. Do not choose a token merely
 because its current color looks correct. For example, do not use `danger`
-for decorative red text: that would incorrectly communicate an error or
-destructive meaning.
+for HP text: that would incorrectly communicate an error or destructive
+meaning. Use `health` for HP instead.
 
 ## When to add a new token
 
@@ -168,8 +184,8 @@ Common future additions might include:
 --color-danger-surface: var(--color-red-950);
 --color-on-danger: var(--color-white);
 
---color-border-strong: var(--color-slate-500);
---color-content-disabled: var(--color-slate-600);
+--color-border-strong: var(--color-stone-500);
+--color-content-disabled: var(--color-stone-600);
 ```
 
 Do not create a new token for every slight visual difference. First check

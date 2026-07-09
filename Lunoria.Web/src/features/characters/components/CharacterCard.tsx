@@ -1,6 +1,13 @@
+import { Button } from "@/components/ui";
 import { Card } from "@/components/ui/Card";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import type { Character } from "@/features/characters/types";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPen,
+  faTrash,
+  faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface CharacterCardProps {
   character: Character;
@@ -16,7 +23,6 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
 
   return (
     <Card
-      onClick={onSelect ? () => onSelect(character) : undefined}
       onKeyDown={(event) => {
         if (onSelect && (event.key === "Enter" || event.key === " ")) {
           event.preventDefault();
@@ -25,14 +31,14 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
       }}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
-      className="flex flex-col p-4 transition hover:border-brand-subtle/50 hover:bg-surface-raised/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-hover"
+      className="flex flex-col p-4 transition"
     >
       <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="wrap-break-word text-2xl font-semibold text-content">
+          <h2 className="wrap-break-word text-4xl font-semibold text-content">
             {character.name}
           </h2>
-          <p className="mt-2 line-clamp-4 wrap-break-word text-sm text-content-secondary">
+          <p className="line-clamp-4 wrap-break-word text-lg text-content-secondary">
             {character.description}
           </p>
         </div>
@@ -47,8 +53,8 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
       </div>
 
       <StatGrid className="mt-4">
-        <Stat label="Max HP" value={character.maxHp} />
-        <Stat label="Max MP" value={character.maxMp} />
+        <Stat label="Max HP" value={character.maxHp} labelTone="text-health" />
+        <Stat label="Max MP" value={character.maxMp} labelTone="text-mana" />
         <Stat
           label="Melee damage"
           value={character.meleeAttackDamage ?? "N/A"}
@@ -105,6 +111,32 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
         ) : (
           <p className="mt-2 text-sm text-content-muted">No assigned spells</p>
         )}
+      </div>
+
+      <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
+        <Button
+          variant="magic"
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faWandMagicSparkles} />}
+        >
+          Spells
+        </Button>
+        <Button
+          variant="danger"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faTrash} />}
+        >
+          Delete
+        </Button>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={onSelect ? () => onSelect(character) : undefined}
+          leftIcon={<FontAwesomeIcon icon={faPen} />}
+        >
+          Edit
+        </Button>
       </div>
     </Card>
   );
