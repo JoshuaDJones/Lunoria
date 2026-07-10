@@ -1,17 +1,25 @@
+import { Button } from "@/components/ui";
 import { MediaCard } from "@/components/ui/MediaCard";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import type { EquippableItem } from "@/features/equipment/types";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface EquipmentCardProps {
   item: EquippableItem;
   onSelect?: (item: EquippableItem) => void;
+  onDelete?: (item: EquippableItem) => void;
 }
 
 function signed(value: number): string {
   return value > 0 ? `+${value}` : value.toString();
 }
 
-export function EquipmentCard({ item, onSelect }: EquipmentCardProps) {
+export function EquipmentCard({
+  item,
+  onSelect,
+  onDelete,
+}: EquipmentCardProps) {
   return (
     <MediaCard
       title={item.name}
@@ -76,6 +84,21 @@ export function EquipmentCard({ item, onSelect }: EquipmentCardProps) {
         ) : (
           <p className="mt-2 text-sm text-content-muted">No added spells</p>
         )}
+      </div>
+
+      <div className="mt-auto flex justify-end border-t border-border px-4 py-3">
+        <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete?.(item);
+          }}
+          variant="danger"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faTrash} />}
+        >
+          Delete
+        </Button>
       </div>
     </MediaCard>
   );

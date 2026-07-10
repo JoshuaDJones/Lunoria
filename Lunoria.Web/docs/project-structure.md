@@ -38,7 +38,7 @@ Application-wide composition and configuration.
 - `router.tsx` defines routes and connects them to page components.
 - `layouts/` contains route layouts such as `AppLayout` and `AuthLayout`.
 - `providers/` contains application-wide providers and hooks such as auth,
-  confirmation dialogs, and the modal stack.
+  confirmation dialogs, toast notifications, and the modal stack.
 
 Do not place feature business logic here.
 

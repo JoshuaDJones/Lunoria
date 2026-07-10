@@ -10,9 +10,12 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Drawer } from "@/components/ui/Drawer";
+import { useConfirmDialog, useToast } from "@/app/providers";
+import { getApiError } from "@/lib/apiClient";
 import {
   ConsumableGrid,
   createItem,
+  deleteItem,
   listItems,
   updateItem,
   type Item,
@@ -31,12 +34,36 @@ const fields: ResourceFormField[] = [
 ];
 
 export function ConsumablesPage() {
+  const { confirm } = useConfirmDialog();
+  const toast = useToast();
   const [editing, setEditing] = useState<Item | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleSaved = () => {
     setEditing(undefined);
     setReloadKey((value) => value + 1);
+  };
+
+  const openConfirmDelete = async (item: Item) => {
+    const confirmed = await confirm({
+      title: `Delete consumable "${item.name}"?`,
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteItem(item.id);
+      setReloadKey((value) => value + 1);
+      toast.success(`Consumable "${item.name}" was deleted.`);
+    } catch (requestError) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to delete consumable",
+      );
+    }
   };
 
   return (
@@ -48,7 +75,11 @@ export function ConsumablesPage() {
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
         renderItems={(items) => (
-          <ConsumableGrid items={items} onSelect={setEditing} />
+          <ConsumableGrid
+            items={items}
+            onSelect={setEditing}
+            onDelete={openConfirmDelete}
+          />
         )}
       />
 

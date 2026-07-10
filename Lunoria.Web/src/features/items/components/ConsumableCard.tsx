@@ -8,9 +8,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 interface ConsumableCardProps {
   item: Item;
   onSelect?: (item: Item) => void;
+  onDelete?: (item: Item) => void;
 }
 
-export function ConsumableCard({ item, onSelect }: ConsumableCardProps) {
+export function ConsumableCard({
+  item,
+  onSelect,
+  onDelete,
+}: ConsumableCardProps) {
   return (
     <MediaCard
       title={item.name}
@@ -24,6 +29,10 @@ export function ConsumableCard({ item, onSelect }: ConsumableCardProps) {
       </StatGrid>
       <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end">
         <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete?.(item);
+          }}
           variant="danger"
           inverted
           size="md"

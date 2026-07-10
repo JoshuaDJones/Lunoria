@@ -7,16 +7,19 @@ import {
   AuthProvider,
   ConfirmDialogProvider,
   ModalStackProvider,
+  ToastProvider,
 } from "@/app/providers";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
-      <ConfirmDialogProvider>
-        <ModalStackProvider>
-          <RouterProvider router={router} />
-        </ModalStackProvider>
-      </ConfirmDialogProvider>
+      <ToastProvider>
+        <ConfirmDialogProvider>
+          <ModalStackProvider>
+            <RouterProvider router={router} />
+          </ModalStackProvider>
+        </ConfirmDialogProvider>
+      </ToastProvider>
     </AuthProvider>
   </StrictMode>,
 );

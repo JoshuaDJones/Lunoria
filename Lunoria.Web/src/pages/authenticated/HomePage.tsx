@@ -9,11 +9,14 @@ import {
 import { Drawer } from "@/components/ui/Drawer";
 import {
   createJourney,
+  deleteJourney,
   JourneyGrid,
   listJourneys,
   updateJourney,
   type Journey,
 } from "@/features/journeys";
+import { useConfirmDialog, useToast } from "@/app/providers";
+import { getApiError } from "@/lib/apiClient";
 
 const fields: ResourceFormField[] = [
   { name: "name", label: "Name", required: true },
@@ -27,12 +30,36 @@ const fields: ResourceFormField[] = [
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { confirm } = useConfirmDialog();
+  const toast = useToast();
   const [editing, setEditing] = useState<Journey | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleSaved = () => {
     setEditing(undefined);
     setReloadKey((value) => value + 1);
+  };
+
+  const openConfirmDelete = async (journey: Journey) => {
+    const confirmed = await confirm({
+      title: `Delete journey "${journey.name}"?`,
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteJourney(journey.id);
+      setReloadKey((value) => value + 1);
+      toast.success(`Journey "${journey.name}" was deleted.`);
+    } catch (requestError) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to delete journey",
+      );
+    }
   };
 
   return (
@@ -46,6 +73,7 @@ export function HomePage() {
         renderItems={(journeys) => (
           <JourneyGrid
             journeys={journeys}
+            onDelete={openConfirmDelete}
             onSelect={setEditing}
             onViewScenes={(journey) =>
               navigate(`/journeys/${journey.id}/scenes`)

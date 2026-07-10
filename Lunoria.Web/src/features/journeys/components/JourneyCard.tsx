@@ -8,12 +8,14 @@ import { faImages, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 interface JourneyCardProps {
   journey: Journey;
   onSelect?: (journey: Journey) => void;
+  onDelete?: (journey: Journey) => void;
   onViewScenes?: (journey: Journey) => void;
 }
 
 export function JourneyCard({
   journey,
   onSelect,
+  onDelete,
   onViewScenes,
 }: JourneyCardProps) {
   return (
@@ -42,6 +44,7 @@ export function JourneyCard({
             View scenes
           </Button>
           <Button
+            onClick={onDelete ? () => onDelete(journey) : undefined}
             variant="danger"
             inverted
             size="md"

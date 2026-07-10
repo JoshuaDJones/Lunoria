@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { getApiError } from "@/lib/apiClient";
-import { Button, FormField, Input, Textarea } from "@/components/ui";
+import { Button, FormField, Input, Select, Textarea } from "@/components/ui";
 
 export type FormValue = string | boolean;
 export type FormValues = Record<string, FormValue>;
@@ -14,8 +14,9 @@ export type FormValues = Record<string, FormValue>;
 export interface ResourceFormField {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "checkbox";
+  type?: "text" | "textarea" | "number" | "checkbox" | "select";
   required?: boolean;
+  options?: { label: string; value: string }[];
 }
 
 interface ResourceFormProps {
@@ -116,7 +117,9 @@ export function ResourceForm({
           required: field.required,
           value: String(value ?? ""),
           onChange: (
-            event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+            event: React.ChangeEvent<
+              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+            >,
           ) =>
             setValues((current) => ({
               ...current,
@@ -129,6 +132,17 @@ export function ResourceForm({
           <FormField key={field.name} htmlFor={field.name} label={field.label}>
             {field.type === "textarea" ? (
               <Textarea {...commonProps} rows={4} />
+            ) : field.type === "select" ? (
+              <Select {...commonProps}>
+                <option value="" disabled>
+                  Select {field.label.toLowerCase()}
+                </option>
+                {field.options?.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
             ) : (
               <Input {...commonProps} type={field.type ?? "text"} />
             )}

@@ -11,9 +11,11 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Button, Drawer } from "@/components/ui";
-import { useModalStack } from "@/app/providers";
+import { useConfirmDialog, useModalStack, useToast } from "@/app/providers";
+import { getApiError } from "@/lib/apiClient";
 import {
   createEquipment,
+  deleteEquipment,
   EquipmentGrid,
   listEquipment,
   SpellPickerDialog,
@@ -77,6 +79,8 @@ const fields: ResourceFormField[] = [
 
 export function EquipmentPage() {
   const modalStack = useModalStack();
+  const { confirm } = useConfirmDialog();
+  const toast = useToast();
   const [editing, setEditing] = useState<EquippableItem | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
   const [selectedSpellIds, setSelectedSpellIds] = useState<number[]>([]);
@@ -94,6 +98,28 @@ export function EquipmentPage() {
   const handleSaved = () => {
     setEditing(undefined);
     setReloadKey((value) => value + 1);
+  };
+
+  const openConfirmDelete = async (item: EquippableItem) => {
+    const confirmed = await confirm({
+      title: `Delete equipment "${item.name}"?`,
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteEquipment(item.id);
+      setReloadKey((value) => value + 1);
+      toast.success(`Equipment "${item.name}" was deleted.`);
+    } catch (requestError) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to delete equipment",
+      );
+    }
   };
 
   const openSpellPicker = () => {
@@ -122,7 +148,11 @@ export function EquipmentPage() {
         reloadKey={reloadKey}
         onAdd={openCreate}
         renderItems={(equipment) => (
-          <EquipmentGrid equipment={equipment} onSelect={openEdit} />
+          <EquipmentGrid
+            equipment={equipment}
+            onSelect={openEdit}
+            onDelete={openConfirmDelete}
+          />
         )}
       />
 

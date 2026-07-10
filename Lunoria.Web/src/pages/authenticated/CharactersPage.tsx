@@ -12,10 +12,13 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Drawer, Select } from "@/components/ui";
+import { useConfirmDialog, useToast } from "@/app/providers";
+import { getApiError } from "@/lib/apiClient";
 import {
   CharacterGrid,
   CharacterType,
   createCharacter,
+  deleteCharacter,
   listCharacters,
   updateCharacter,
   type Character,
@@ -53,6 +56,8 @@ const fields: ResourceFormField[] = [
 ];
 
 export function CharactersPage() {
+  const { confirm } = useConfirmDialog();
+  const toast = useToast();
   const [typeFilter, setTypeFilter] = useState(CharacterType.Any);
   const [editing, setEditing] = useState<Character | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
@@ -65,6 +70,28 @@ export function CharactersPage() {
   const handleSaved = () => {
     setEditing(undefined);
     setReloadKey((value) => value + 1);
+  };
+
+  const openConfirmDelete = async (character: Character) => {
+    const confirmed = await confirm({
+      title: `Delete character "${character.name}"?`,
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteCharacter(character.id);
+      setReloadKey((value) => value + 1);
+      toast.success(`Character "${character.name}" was deleted.`);
+    } catch (requestError) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to delete character",
+      );
+    }
   };
 
   return (
@@ -100,7 +127,11 @@ export function CharactersPage() {
           </div>
         }
         renderItems={(characters) => (
-          <CharacterGrid characters={characters} onSelect={setEditing} />
+          <CharacterGrid
+            characters={characters}
+            onSelect={setEditing}
+            onDelete={openConfirmDelete}
+          />
         )}
       />
 

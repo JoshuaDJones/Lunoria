@@ -5,9 +5,14 @@ import type { Character } from "@/features/characters/types";
 interface CharacterGridProps {
   characters: Character[];
   onSelect?: (character: Character) => void;
+  onDelete?: (character: Character) => void;
 }
 
-export function CharacterGrid({ characters, onSelect }: CharacterGridProps) {
+export function CharacterGrid({
+  characters,
+  onSelect,
+  onDelete,
+}: CharacterGridProps) {
   return (
     <CardGrid>
       {characters.map((character) => (
@@ -15,6 +20,7 @@ export function CharacterGrid({ characters, onSelect }: CharacterGridProps) {
           key={character.id}
           character={character}
           onSelect={onSelect}
+          onDelete={onDelete}
         />
       ))}
     </CardGrid>

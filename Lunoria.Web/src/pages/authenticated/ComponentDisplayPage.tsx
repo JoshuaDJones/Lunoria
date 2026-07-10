@@ -1,9 +1,12 @@
 import AppLayout from "@/app/layouts/AppLayout";
-import { useConfirmDialog, useModalStack } from "@/app/providers";
+import { useConfirmDialog, useModalStack, useToast } from "@/app/providers";
 import { Button } from "@/components/ui";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowRight,
+  faCircleCheck,
+  faCircleExclamation,
+  faCircleInfo,
   faClone,
   faEye,
   faHatWizard,
@@ -26,6 +29,7 @@ const buttonExamples = [
 export function ComponentDisplayPage() {
   const { confirm } = useConfirmDialog();
   const modalStack = useModalStack();
+  const toast = useToast();
 
   const openConfirmDialog = () => {
     void confirm({
@@ -152,6 +156,42 @@ export function ComponentDisplayPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-border bg-surface/85 p-6">
+          <h2 className="text-2xl font-semibold text-content">Toasts</h2>
+          <p className="mt-2 text-content-secondary">
+            Notifications stack above other overlays and dismiss automatically.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <Button
+              variant="add"
+              leftIcon={<FontAwesomeIcon icon={faCircleCheck} />}
+              onClick={() =>
+                toast.success("The operation completed successfully.")
+              }
+            >
+              Success toast
+            </Button>
+            <Button
+              variant="primary"
+              leftIcon={<FontAwesomeIcon icon={faCircleInfo} />}
+              onClick={() => toast.info("Here is some useful information.")}
+            >
+              Information toast
+            </Button>
+            <Button
+              variant="danger"
+              inverted
+              leftIcon={<FontAwesomeIcon icon={faCircleExclamation} />}
+              onClick={() =>
+                toast.error("The operation could not be completed.")
+              }
+            >
+              Error toast
+            </Button>
           </div>
         </section>
 

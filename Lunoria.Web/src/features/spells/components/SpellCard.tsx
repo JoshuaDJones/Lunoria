@@ -8,9 +8,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 interface SpellCardProps {
   spell: Spell;
   onSelect?: (spell: Spell) => void;
+  onDelete?: (spell: Spell) => void;
 }
 
-export function SpellCard({ spell, onSelect }: SpellCardProps) {
+export function SpellCard({ spell, onSelect, onDelete }: SpellCardProps) {
   return (
     <MediaCard
       title={spell.name}
@@ -29,6 +30,10 @@ export function SpellCard({ spell, onSelect }: SpellCardProps) {
       </StatGrid>
       <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end">
         <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete?.(spell);
+          }}
           variant="danger"
           inverted
           size="md"

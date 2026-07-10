@@ -12,9 +12,14 @@ import {
 interface CharacterCardProps {
   character: Character;
   onSelect?: (character: Character) => void;
+  onDelete?: (character: Character) => void;
 }
 
-export function CharacterCard({ character, onSelect }: CharacterCardProps) {
+export function CharacterCard({
+  character,
+  onSelect,
+  onDelete,
+}: CharacterCardProps) {
   const roles = [
     character.isPlayer && "Player",
     character.isNPC && "NPC",
@@ -123,6 +128,7 @@ export function CharacterCard({ character, onSelect }: CharacterCardProps) {
           Spells
         </Button>
         <Button
+          onClick={onDelete ? () => onDelete(character) : undefined}
           variant="danger"
           inverted
           size="md"
