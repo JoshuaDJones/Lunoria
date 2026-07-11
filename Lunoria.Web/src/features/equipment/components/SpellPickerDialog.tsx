@@ -94,9 +94,9 @@ export function SpellPickerDialog({
                   onChange={() => toggleSpell(spell.id)}
                   className="mt-1 size-4 shrink-0 accent-brand"
                 />
-                {spell.photoUrl && (
+                {(spell.photoUrl || spell.spellType?.photoUrl) && (
                   <img
-                    src={spell.photoUrl}
+                    src={spell.photoUrl || spell.spellType?.photoUrl}
                     alt=""
                     className="h-12 w-12 shrink-0 rounded-md object-cover"
                   />

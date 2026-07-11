@@ -101,9 +101,13 @@ export function SpellTypeManager({ onChanged }: SpellTypeManagerProps) {
   if (editing !== undefined) {
     return (
       <div>
-        <Button className="mb-5" onClick={() => setEditing(undefined)}>
-          Back to spell types
-        </Button>
+        <button
+          type="button"
+          className="mb-5 text-sm text-content-secondary hover:text-brand-hover"
+          onClick={() => setEditing(undefined)}
+        >
+          ← Back to spell types
+        </button>
         <ResourceForm
           fields={fields}
           initialValues={{
@@ -142,7 +146,7 @@ export function SpellTypeManager({ onChanged }: SpellTypeManagerProps) {
     <div>
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-content-secondary">
-          Create and maintain the categories available to spells.
+          Spell Type Manager
         </p>
         <Button
           variant="add"

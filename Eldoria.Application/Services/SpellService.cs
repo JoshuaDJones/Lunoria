@@ -19,9 +19,10 @@ namespace Eldoria.Application.Services
             int userId,
             int skip,
             int take,
+            int? spellTypeId,
             CancellationToken ct)
         {
-            var spells = await _spellRepository.GetListForUserAsync(userId, skip, take, ct);
+            var spells = await _spellRepository.GetListForUserAsync(userId, skip, take, spellTypeId, ct);
             return Result<List<SpellDto>>.Ok(spells.Select(spell => spell.ToDto()).ToList());
         }
 
@@ -37,7 +38,7 @@ namespace Eldoria.Application.Services
             int userId,
             string name,
             string description,
-            IFormFile photo,
+            IFormFile? photo,
             int range,
             bool isRadius,
             int mpCost,
@@ -51,7 +52,12 @@ namespace Eldoria.Application.Services
             if (spellType is null)
                 return InvalidSpellType();
 
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+            string? photoUrl = null;
+            string? fileName = null;
+            if (photo is not null)
+            {
+                (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+            }
             var now = DateTime.UtcNow;
             var spell = new Spell
             {
@@ -83,6 +89,7 @@ namespace Eldoria.Application.Services
             string name,
             string description,
             IFormFile? photo,
+            bool removePhoto,
             int range,
             bool isRadius,
             int mpCost,
@@ -107,6 +114,11 @@ namespace Eldoria.Application.Services
                 spell.PhotoUrl = photoUrl;
                 spell.FileName = fileName;
             }
+            else if (removePhoto)
+            {
+                spell.PhotoUrl = null;
+                spell.FileName = null;
+            }
 
             spell.Name = name.Trim();
             spell.Description = description.Trim();
@@ -123,7 +135,7 @@ namespace Eldoria.Application.Services
             _spellRepository.Update(spell);
             await _spellRepository.SaveChangesAsync(ct);
 
-            if (photo is not null && !string.IsNullOrWhiteSpace(oldPhotoUrl))
+            if ((photo is not null || removePhoto) && !string.IsNullOrWhiteSpace(oldPhotoUrl))
                 await _azureStorageBlob.DeletePhotoFromUrl(oldPhotoUrl);
 
             return Result<SpellDto>.Ok(spell.ToDto());

@@ -10,8 +10,7 @@ namespace Eldoria.Api.Requests
         [Required]
         public string Description { get; set; } = default!;
 
-        [Required]
-        public IFormFile Photo { get; set; } = default!;
+        public IFormFile? Photo { get; set; }
 
         [Required]
         public int? Range { get; set; }

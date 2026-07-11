@@ -4,14 +4,13 @@ import {
   booleanValue,
   nullableNumberValue,
   numberValue,
-  requiredPhoto,
   textValue,
 } from "@/components/forms/formValues";
 import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Button, Drawer } from "@/components/ui";
+import { Button, Drawer, Select } from "@/components/ui";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
 import {
@@ -55,6 +54,15 @@ export function SpellsPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [spellTypes, setSpellTypes] = useState<SpellType[]>([]);
   const [managingSpellTypes, setManagingSpellTypes] = useState(false);
+  const [spellTypeFilter, setSpellTypeFilter] = useState(0);
+
+  const loadFilteredSpells = useCallback(
+    () =>
+      listSpells(
+        spellTypeFilter === 0 ? {} : { spellTypeId: spellTypeFilter },
+      ),
+    [spellTypeFilter],
+  );
 
   const loadAvailableSpellTypes = useCallback(async () => {
     try {
@@ -128,19 +136,43 @@ export function SpellsPage() {
   return (
     <>
       <CollectionPage
+        key={spellTypeFilter}
         title="Spells"
         itemName="spell"
-        loadItems={listSpells}
+        loadItems={loadFilteredSpells}
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
         toolbar={
-          <div className="flex justify-end">
+          <div className="flex items-center gap-4">
             <Button
-              variant="accent"
+              variant="magic"
               onClick={() => setManagingSpellTypes(true)}
             >
               Manage spell types
             </Button>
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="spell-type-filter"
+                className="text-sm font-semibold text-content-secondary"
+              >
+                Spell type
+              </label>
+              <Select
+                id="spell-type-filter"
+                value={spellTypeFilter}
+                onChange={(event) =>
+                  setSpellTypeFilter(Number(event.target.value))
+                }
+                className="w-auto px-3 py-2"
+              >
+                <option value={0}>All spell types</option>
+                {spellTypes.map((spellType) => (
+                  <option key={spellType.id} value={spellType.id}>
+                    {spellType.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
           </div>
         }
         renderItems={(spells) => (
@@ -170,9 +202,9 @@ export function SpellsPage() {
               healthEffect: String(editing?.healthEffect ?? ""),
               magicEffect: String(editing?.magicEffect ?? ""),
             }}
-            existingPhotoUrl={editing?.photoUrl}
-            requirePhoto={!editing}
-            onSubmit={async (values, photo) => {
+            existingPhotoUrl={editing?.photoUrl ?? undefined}
+            allowRemoveExistingPhoto
+            onSubmit={async (values, photo, removeExistingPhoto) => {
               const input = {
                 name: textValue(values, "name"),
                 description: textValue(values, "description"),
@@ -186,9 +218,13 @@ export function SpellsPage() {
               };
 
               if (editing) {
-                await updateSpell(editing.id, { ...input, photo });
+                await updateSpell(editing.id, {
+                  ...input,
+                  photo,
+                  removePhoto: removeExistingPhoto,
+                });
               } else {
-                await createSpell({ ...input, photo: requiredPhoto(photo) });
+                await createSpell({ ...input, photo });
               }
 
               handleSaved();

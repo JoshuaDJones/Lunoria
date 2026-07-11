@@ -21,7 +21,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .AsNoTracking()
                 .Where(c => c.UserId == userId)
                 .Include(c => c.CharacterSpells)
-                .ThenInclude(cp => cp.Spell)
+                    .ThenInclude(cp => cp.Spell)
+                        .ThenInclude(spell => spell.SpellType)
                 .Include(c => c.BaseAlternateForm)
                     .ThenInclude(c => c.CharacterDialogSettings)
                 .Include(c => c.CharacterDialogSettings)
@@ -46,6 +47,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return _dbContext.Characters
                 .Include(c => c.CharacterSpells)
                     .ThenInclude(characterSpell => characterSpell.Spell)
+                        .ThenInclude(spell => spell.SpellType)
                 .Include(c => c.BaseAlternateForm)
                     .ThenInclude(alternateForm => alternateForm.CharacterDialogSettings)
                 .Include(c => c.CharacterDialogSettings)

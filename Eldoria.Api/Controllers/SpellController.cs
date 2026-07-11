@@ -16,9 +16,10 @@ namespace Eldoria.Api.Controllers
         public async Task<ActionResult<List<SpellDto>>> List(
             [FromQuery] int skip = 0,
             [FromQuery] int take = 500,
+            [FromQuery] int? spellTypeId = null,
             CancellationToken ct = default)
         {
-            var result = await _spellService.GetListAsync(User.GetUserId(), skip, take, ct);
+            var result = await _spellService.GetListAsync(User.GetUserId(), skip, take, spellTypeId, ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -90,6 +91,7 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.Description,
                 req.Photo,
+                req.RemovePhoto,
                 req.Range!.Value,
                 req.IsRadius!.Value,
                 req.MpCost!.Value,

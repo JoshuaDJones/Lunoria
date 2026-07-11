@@ -5,7 +5,7 @@
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public string PhotoUrl { get; set; } = string.Empty;
+        public string? PhotoUrl { get; set; }
         public int Range { get; set; }
         public bool IsRadius { get; set; }
         public int MpCost { get; set; }

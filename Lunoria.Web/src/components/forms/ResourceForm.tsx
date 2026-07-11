@@ -24,8 +24,13 @@ interface ResourceFormProps {
   initialValues: FormValues;
   existingPhotoUrl?: string;
   requirePhoto?: boolean;
+  allowRemoveExistingPhoto?: boolean;
   showPhoto?: boolean;
-  onSubmit: (values: FormValues, photo?: File) => Promise<void>;
+  onSubmit: (
+    values: FormValues,
+    photo?: File,
+    removeExistingPhoto?: boolean,
+  ) => Promise<void>;
   children?: ReactNode;
 }
 
@@ -34,6 +39,7 @@ export function ResourceForm({
   initialValues,
   existingPhotoUrl,
   requirePhoto,
+  allowRemoveExistingPhoto = false,
   showPhoto = true,
   onSubmit,
   children,
@@ -41,6 +47,7 @@ export function ResourceForm({
   const [values, setValues] = useState(initialValues);
   const [photo, setPhoto] = useState<File>();
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
+  const [removeExistingPhoto, setRemoveExistingPhoto] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const objectUrlRef = useRef("");
@@ -60,6 +67,7 @@ export function ResourceForm({
     }
 
     setPhoto(file);
+    if (file) setRemoveExistingPhoto(false);
 
     if (file) {
       const objectUrl = URL.createObjectURL(file);
@@ -76,7 +84,7 @@ export function ResourceForm({
     setIsSubmitting(true);
 
     try {
-      await onSubmit(values, photo);
+      await onSubmit(values, photo, removeExistingPhoto);
     } catch (requestError) {
       setError(getApiError(requestError).message);
     } finally {
@@ -200,7 +208,32 @@ export function ResourceForm({
         </label>
       )}
 
-      {showPhoto && (photoPreviewUrl || existingPhotoUrl) && (
+      {showPhoto &&
+        existingPhotoUrl &&
+        allowRemoveExistingPhoto &&
+        !removeExistingPhoto &&
+        !photoPreviewUrl && (
+          <Button
+            variant="danger"
+            onClick={() => setRemoveExistingPhoto(true)}
+          >
+            Remove current image
+          </Button>
+        )}
+
+      {removeExistingPhoto && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-danger/40 p-3">
+          <p className="text-sm text-content-secondary">
+            The current image will be removed when you save.
+          </p>
+          <Button size="sm" onClick={() => setRemoveExistingPhoto(false)}>
+            Undo
+          </Button>
+        </div>
+      )}
+
+      {showPhoto &&
+        (photoPreviewUrl || (existingPhotoUrl && !removeExistingPhoto)) && (
         <figure className="rounded-xl border border-border bg-surface p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <figcaption className="text-sm font-semibold text-content-secondary">
@@ -222,7 +255,7 @@ export function ResourceForm({
             className="max-h-72 max-w-full rounded-lg object-contain"
           />
         </figure>
-      )}
+        )}
 
       {error && (
         <p className="text-sm text-danger" role="alert">

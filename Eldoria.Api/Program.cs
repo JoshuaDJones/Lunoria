@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins(["http://localhost:5173", "https://localhost:7121", "https://ambitious-mud-06f2ad40f.6.azurestaticapps.net"])
+            .WithOrigins(["http://localhost:5173", "http://localhost:5174", "https://localhost:7121", "https://ambitious-mud-06f2ad40f.6.azurestaticapps.net"])
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

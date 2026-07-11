@@ -16,7 +16,7 @@ export function SpellCard({ spell, onSelect, onDelete }: SpellCardProps) {
     <MediaCard
       title={spell.name}
       description={spell.description}
-      imageUrl={spell.photoUrl}
+      imageUrl={spell.photoUrl || spell.spellType?.photoUrl}
       onClick={onSelect ? () => onSelect(spell) : undefined}
     >
       <StatGrid className="mt-4 px-4 pb-4">

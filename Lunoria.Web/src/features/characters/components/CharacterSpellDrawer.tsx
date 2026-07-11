@@ -81,9 +81,9 @@ export function CharacterSpellDrawer({
 
           return (
             <Card key={spell.id} className="overflow-hidden">
-              {spell.photoUrl && (
+              {(spell.photoUrl || spell.spellType?.photoUrl) && (
                 <img
-                  src={spell.photoUrl}
+                  src={spell.photoUrl || spell.spellType?.photoUrl}
                   alt=""
                   className="max-h-64 w-full bg-surface object-contain"
                 />

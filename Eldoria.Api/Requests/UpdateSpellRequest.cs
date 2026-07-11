@@ -10,6 +10,7 @@ namespace Eldoria.Api.Requests
         [Required]
         public string Description { get; set; } = default!;
         public IFormFile? Photo { get; set; }
+        public bool RemovePhoto { get; set; }
 
         [Required]
         public int? Range { get; set; }

@@ -19,11 +19,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .HasMaxLength(250);
 
             builder.Property(s => s.PhotoUrl)
-                .IsRequired()
                 .HasMaxLength(2048);
 
             builder.Property(s => s.FileName)
-                .IsRequired()
                 .HasMaxLength(250);
 
             builder.Property(s => s.Range)

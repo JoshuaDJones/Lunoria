@@ -9,7 +9,7 @@ export interface Spell {
   id: number;
   name: string;
   description: string;
-  photoUrl: string;
+  photoUrl: string | null;
   range: number;
   isRadius: boolean;
   mpCost: number;
@@ -25,6 +25,7 @@ export interface SpellInput {
   name: string;
   description: string;
   photo?: File;
+  removePhoto?: boolean;
   range: number;
   isRadius: boolean;
   mpCost: number;
@@ -34,7 +35,7 @@ export interface SpellInput {
   spellTypeId: number;
 }
 
-export type CreateSpellInput = SpellInput & { photo: File };
+export type CreateSpellInput = SpellInput;
 
 export interface SpellTypeInput {
   name: string;

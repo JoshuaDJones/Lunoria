@@ -12,6 +12,7 @@ import type {
 export interface ListCatalogParams {
   skip?: number;
   take?: number;
+  spellTypeId?: number;
 }
 
 export async function listSpells(

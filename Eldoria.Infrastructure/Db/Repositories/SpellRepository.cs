@@ -23,12 +23,19 @@ namespace Eldoria.Infrastructure.Db.Repositories
             int userId,
             int skip,
             int take,
+            int? spellTypeId,
             CancellationToken ct)
         {
-            return _dbContext.Spells
+            var query = _dbContext.Spells
                 .AsNoTracking()
                 .Where(spell => spell.UserId == userId)
                 .Include(spell => spell.SpellType)
+                .AsQueryable();
+
+            if (spellTypeId.HasValue)
+                query = query.Where(spell => spell.SpellTypeId == spellTypeId.Value);
+
+            return query
                 .OrderBy(spell => spell.Name)
                 .Skip(skip)
                 .Take(take)
