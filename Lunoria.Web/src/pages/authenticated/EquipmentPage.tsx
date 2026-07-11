@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import {
   nullableNumberValue,
@@ -22,6 +22,12 @@ import {
   updateEquipment,
   type EquippableItem,
 } from "@/features/equipment";
+import {
+  listSpells,
+  listSpellTypes,
+  type Spell,
+  type SpellType,
+} from "@/features/spells";
 
 const fields: ResourceFormField[] = [
   { name: "name", label: "Name", required: true },
@@ -67,8 +73,8 @@ const fields: ResourceFormField[] = [
   },
   {
     name: "affectedSpellTypeId",
-    label: "Affected spell type ID",
-    type: "number",
+    label: "Affected spell type",
+    type: "select",
   },
   {
     name: "spellDamageModifier",
@@ -84,6 +90,52 @@ export function EquipmentPage() {
   const [editing, setEditing] = useState<EquippableItem | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
   const [selectedSpellIds, setSelectedSpellIds] = useState<number[]>([]);
+  const [spells, setSpells] = useState<Spell[]>([]);
+  const [spellTypes, setSpellTypes] = useState<SpellType[]>([]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    void Promise.all([listSpells(), listSpellTypes()])
+      .then(([loadedSpells, loadedSpellTypes]) => {
+        if (isCurrent) {
+          setSpells(loadedSpells);
+          setSpellTypes(loadedSpellTypes);
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (isCurrent) {
+          toast.error(
+            getApiError(requestError).message,
+            "Unable to load spell options",
+          );
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [toast]);
+
+  const equipmentFields = fields.map((field) =>
+    field.name === "affectedSpellTypeId"
+      ? {
+          ...field,
+          options: spellTypes.map((spellType) => ({
+            label: spellType.name,
+            value: String(spellType.id),
+          })),
+        }
+      : field,
+  );
+
+  const selectedSpells = selectedSpellIds
+    .map(
+      (spellId) =>
+        spells.find((spell) => spell.id === spellId) ??
+        editing?.addedSpells.find((spell) => spell.id === spellId),
+    )
+    .filter((spell): spell is Spell => Boolean(spell));
 
   const openCreate = () => {
     setSelectedSpellIds([]);
@@ -162,7 +214,7 @@ export function EquipmentPage() {
           onClose={() => setEditing(undefined)}
         >
           <ResourceForm
-            fields={fields}
+            fields={equipmentFields}
             initialValues={{
               name: editing?.name ?? "",
               description: editing?.description ?? "",
@@ -252,6 +304,18 @@ export function EquipmentPage() {
                       ? "No spells selected"
                       : `${selectedSpellIds.length} spell${selectedSpellIds.length === 1 ? "" : "s"} selected`}
                   </p>
+                  {selectedSpells.length > 0 && (
+                    <ul className="mt-3 flex flex-wrap gap-2">
+                      {selectedSpells.map((spell) => (
+                        <li
+                          key={spell.id}
+                          className="rounded-md bg-surface-raised px-2.5 py-1 text-xs text-content"
+                        >
+                          {spell.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <Button onClick={openSpellPicker} variant="accent">
                   Select spells

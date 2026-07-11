@@ -21,7 +21,6 @@ export function ConsumableCard({
       title={item.name}
       description={item.description}
       imageUrl={item.photoUrl}
-      onClick={onSelect ? () => onSelect(item) : undefined}
     >
       <StatGrid className="mt-4 px-4 pb-4">
         <Stat label="HP effect" value={item.hpEffect} />
@@ -41,6 +40,10 @@ export function ConsumableCard({
           Delete
         </Button>
         <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect?.(item);
+          }}
           variant="primary"
           size="md"
           inverted

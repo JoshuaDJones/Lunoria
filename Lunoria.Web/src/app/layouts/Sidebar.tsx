@@ -41,6 +41,16 @@ const defaultItems: SidebarItem[] = [
   { label: "Components", to: "/components", icon: faTableCellsLarge },
 ];
 
+const sidebarCollapsedKey = "lunoria.sidebar.collapsed";
+
+function getInitialCollapsedState() {
+  try {
+    return window.localStorage.getItem(sidebarCollapsedKey) === "true";
+  } catch {
+    return false;
+  }
+}
+
 const Sidebar = ({
   title = "Lunoria",
   subtitle = "Adventure Creator",
@@ -48,7 +58,7 @@ const Sidebar = ({
   className,
   children,
 }: SidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(getInitialCollapsedState);
   const { signOut } = useAuth();
   const activePath = window.location.pathname;
 
@@ -56,6 +66,20 @@ const Sidebar = ({
     ...item,
     active: item.to === activePath,
   }));
+
+  const toggleCollapsed = () => {
+    setCollapsed((current) => {
+      const next = !current;
+
+      try {
+        window.localStorage.setItem(sidebarCollapsedKey, String(next));
+      } catch {
+        // The sidebar still works for this session when storage is unavailable.
+      }
+
+      return next;
+    });
+  };
 
   return (
     <aside
@@ -66,7 +90,11 @@ const Sidebar = ({
       )}
     >
       <div className="mb-8 flex items-center gap-3">
-        {!collapsed && (
+        {collapsed ? (
+          <p className="w-full text-center text-xl font-semibold text-white">
+            L
+          </p>
+        ) : (
           <div>
             <p className="text-md font-semibold text-white">{title}</p>
             <p className="text-xs text-stone-400">{subtitle}</p>
@@ -133,7 +161,7 @@ const Sidebar = ({
 
         <button
           type="button"
-          onClick={() => setCollapsed((value) => !value)}
+          onClick={toggleCollapsed}
           className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white cursor-pointer"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
