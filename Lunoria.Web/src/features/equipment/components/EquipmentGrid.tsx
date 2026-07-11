@@ -6,12 +6,14 @@ interface EquipmentGridProps {
   equipment: EquippableItem[];
   onSelect?: (item: EquippableItem) => void;
   onDelete?: (item: EquippableItem) => void;
+  onViewSpells?: (item: EquippableItem) => void;
 }
 
 export function EquipmentGrid({
   equipment,
   onSelect,
   onDelete,
+  onViewSpells,
 }: EquipmentGridProps) {
   return (
     <CardGrid>
@@ -21,6 +23,7 @@ export function EquipmentGrid({
           item={item}
           onSelect={onSelect}
           onDelete={onDelete}
+          onViewSpells={onViewSpells}
         />
       ))}
     </CardGrid>

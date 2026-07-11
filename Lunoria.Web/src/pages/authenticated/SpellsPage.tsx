@@ -203,6 +203,7 @@ export function SpellsPage() {
               magicEffect: String(editing?.magicEffect ?? ""),
             }}
             existingPhotoUrl={editing?.photoUrl ?? undefined}
+            fallbackPhotoUrl={editing?.spellType?.photoUrl}
             allowRemoveExistingPhoto
             onSubmit={async (values, photo, removeExistingPhoto) => {
               const input = {

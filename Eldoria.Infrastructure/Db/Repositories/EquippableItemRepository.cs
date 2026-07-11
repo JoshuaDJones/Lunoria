@@ -48,6 +48,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return _dbContext.EquippableItems
                 .Where(item => item.UserId == userId)
                 .Include(item => item.AddedSpells)
+                    .ThenInclude(spell => spell.SpellType)
                 .Include(item => item.AffectedSpellType);
         }
     }

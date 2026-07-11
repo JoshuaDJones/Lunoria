@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { listSpells, type Spell } from "@/features/spells";
 import { getApiError } from "@/lib/apiClient";
-import { Button } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
+import { Stat, StatGrid } from "@/components/ui/StatGrid";
 
 interface SpellPickerDialogProps {
   selectedIds: number[];
@@ -82,35 +83,62 @@ export function SpellPickerDialog({
         )}
 
         {!isLoading && !error && spells.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {spells.map((spell) => (
-              <label
-                key={spell.id}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-3 transition hover:border-brand-subtle/60"
-              >
-                <input
-                  type="checkbox"
-                  checked={selection.has(spell.id)}
-                  onChange={() => toggleSpell(spell.id)}
-                  className="mt-1 size-4 shrink-0 accent-brand"
-                />
-                {(spell.photoUrl || spell.spellType?.photoUrl) && (
-                  <img
-                    src={spell.photoUrl || spell.spellType?.photoUrl}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded-md object-cover"
-                  />
-                )}
-                <span className="min-w-0">
-                  <span className="block font-semibold text-content">
-                    {spell.name}
-                  </span>
-                  <span className="mt-1 line-clamp-2 block text-xs text-content-muted">
-                    {spell.description}
-                  </span>
-                </span>
-              </label>
-            ))}
+          <div className="space-y-4">
+            {spells.map((spell) => {
+              const isAttached = selection.has(spell.id);
+
+              return (
+                <Card key={spell.id} className="overflow-hidden">
+                  {(spell.photoUrl || spell.spellType?.photoUrl) && (
+                    <img
+                      src={spell.photoUrl || spell.spellType?.photoUrl}
+                      alt=""
+                      className="max-h-64 w-full bg-surface object-contain"
+                    />
+                  )}
+                  <div className="p-4">
+                    <h3 className="text-xl font-semibold text-content">
+                      {spell.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-content-secondary">
+                      {spell.description}
+                    </p>
+                    <StatGrid className="mt-4">
+                      <Stat
+                        label="Spell type"
+                        value={spell.spellType?.name ?? "Unknown"}
+                      />
+                      <Stat label="MP cost" value={spell.mpCost} />
+                      <Stat label="Range" value={spell.range} />
+                      <Stat
+                        label="Area effect"
+                        value={spell.isRadius ? "Yes" : "No"}
+                      />
+                      <Stat
+                        label="Damage effect"
+                        value={spell.damageEffect ?? "None"}
+                      />
+                      <Stat
+                        label="Health effect"
+                        value={spell.healthEffect ?? "None"}
+                      />
+                      <Stat
+                        label="Magic effect"
+                        value={spell.magicEffect ?? "None"}
+                      />
+                    </StatGrid>
+                    <Button
+                      onClick={() => toggleSpell(spell.id)}
+                      variant={isAttached ? "danger" : "primary"}
+                      size="md"
+                      className="mt-4 w-full"
+                    >
+                      {isAttached ? "Remove" : "Attach"}
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

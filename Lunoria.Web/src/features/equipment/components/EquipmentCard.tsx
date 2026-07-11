@@ -2,13 +2,14 @@ import { Button } from "@/components/ui";
 import { MediaCard } from "@/components/ui/MediaCard";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import type { EquippableItem } from "@/features/equipment/types";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface EquipmentCardProps {
   item: EquippableItem;
   onSelect?: (item: EquippableItem) => void;
   onDelete?: (item: EquippableItem) => void;
+  onViewSpells?: (item: EquippableItem) => void;
 }
 
 function signed(value: number): string {
@@ -19,13 +20,13 @@ export function EquipmentCard({
   item,
   onSelect,
   onDelete,
+  onViewSpells,
 }: EquipmentCardProps) {
   return (
     <MediaCard
       title={item.name}
       description={item.description}
       imageUrl={item.photoUrl}
-      onClick={onSelect ? () => onSelect(item) : undefined}
     >
       <StatGrid className="mt-4 px-4">
         <Stat
@@ -66,7 +67,12 @@ export function EquipmentCard({
         />
       </StatGrid>
 
-      <div className="mt-4 border-t border-border px-4 pt-4 pb-4">
+      <button
+        type="button"
+        onClick={() => onViewSpells?.(item)}
+        disabled={!onViewSpells}
+        className="mt-4 w-full border-t border-border px-4 pt-4 pb-4 text-left transition hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-default"
+      >
         <h3 className="text-sm font-semibold text-content-secondary">
           Added spells ({item.addedSpells.length})
         </h3>
@@ -84,9 +90,9 @@ export function EquipmentCard({
         ) : (
           <p className="mt-2 text-sm text-content-muted">No added spells</p>
         )}
-      </div>
+      </button>
 
-      <div className="mt-auto flex justify-end border-t border-border px-4 py-3">
+      <div className="mt-auto flex justify-end gap-2 border-t border-border px-4 py-3">
         <Button
           onClick={(event) => {
             event.stopPropagation();
@@ -98,6 +104,15 @@ export function EquipmentCard({
           leftIcon={<FontAwesomeIcon icon={faTrash} />}
         >
           Delete
+        </Button>
+        <Button
+          onClick={() => onSelect?.(item)}
+          variant="primary"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faPen} />}
+        >
+          Edit
         </Button>
       </div>
     </MediaCard>

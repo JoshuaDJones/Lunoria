@@ -7,6 +7,7 @@ import {
 } from "react";
 import { getApiError } from "@/lib/apiClient";
 import { Button, FormField, Input, Select, Textarea } from "@/components/ui";
+import { PhotoDropzone } from "@/components/forms/PhotoDropzone";
 
 export type FormValue = string | boolean;
 export type FormValues = Record<string, FormValue>;
@@ -23,6 +24,7 @@ interface ResourceFormProps {
   fields: ResourceFormField[];
   initialValues: FormValues;
   existingPhotoUrl?: string;
+  fallbackPhotoUrl?: string;
   requirePhoto?: boolean;
   allowRemoveExistingPhoto?: boolean;
   showPhoto?: boolean;
@@ -38,6 +40,7 @@ export function ResourceForm({
   fields,
   initialValues,
   existingPhotoUrl,
+  fallbackPhotoUrl,
   requirePhoto,
   allowRemoveExistingPhoto = false,
   showPhoto = true,
@@ -51,6 +54,7 @@ export function ResourceForm({
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const objectUrlRef = useRef("");
+  const displayedPhotoUrl = existingPhotoUrl || fallbackPhotoUrl;
 
   useEffect(() => {
     return () => {
@@ -81,6 +85,12 @@ export function ResourceForm({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+
+    if (showPhoto && requirePhoto && !photo && !existingPhotoUrl) {
+      setError("A photo is required.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -193,19 +203,12 @@ export function ResourceForm({
       {children}
 
       {showPhoto && (
-        <label className="block text-sm font-medium text-content-secondary">
-          <span className="mb-2 block">
-            Photo
-            {existingPhotoUrl ? " (leave empty to keep current photo)" : ""}
-          </span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            required={requirePhoto}
-            onChange={(event) => handlePhotoChange(event.target.files?.[0])}
-            className="block w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-content file:mr-4 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:font-semibold file:text-on-brand"
-          />
-        </label>
+        <PhotoDropzone
+          file={photo}
+          hasExistingPhoto={Boolean(displayedPhotoUrl)}
+          onChange={handlePhotoChange}
+          onError={setError}
+        />
       )}
 
       {showPhoto &&
@@ -233,7 +236,7 @@ export function ResourceForm({
       )}
 
       {showPhoto &&
-        (photoPreviewUrl || (existingPhotoUrl && !removeExistingPhoto)) && (
+        (photoPreviewUrl || (displayedPhotoUrl && !removeExistingPhoto)) && (
         <figure className="rounded-xl border border-border bg-surface p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <figcaption className="text-sm font-semibold text-content-secondary">
@@ -250,7 +253,7 @@ export function ResourceForm({
             )}
           </div>
           <img
-            src={photoPreviewUrl || existingPhotoUrl}
+            src={photoPreviewUrl || displayedPhotoUrl}
             alt={photoPreviewUrl ? "Selected unsaved preview" : "Current saved"}
             className="max-h-72 max-w-full rounded-lg object-contain"
           />

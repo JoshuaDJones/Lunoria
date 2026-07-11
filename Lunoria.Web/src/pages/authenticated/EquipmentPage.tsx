@@ -27,6 +27,7 @@ import {
   listSpellTypes,
   type Spell,
   type SpellType,
+  SpellDetailsList,
 } from "@/features/spells";
 
 const fields: ResourceFormField[] = [
@@ -177,7 +178,7 @@ export function EquipmentPage() {
   const openSpellPicker = () => {
     modalStack.push({
       title: "Select spells",
-      placement: "center",
+      placement: "drawer",
       content: (
         <SpellPickerDialog
           selectedIds={selectedSpellIds}
@@ -186,6 +187,19 @@ export function EquipmentPage() {
             setSelectedSpellIds(spellIds);
             modalStack.pop();
           }}
+        />
+      ),
+    });
+  };
+
+  const viewAddedSpells = (item: EquippableItem) => {
+    modalStack.push({
+      title: `${item.name}'s added spells`,
+      placement: "center",
+      content: (
+        <SpellDetailsList
+          spells={item.addedSpells}
+          emptyMessage="This equipment has no added spells."
         />
       ),
     });
@@ -204,6 +218,7 @@ export function EquipmentPage() {
             equipment={equipment}
             onSelect={openEdit}
             onDelete={openConfirmDelete}
+            onViewSpells={viewAddedSpells}
           />
         )}
       />

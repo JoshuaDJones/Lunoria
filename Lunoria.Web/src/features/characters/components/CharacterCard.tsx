@@ -106,7 +106,7 @@ export function CharacterCard({
         type="button"
         onClick={() => onViewSpells?.(character)}
         disabled={!onViewSpells}
-        className="mt-4 pb-2 w-full rounded-lg border-t border-border pt-4 text-left transition hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand cursor-pointer disabled:cursor-default"
+        className="mt-4 w-full border-t border-border px-4 pt-4 pb-4 text-left transition hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-default"
       >
         <h3 className="text-sm font-semibold text-content-secondary">
           Spells ({character.characterSpells?.length ?? 0})
