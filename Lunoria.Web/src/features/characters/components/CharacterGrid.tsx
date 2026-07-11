@@ -6,12 +6,16 @@ interface CharacterGridProps {
   characters: Character[];
   onSelect?: (character: Character) => void;
   onDelete?: (character: Character) => void;
+  onSpell?: (character: Character) => void;
+  onViewSpells?: (character: Character) => void;
 }
 
 export function CharacterGrid({
   characters,
   onSelect,
   onDelete,
+  onSpell,
+  onViewSpells,
 }: CharacterGridProps) {
   return (
     <CardGrid>
@@ -21,6 +25,8 @@ export function CharacterGrid({
           character={character}
           onSelect={onSelect}
           onDelete={onDelete}
+          onSpell={onSpell}
+          onViewSpells={onViewSpells}
         />
       ))}
     </CardGrid>

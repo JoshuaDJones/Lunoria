@@ -13,12 +13,16 @@ interface CharacterCardProps {
   character: Character;
   onSelect?: (character: Character) => void;
   onDelete?: (character: Character) => void;
+  onSpell?: (character: Character) => void;
+  onViewSpells?: (character: Character) => void;
 }
 
 export function CharacterCard({
   character,
   onSelect,
   onDelete,
+  onSpell,
+  onViewSpells,
 }: CharacterCardProps) {
   const roles = [
     character.isPlayer && "Player",
@@ -98,7 +102,12 @@ export function CharacterCard({
         </div>
       </div>
 
-      <div className="mt-4 border-t border-border pt-4">
+      <button
+        type="button"
+        onClick={() => onViewSpells?.(character)}
+        disabled={!onViewSpells}
+        className="mt-4 pb-2 w-full rounded-lg border-t border-border pt-4 text-left transition hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand cursor-pointer disabled:cursor-default"
+      >
         <h3 className="text-sm font-semibold text-content-secondary">
           Spells ({character.characterSpells?.length ?? 0})
         </h3>
@@ -116,10 +125,11 @@ export function CharacterCard({
         ) : (
           <p className="mt-2 text-sm text-content-muted">No assigned spells</p>
         )}
-      </div>
+      </button>
 
       <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
         <Button
+          onClick={onSpell ? () => onSpell(character) : undefined}
           variant="magic"
           inverted
           size="md"
