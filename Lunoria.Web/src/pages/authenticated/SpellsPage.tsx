@@ -144,12 +144,6 @@ export function SpellsPage() {
         onAdd={() => setEditing(null)}
         toolbar={
           <div className="flex items-center gap-4">
-            <Button
-              variant="magic"
-              onClick={() => setManagingSpellTypes(true)}
-            >
-              Manage spell types
-            </Button>
             <div className="flex items-center gap-3">
               <label
                 htmlFor="spell-type-filter"
@@ -173,6 +167,12 @@ export function SpellsPage() {
                 ))}
               </Select>
             </div>
+            <Button
+              variant="magic"
+              onClick={() => setManagingSpellTypes(true)}
+            >
+              Manage spell types
+            </Button>
           </div>
         }
         renderItems={(spells) => (
@@ -223,8 +223,10 @@ export function SpellsPage() {
                   photo,
                   removePhoto: removeExistingPhoto,
                 });
+                toast.success(`Spell "${input.name}" was updated.`);
               } else {
                 await createSpell({ ...input, photo });
+                toast.success(`Spell "${input.name}" was created.`);
               }
 
               handleSaved();

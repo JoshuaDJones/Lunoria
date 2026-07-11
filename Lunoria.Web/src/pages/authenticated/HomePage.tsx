@@ -103,8 +103,10 @@ export function HomePage() {
 
               if (editing) {
                 await updateJourney(editing.id, { ...input, photo });
+                toast.success(`Journey "${input.name}" was updated.`);
               } else {
                 await createJourney({ ...input, photo: requiredPhoto(photo) });
+                toast.success(`Journey "${input.name}" was created.`);
               }
 
               handleSaved();

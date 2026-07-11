@@ -283,11 +283,13 @@ export function CharactersPage() {
 
               if (editing) {
                 await updateCharacter(editing.id, { ...input, photo });
+                toast.success(`Character "${input.name}" was updated.`);
               } else {
                 await createCharacter({
                   ...input,
                   photo: requiredPhoto(photo),
                 });
+                toast.success(`Character "${input.name}" was created.`);
               }
 
               handleSaved();

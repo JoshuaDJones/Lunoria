@@ -7,6 +7,7 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Drawer } from "@/components/ui/Drawer";
+import { useToast } from "@/app/providers";
 import {
   createScene,
   listScenes,
@@ -27,6 +28,7 @@ const fields: ResourceFormField[] = [
 ];
 
 export function JourneyScenesPage() {
+  const toast = useToast();
   const { journeyId: journeyIdParam } = useParams();
   const journeyId = Number(journeyIdParam);
   const navigate = useNavigate();
@@ -98,8 +100,10 @@ export function JourneyScenesPage() {
 
               if (editing) {
                 await updateScene(editing.id, { ...input, photo });
+                toast.success(`Scene "${input.name}" was updated.`);
               } else {
                 await createScene({ ...input, photo: requiredPhoto(photo) });
+                toast.success(`Scene "${input.name}" was created.`);
               }
 
               handleSaved();

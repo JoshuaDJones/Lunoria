@@ -231,11 +231,13 @@ export function EquipmentPage() {
 
               if (editing) {
                 await updateEquipment(editing.id, { ...input, photo });
+                toast.success(`Equipment "${input.name}" was updated.`);
               } else {
                 await createEquipment({
                   ...input,
                   photo: requiredPhoto(photo),
                 });
+                toast.success(`Equipment "${input.name}" was created.`);
               }
 
               handleSaved();

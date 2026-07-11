@@ -30,7 +30,7 @@ import {
   type SceneDialog,
 } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
-import { useConfirmDialog } from "@/app/providers";
+import { useConfirmDialog, useToast } from "@/app/providers";
 
 const dialogFields: ResourceFormField[] = [
   { name: "title", label: "Title", required: true },
@@ -141,6 +141,7 @@ function ItemActions({ onView, onEdit, onDelete }: ItemActionsProps) {
 
 export function SceneDialogsPage() {
   const { confirm } = useConfirmDialog();
+  const toast = useToast();
   const { journeyId: journeyIdParam, sceneId: sceneIdParam } = useParams();
   const journeyId = Number(journeyIdParam);
   const sceneId = Number(sceneIdParam);
@@ -211,7 +212,11 @@ export function SceneDialogsPage() {
     setError("");
   };
 
-  const remove = async (message: string, operation: () => Promise<void>) => {
+  const remove = async (
+    message: string,
+    successMessage: string,
+    operation: () => Promise<void>,
+  ) => {
     const confirmed = await confirm({
       title: message,
       message: "This action cannot be undone.",
@@ -226,6 +231,7 @@ export function SceneDialogsPage() {
     try {
       await operation();
       await refresh();
+      toast.success(successMessage);
     } catch (requestError) {
       setError(getApiError(requestError).message);
     }
@@ -296,8 +302,10 @@ export function SceneDialogsPage() {
                     onView={() => setViewingDialog(dialog)}
                     onEdit={() => setEditingDialog(dialog)}
                     onDelete={() =>
-                      void remove(`Delete "${dialog.title}"?`, () =>
-                        deleteSceneDialog(dialog.id),
+                      void remove(
+                        `Delete "${dialog.title}"?`,
+                        `Dialog "${dialog.title}" was deleted.`,
+                        () => deleteSceneDialog(dialog.id),
                       )
                     }
                   />
@@ -341,8 +349,10 @@ export function SceneDialogsPage() {
                   <ItemActions
                     onEdit={() => setEditingPage(page)}
                     onDelete={() =>
-                      void remove(`Delete page ${page.orderNum}?`, () =>
-                        deleteDialogPage(page.id),
+                      void remove(
+                        `Delete page ${page.orderNum}?`,
+                        `Page ${page.orderNum} was deleted.`,
+                        () => deleteDialogPage(page.id),
                       )
                     }
                   />
@@ -381,8 +391,10 @@ export function SceneDialogsPage() {
                   <ItemActions
                     onEdit={() => setEditingSection(section)}
                     onDelete={() =>
-                      void remove(`Delete section ${section.orderNum}?`, () =>
-                        deleteDialogPageSection(section.id),
+                      void remove(
+                        `Delete section ${section.orderNum}?`,
+                        `Section ${section.orderNum} was deleted.`,
+                        () => deleteDialogPageSection(section.id),
                       )
                     }
                   />
@@ -407,8 +419,10 @@ export function SceneDialogsPage() {
 
               if (editingDialog) {
                 await updateSceneDialog(editingDialog.id, title);
+                toast.success(`Dialog "${title}" was updated.`);
               } else {
                 await createSceneDialog(sceneId, title);
+                toast.success(`Dialog "${title}" was created.`);
               }
 
               setEditingDialog(undefined);
@@ -435,12 +449,14 @@ export function SceneDialogsPage() {
 
               if (editingPage) {
                 await updateDialogPage(editingPage.id, { orderNum, photo });
+                toast.success(`Page ${orderNum} was updated.`);
               } else {
                 await createDialogPage(
                   selectedDialog.id,
                   orderNum,
                   requiredPhoto(photo),
                 );
+                toast.success(`Page ${orderNum} was created.`);
               }
 
               setEditingPage(undefined);
@@ -476,8 +492,10 @@ export function SceneDialogsPage() {
 
               if (editingSection) {
                 await updateDialogPageSection(editingSection.id, request);
+                toast.success(`Section ${request.orderNum} was updated.`);
               } else {
                 await createDialogPageSection(selectedPage.id, request);
+                toast.success(`Section ${request.orderNum} was created.`);
               }
 
               setEditingSection(undefined);

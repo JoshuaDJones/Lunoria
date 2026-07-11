@@ -17,7 +17,6 @@ export function SpellCard({ spell, onSelect, onDelete }: SpellCardProps) {
       title={spell.name}
       description={spell.description}
       imageUrl={spell.photoUrl || spell.spellType?.photoUrl}
-      onClick={onSelect ? () => onSelect(spell) : undefined}
     >
       <StatGrid className="mt-4 px-4 pb-4">
         <Stat label="Spell type" value={spell.spellType?.name ?? "Unknown"} />
@@ -42,6 +41,10 @@ export function SpellCard({ spell, onSelect, onDelete }: SpellCardProps) {
           Delete
         </Button>
         <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect?.(spell);
+          }}
           variant="primary"
           size="md"
           inverted

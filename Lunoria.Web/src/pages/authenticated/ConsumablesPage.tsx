@@ -108,8 +108,10 @@ export function ConsumablesPage() {
 
               if (editing) {
                 await updateItem(editing.id, { ...input, photo });
+                toast.success(`Consumable "${input.name}" was updated.`);
               } else {
                 await createItem({ ...input, photo: requiredPhoto(photo) });
+                toast.success(`Consumable "${input.name}" was created.`);
               }
 
               handleSaved();
