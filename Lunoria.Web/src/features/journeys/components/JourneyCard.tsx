@@ -41,7 +41,7 @@ export function JourneyCard({
             inverted
             leftIcon={<FontAwesomeIcon icon={faImages} />}
           >
-            View scenes
+            Scenes
           </Button>
           <Button
             onClick={onDelete ? () => onDelete(journey) : undefined}

@@ -14,7 +14,7 @@ export type FormValues = Record<string, FormValue>;
 export interface ResourceFormField {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "checkbox" | "select";
+  type?: "text" | "textarea" | "number" | "checkbox" | "radio" | "select";
   required?: boolean;
   options?: { label: string; value: string }[];
 }
@@ -111,6 +111,38 @@ export function ResourceForm({
           );
         }
 
+        if (field.type === "radio") {
+          return (
+            <fieldset key={field.name} className="space-y-3">
+              <legend className="text-sm font-medium text-content-secondary">
+                {field.label}
+              </legend>
+              {field.options?.map((option) => (
+                <label
+                  key={option.value}
+                  className="flex items-center gap-3 text-sm font-medium text-content-secondary"
+                >
+                  <input
+                    type="radio"
+                    name={field.name}
+                    value={option.value}
+                    checked={value === option.value}
+                    required={field.required}
+                    onChange={(event) =>
+                      setValues((current) => ({
+                        ...current,
+                        [field.name]: event.target.value,
+                      }))
+                    }
+                    className="size-4 accent-brand"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </fieldset>
+          );
+        }
+
         const commonProps = {
           id: field.name,
           name: field.name,
@@ -175,9 +207,13 @@ export function ResourceForm({
               {photoPreviewUrl ? "Selected image preview" : "Current image"}
             </figcaption>
             {photoPreviewUrl && (
-              <span className="rounded-full border border-brand-subtle/40 bg-brand/10 px-3 py-1 text-xs font-semibold text-brand-hover">
-                Not saved yet
-              </span>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => handlePhotoChange(undefined)}
+              >
+                Remove
+              </Button>
             )}
           </div>
           <img

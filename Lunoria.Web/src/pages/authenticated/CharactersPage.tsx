@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import {
-  booleanValue,
   nullableNumberValue,
   numberValue,
   requiredPhoto,
@@ -50,9 +49,17 @@ const fields: ResourceFormField[] = [
     required: true,
   },
   { name: "alternateFormId", label: "Alternate form ID", type: "number" },
-  { name: "isPlayer", label: "Playable character", type: "checkbox" },
-  { name: "isNPC", label: "NPC", type: "checkbox" },
-  { name: "isEnemy", label: "Enemy", type: "checkbox" },
+  {
+    name: "characterType",
+    label: "Character type",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Playable character", value: "player" },
+      { label: "NPC", value: "npc" },
+      { label: "Enemy", value: "enemy" },
+    ],
+  },
 ];
 
 export function CharactersPage() {
@@ -157,9 +164,15 @@ export function CharactersPage() {
                 editing?.baseMaxEquippableInventory ?? 0,
               ),
               alternateFormId: String(editing?.alternateFormId ?? ""),
-              isPlayer: editing?.isPlayer ?? false,
-              isNPC: editing?.isNPC ?? false,
-              isEnemy: editing?.isEnemy ?? false,
+              characterType: editing?.isPlayer
+                ? "player"
+                : editing?.isNPC
+                  ? "npc"
+                  : editing?.isEnemy
+                    ? "enemy"
+                    : editing
+                      ? ""
+                      : "player",
             }}
             existingPhotoUrl={editing?.photoUrl}
             requirePhoto={!editing}
@@ -184,9 +197,9 @@ export function CharactersPage() {
                   "baseMaxEquippableInventory",
                 ),
                 alternateFormId: nullableNumberValue(values, "alternateFormId"),
-                isPlayer: booleanValue(values, "isPlayer"),
-                isNPC: booleanValue(values, "isNPC"),
-                isEnemy: booleanValue(values, "isEnemy"),
+                isPlayer: values.characterType === "player",
+                isNPC: values.characterType === "npc",
+                isEnemy: values.characterType === "enemy",
               };
 
               if (editing) {

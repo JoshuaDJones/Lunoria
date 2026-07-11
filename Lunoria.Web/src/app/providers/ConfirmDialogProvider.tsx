@@ -91,7 +91,7 @@ export function ConfirmDialogProvider({ children }: PropsWithChildren) {
           >
             <h2
               id="confirm-dialog-title"
-              className="text-2xl font-semibold text-content"
+              className="text-2xl font-semibold text-content truncate"
             >
               {pending.title}
             </h2>
