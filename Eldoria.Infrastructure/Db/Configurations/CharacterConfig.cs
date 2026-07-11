@@ -80,11 +80,6 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .HasForeignKey<Character>(c => c.BaseAlternateFormId)
                    .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasMany(c => c.CharacterSpells)
-                   .WithOne(s => s.Character)
-                   .HasForeignKey(c => c.CharacterId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasOne(c => c.CharacterDialogSettings)
                    .WithOne(d => d.Character)
                    .HasForeignKey<CharacterDialogSettings>(d => d.CharacterId)

@@ -108,7 +108,8 @@ export function SpellsPage() {
   const openConfirmDelete = async (spell: Spell) => {
     const confirmed = await confirm({
       title: `Delete spell "${spell.name}"?`,
-      message: "This action cannot be undone.",
+      message:
+        "This will remove the spell from all characters, journeys, and equipment. This action cannot be undone.",
       confirmLabel: "Delete",
       variant: "danger",
     });

@@ -18,7 +18,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(cs => cs.Spell)
                    .WithMany(s => s.CharacterSpells)
                    .HasForeignKey(cs => cs.SpellId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasQueryFilter(cs => !cs.Character.IsDeleted);
         }
