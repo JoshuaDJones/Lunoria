@@ -12,6 +12,7 @@
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
 
+        public ICollection<Series> Series { get; set; } = [];
         public ICollection<Journey> Journeys { get; set; } = [];
         public ICollection<Character> Characters { get; set; } = [];
         public ICollection<Item> Items { get; set; } = [];

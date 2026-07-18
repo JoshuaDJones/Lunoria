@@ -9,6 +9,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException(
+        "Jwt:Key must be configured with at least 32 UTF-8 bytes for HMAC-SHA256 signing.");
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -43,7 +50,7 @@ builder.Services
             ValidAudience = builder.Configuration["Jwt:Audience"],
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+                Encoding.UTF8.GetBytes(jwtKey)),
             ValidateLifetime = true,
         };
     });
@@ -118,7 +125,14 @@ app.UseSwaggerUI();
 app.MapSwagger().AllowAnonymous();
 
 
-app.UseHttpsRedirection();
+// Local development uses the HTTP launch profile so Vite can call the API
+// without depending on a machine-specific ASP.NET development certificate.
+// Redirecting here can send CORS preflight requests to an HTTPS endpoint that
+// is not running, which browsers surface only as a generic network error.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("AllowFrontend");
 
 app.Use(async (context, next) =>

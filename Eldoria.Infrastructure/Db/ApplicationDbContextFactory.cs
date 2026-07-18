@@ -8,7 +8,7 @@ namespace Eldoria.Infrastructure.Db
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=Eldoria;Trusted_Connection=True;")
+                .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=Lunoria;Trusted_Connection=True;TrustServerCertificate=True;")
                 .Options;
 
             return new ApplicationDbContext(options);

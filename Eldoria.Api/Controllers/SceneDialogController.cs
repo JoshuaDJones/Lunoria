@@ -1,7 +1,10 @@
 ﻿using Eldoria.Api.Requests;
+using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
+using Eldoria.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Eldoria.Api.Controllers
 {
@@ -16,7 +19,7 @@ namespace Eldoria.Api.Controllers
         {
             var result = await _sceneDialogService.CreateSceneDialogAsync(sceneId, req.Title, ct);
 
-            if(result.Success)
+            if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
@@ -61,7 +64,7 @@ namespace Eldoria.Api.Controllers
         {
             var result = await _sceneDialogService.EditSceneDialogAsync(sceneDialogId, req.Title, ct);
 
-            if (result.Success) 
+            if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
@@ -69,6 +72,28 @@ namespace Eldoria.Api.Controllers
                 "SceneDialog.NotFound" => BadRequest(result.Error),
                 _ => BadRequest(result.Error)
             };
+        }
+
+        [HttpGet("/api/v1/SceneDialog/give-me-all/{journeyId:int}")]
+        public async Task<IActionResult> GetAll(int journeyId, CancellationToken ct)
+        {
+            var sceneids = new List<int> { 1003, 1004, 1005, 1006, 1007 };
+            List<SceneDialogDto> sceneDialogs = [];
+
+            foreach (var id in sceneids)
+            {
+                var result = await _sceneDialogService.GetSceneDialogsAsync(id, ct);
+
+                if(result.Value is not null)
+                {
+                    foreach(var d in result.Value)
+                    {
+                        sceneDialogs.Add(d);
+                    }
+                }                   
+            }
+
+            return Ok(Result<List<SceneDialogDto>>.Ok(sceneDialogs));
         }
     }
 }

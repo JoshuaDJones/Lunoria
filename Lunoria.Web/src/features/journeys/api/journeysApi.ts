@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/apiClient";
+import { apiClient, ApiResult, unwrapApiResult } from "@/lib/apiClient";
 import { toFormData } from "@/lib/formData";
 import type {
   CreateJourneyInput,
@@ -6,6 +6,7 @@ import type {
   JourneyCharacterSpell,
   JourneyInput,
 } from "@/features/journeys/types";
+import { SceneDialog } from "@/features/scenes/types";
 
 export interface ListJourneysParams {
   skip?: number;
@@ -103,4 +104,13 @@ export async function removeJourneyCharacterSpell(
   await apiClient.delete(
     `/journey-characters/${journeyCharacterId}/spells/${spellId}`,
   );
+}
+
+export async function tempGetAllDialogs(
+  journeyId: number,
+): Promise<SceneDialog[]> {
+  const { data } = await apiClient.get<ApiResult<SceneDialog[]>>(
+    `/SceneDialog/give-me-all/${journeyId}`,
+  );
+  return unwrapApiResult(data);
 }

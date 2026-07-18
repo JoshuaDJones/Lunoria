@@ -15,15 +15,12 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .HasMaxLength(250);
 
             builder.Property(j => j.Description)
-                .IsRequired()
                 .HasMaxLength(250);
 
             builder.Property(j => j.PhotoUrl)
-                .IsRequired()
                 .HasMaxLength(2048);
 
             builder.Property(j => j.FileName)
-                .IsRequired()
                 .HasMaxLength(250);
 
             builder.Property(j => j.CreateDate)
@@ -31,6 +28,11 @@ namespace Eldoria.Infrastructure.Db.Configurations
 
             builder.Property(j => j.UpdateDate)
                 .IsRequired();
+
+            builder.HasOne(j => j.User)
+                   .WithMany(u => u.Journeys)
+                   .HasForeignKey(u => u.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(j => j.Scenes)
                    .WithOne(s => s.Journey)

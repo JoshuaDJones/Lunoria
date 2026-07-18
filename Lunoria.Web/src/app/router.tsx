@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { AllDialogsPage } from "@/pages/authenticated/AllDialogsPage";
 import { RequireAuth } from "@/app/routing/RequireAuth";
 import { RequireGuest } from "@/app/routing/RequireGuest";
 import { HomePage } from "@/pages/authenticated/HomePage";
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
       {
         path: "/journeys/:journeyId/scenes/:sceneId/dialogs",
         element: <SceneDialogsPage />,
+      },
+      {
+        path: "/journeys/:journeyId/all-dialogs",
+        element: <AllDialogsPage />,
       },
     ],
   },

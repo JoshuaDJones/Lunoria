@@ -13,6 +13,7 @@ import {
   faShield,
   faArrowRightFromBracket,
   faTableCellsLarge,
+  faScroll,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -33,6 +34,7 @@ interface SidebarProps {
 }
 
 const defaultItems: SidebarItem[] = [
+  { label: "Series", to: "/series", icon: faScroll },
   { label: "Journeys", to: "/home", icon: faBookOpen },
   { label: "Characters", to: "/characters", icon: faUser },
   { label: "Spells", to: "/spells", icon: faWandMagicSparkles },

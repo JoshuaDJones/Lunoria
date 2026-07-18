@@ -41,11 +41,6 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(u => u.UpdateDate)
                 .IsRequired();
 
-            builder.HasMany(u => u.Journeys)
-                   .WithOne(j => j.User)
-                   .HasForeignKey(j => j.UserId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasMany(u => u.Characters)
                    .WithOne(c => c.User)
                    .HasForeignKey(c => c.UserId)

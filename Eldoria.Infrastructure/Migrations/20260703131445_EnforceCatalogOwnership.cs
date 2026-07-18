@@ -12,6 +12,19 @@ namespace Eldoria.Infrastructure.Migrations
         {
             migrationBuilder.Sql(
                 """
+                -- ExpandGameplayDomain creates an ownerless fallback spell type even for a
+                -- brand-new database. If there are no users, remove only ownerless spell
+                -- types that are not referenced by any spell before enforcing ownership.
+                IF NOT EXISTS (SELECT 1 FROM [Users])
+                BEGIN
+                    DELETE st
+                    FROM [SpellTypes] st
+                    WHERE st.[UserId] IS NULL
+                      AND NOT EXISTS (
+                          SELECT 1 FROM [Spells] s WHERE s.[SpellTypeId] = st.[Id]
+                      );
+                END;
+
                 IF (
                     EXISTS (SELECT 1 FROM [Characters] WHERE [UserId] IS NULL)
                     OR EXISTS (SELECT 1 FROM [Items] WHERE [UserId] IS NULL)

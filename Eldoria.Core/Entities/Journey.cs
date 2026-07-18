@@ -13,6 +13,9 @@
         public int UserId { get; set; }
         public User User { get; set; } = null!;
 
+        public int SeriesId { get; set; }
+        public Series Series { get; set; } = null!;
+
         public ICollection<Scene> Scenes { get; set; } = [];
         public ICollection<JourneyCharacter> JourneyCharacters { get; set; } = [];
         public ICollection<JourneyPlaythrough> Playthroughs { get; set; } = [];

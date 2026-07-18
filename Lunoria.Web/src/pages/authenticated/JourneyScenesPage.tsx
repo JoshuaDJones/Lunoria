@@ -7,9 +7,11 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Drawer } from "@/components/ui/Drawer";
-import { useToast } from "@/app/providers";
+import { useConfirmDialog, useToast } from "@/app/providers";
+import { getApiError } from "@/lib/apiClient";
 import {
   createScene,
+  deleteScene,
   listScenes,
   SceneGrid,
   updateScene,
@@ -28,6 +30,7 @@ const fields: ResourceFormField[] = [
 ];
 
 export function JourneyScenesPage() {
+  const { confirm } = useConfirmDialog();
   const toast = useToast();
   const { journeyId: journeyIdParam } = useParams();
   const journeyId = Number(journeyIdParam);
@@ -47,6 +50,25 @@ export function JourneyScenesPage() {
   const handleSaved = () => {
     setEditing(undefined);
     setReloadKey((value) => value + 1);
+  };
+
+  const openConfirmDelete = async (scene: Scene) => {
+    const confirmed = await confirm({
+      title: `Delete scene "${scene.name}"?`,
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteScene(scene.id, journeyId);
+      setReloadKey((value) => value + 1);
+      toast.success(`Scene "${scene.name}" was deleted.`);
+    } catch (requestError) {
+      toast.error(getApiError(requestError).message, "Unable to delete scene");
+    }
   };
 
   return (
@@ -69,6 +91,7 @@ export function JourneyScenesPage() {
           <SceneGrid
             scenes={scenes}
             onEdit={setEditing}
+            onDelete={openConfirmDelete}
             onViewDialogs={(scene) =>
               navigate(`/journeys/${journeyId}/scenes/${scene.id}/dialogs`)
             }
