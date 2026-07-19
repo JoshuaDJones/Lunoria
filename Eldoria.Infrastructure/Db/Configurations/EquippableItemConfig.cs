@@ -10,6 +10,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(e => e.Id);
 
+            builder.HasIndex(e => new { e.UserId, e.Name })
+                   .IsUnique();
+
             builder.Property(e => e.Name)
                    .IsRequired()
                    .HasMaxLength(250);
@@ -26,10 +29,43 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .IsRequired()
                    .HasMaxLength(250);
 
-            builder.Property(e => e.CreateDate)
+            builder.Property(e => e.MeleeAttackDamageModifier)
                    .IsRequired();
 
-            builder.Property(e => e.UpdateDate)
+            builder.Property(e => e.BowAttackDamageModifier)
+                   .IsRequired();
+
+            builder.Property(e => e.MovementModifier)
+                   .IsRequired();
+
+            builder.Property(e => e.MaxHpModifier)
+                   .IsRequired();
+
+            builder.Property(e => e.MaxMpModifier)
+                   .IsRequired();
+
+            builder.Property(e => e.MaxConsumableInventoryModifier)
+                   .IsRequired();
+
+            builder.Property(e => e.MaxEquippableInventoryModifier)
+                   .IsRequired();
+
+            builder.Property(e => e.MeleeDamageReduction)
+                   .IsRequired();
+
+            builder.Property(e => e.BowDamageReduction)
+                   .IsRequired();
+
+            builder.Property(e => e.SpellDamageReduction)
+                   .IsRequired();
+
+            builder.Property(e => e.SpellDamageModifier)
+                   .IsRequired(false);
+
+            builder.Property(e => e.CreatedAt)
+                   .IsRequired();
+
+            builder.Property(e => e.UpdatedAt)
                    .IsRequired();
 
             builder.HasOne(e => e.AffectedSpellType)

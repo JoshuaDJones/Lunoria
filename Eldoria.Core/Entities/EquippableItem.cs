@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Core.Entities
+namespace Eldoria.Core.Entities
 {
     public class EquippableItem
     {
@@ -23,14 +23,12 @@
 
         public int? AffectedSpellTypeId { get; set; }
         public SpellType? AffectedSpellType { get; set; }
-        public int SpellDamageModifier { get; set; }
+        public int? SpellDamageModifier { get; set; }
 
-        public DateTime CreateDate { get; set; }
-        public DateTime UpdateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public int UserId { get; set; }
         public User User { get; set; } = null!;
-
-        public ICollection<JourneyCharacterEquippableItem> JourneyCharacterEquippableItems { get; set; } = [];
     }
 }

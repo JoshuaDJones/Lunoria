@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Core.Entities
+namespace Eldoria.Core.Entities
 {
     public class User
     {
@@ -9,13 +9,13 @@
         public string PasswordHash { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
         public bool IsLocked { get; set; }
-        public DateTime CreateDate { get; set; }
-        public DateTime UpdateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public ICollection<Series> Series { get; set; } = [];
         public ICollection<Journey> Journeys { get; set; } = [];
         public ICollection<Character> Characters { get; set; } = [];
-        public ICollection<Item> Items { get; set; } = [];
+        public ICollection<ConsumableItem> Items { get; set; } = [];
         public ICollection<EquippableItem> EquippableItems { get; set; } = [];
         public ICollection<Spell> Spells { get; set; } = [];
         public ICollection<SpellType> SpellTypes { get; set; } = [];

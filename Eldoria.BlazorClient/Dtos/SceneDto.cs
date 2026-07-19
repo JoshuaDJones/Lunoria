@@ -1,4 +1,4 @@
-﻿namespace Eldoria.BlazorClient.Dtos
+namespace Eldoria.BlazorClient.Dtos
 {
     public class SceneDto
     {
@@ -8,7 +8,7 @@
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;
         public string GridUrl { get; set; } = string.Empty;
-        public DateTime CreateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public List<SceneDialogDto>? SceneDialogs { get; set; } = [];
         public List<SceneCharacterDto>? SceneCharacters { get; set; } = [];

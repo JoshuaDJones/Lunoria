@@ -16,10 +16,6 @@ namespace Eldoria.Infrastructure.Db.Repositories
             _dbContext.JourneyCharacters.SingleOrDefaultAsync(
                 character => character.Id == id && character.Journey.UserId == userId, ct);
 
-        public Task<JourneyCharacterItem?> GetJourneyCharacterItemAsync(int userId, int id, CancellationToken ct) =>
-            _dbContext.JourneyCharacterItems.SingleOrDefaultAsync(
-                item => item.Id == id && item.JourneyCharacter.Journey.UserId == userId, ct);
-
         public Task<Scene?> GetSceneAsync(int userId, int sceneId, CancellationToken ct) =>
             _dbContext.Scenes.SingleOrDefaultAsync(
                 scene => scene.Id == sceneId && scene.Journey.UserId == userId, ct);
@@ -28,8 +24,12 @@ namespace Eldoria.Infrastructure.Db.Repositories
             _dbContext.SceneCharacters.SingleOrDefaultAsync(
                 character => character.Id == id && character.Scene.Journey.UserId == userId, ct);
 
-        public Task<SceneCharacterItem?> GetSceneCharacterItemAsync(int userId, int id, CancellationToken ct) =>
-            _dbContext.SceneCharacterItems.SingleOrDefaultAsync(
-                item => item.Id == id && item.SceneCharacter.Scene.Journey.UserId == userId, ct);
+        public Task<JourneyPlaythrough?> GetJourneyPlaythroughAsync(int userId, int id, CancellationToken ct) =>
+            _dbContext.JourneyPlaythroughs.SingleOrDefaultAsync(
+                playthrough => playthrough.Id == id && playthrough.Journey.UserId == userId, ct);
+
+        public Task<ScenePlaythrough?> GetScenePlaythroughAsync(int userId, int id, CancellationToken ct) =>
+            _dbContext.ScenePlaythroughs.SingleOrDefaultAsync(
+                playthrough => playthrough.Id == id && playthrough.JourneyPlaythrough.Journey.UserId == userId, ct);
     }
 }

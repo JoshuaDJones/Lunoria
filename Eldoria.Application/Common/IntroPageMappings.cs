@@ -5,7 +5,7 @@ namespace Eldoria.Application.Common
 {
     public static class IntroPageMappings
     {
-        public static IntroPageDto ToDto(this IntroPage introPage)
+        public static IntroPageDto ToDto(this JourneyIntroPage introPage)
         {
             return new IntroPageDto
             {

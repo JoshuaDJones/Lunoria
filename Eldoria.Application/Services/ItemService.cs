@@ -42,7 +42,7 @@ namespace Eldoria.Application.Services
         {
             var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
             var now = DateTime.UtcNow;
-            var item = new Item
+            var item = new ConsumableItem
             {
                 UserId = userId,
                 Name = name.Trim(),
@@ -51,8 +51,8 @@ namespace Eldoria.Application.Services
                 FileName = fileName,
                 HpEffect = hpEffect,
                 MpEffect = mpEffect,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedAt = now,
+                UpdatedAt = now,
             };
 
             await _itemRepository.AddAsync(item, ct);
@@ -86,7 +86,7 @@ namespace Eldoria.Application.Services
             item.Description = description.Trim();
             item.HpEffect = hpEffect;
             item.MpEffect = mpEffect;
-            item.UpdateDate = DateTime.UtcNow;
+            item.UpdatedAt = DateTime.UtcNow;
 
             _itemRepository.Update(item);
             await _itemRepository.SaveChangesAsync(ct);

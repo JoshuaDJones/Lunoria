@@ -1,7 +1,6 @@
 ﻿using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
@@ -31,15 +30,6 @@ namespace Eldoria.Infrastructure.Db.Repositories
                         .ThenInclude(cs => cs.Spell)
                 .Include(jc => jc.AlternateForm)
                     .ThenInclude(af => af.CharacterDialogSettings)
-                .Include(jc => jc.JourneyCharacterItems)
-                    .ThenInclude(jci => jci.Item)
-                .Include(jc => jc.JourneyCharacterEquippableItems)
-                    .ThenInclude(jce => jce.EquippableItem)
-                        .ThenInclude(item => item.AddedSpells)
-                            .ThenInclude(spell => spell.SpellType)
-                .Include(jc => jc.JourneyCharacterEquippableItems)
-                    .ThenInclude(jce => jce.EquippableItem)
-                        .ThenInclude(item => item.AffectedSpellType)
                 .Include(jc => jc.JourneyCharacterSpells)
                     .ThenInclude(jcs => jcs.Spell)
                         .ThenInclude(spell => spell.SpellType)
@@ -54,10 +44,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
             if (journeyCharacterIds.Count == 0)
                 return Task.FromResult(false);
 
-            return _dbContext.SceneParticipants.AnyAsync(
-                participant =>
-                    participant.JourneyCharacterId.HasValue &&
-                    journeyCharacterIds.Contains(participant.JourneyCharacterId.Value),
+            return _dbContext.JourneyPlaythroughCharacters.AnyAsync(
+                character => journeyCharacterIds.Contains(character.JourneyCharacterId),
                 ct);
         }
     }

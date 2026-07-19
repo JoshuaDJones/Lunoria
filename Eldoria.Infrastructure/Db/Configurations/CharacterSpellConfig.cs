@@ -10,6 +10,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(cs => cs.Id);
 
+            builder.HasIndex(cs => new { cs.CharacterId, cs.SpellId })
+                   .IsUnique();
+
             builder.HasOne(cs => cs.Character)
                    .WithMany(c => c.CharacterSpells)
                    .HasForeignKey(cs => cs.CharacterId)
@@ -18,7 +21,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(cs => cs.Spell)
                    .WithMany(s => s.CharacterSpells)
                    .HasForeignKey(cs => cs.SpellId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasQueryFilter(cs => !cs.Character.IsDeleted);
         }

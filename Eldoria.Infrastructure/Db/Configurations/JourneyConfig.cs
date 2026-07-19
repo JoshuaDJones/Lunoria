@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,29 +10,33 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(j => j.Id);
 
+            builder.HasIndex(j => new { j.SeriesId, j.SortOrder })
+                .IsUnique();
+
             builder.Property(j => j.Name)
                 .IsRequired()
                 .HasMaxLength(250);
 
             builder.Property(j => j.Description)
+                .IsRequired()
                 .HasMaxLength(250);
 
             builder.Property(j => j.PhotoUrl)
+                .IsRequired()
                 .HasMaxLength(2048);
 
             builder.Property(j => j.FileName)
+                .IsRequired()
                 .HasMaxLength(250);
 
-            builder.Property(j => j.CreateDate)
+            builder.Property(j => j.SortOrder)
                 .IsRequired();
 
-            builder.Property(j => j.UpdateDate)
+            builder.Property(j => j.CreatedAt)
                 .IsRequired();
 
-            builder.HasOne(j => j.User)
-                   .WithMany(u => u.Journeys)
-                   .HasForeignKey(u => u.UserId)
-                   .OnDelete(DeleteBehavior.Restrict);
+            builder.Property(j => j.UpdatedAt)
+                .IsRequired();
 
             builder.HasMany(j => j.Scenes)
                    .WithOne(s => s.Journey)

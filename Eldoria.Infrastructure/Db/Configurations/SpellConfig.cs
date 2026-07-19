@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,6 +9,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         public void Configure(EntityTypeBuilder<Spell> builder)
         {
             builder.HasKey(s => s.Id);
+
+            builder.HasIndex(s => new { s.UserId, s.Name })
+                .IsUnique();
 
             builder.Property(s => s.Name)
                 .IsRequired()
@@ -33,10 +36,19 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(s => s.MpCost)
                 .IsRequired();
 
-            builder.Property(c => c.CreateDate)
+            builder.Property(s => s.DamageEffect)
+                .IsRequired(false);
+
+            builder.Property(s => s.HealthEffect)
+                .IsRequired(false);
+
+            builder.Property(s => s.MagicEffect)
+                .IsRequired(false);
+
+            builder.Property(c => c.CreatedAt)
                 .IsRequired();
 
-            builder.Property(c => c.UpdateDate)
+            builder.Property(c => c.UpdatedAt)
                 .IsRequired();
 
             builder.HasOne(s => s.SpellType)

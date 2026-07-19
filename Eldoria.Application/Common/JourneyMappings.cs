@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Dtos;
+using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 
 namespace Eldoria.Application.Common
@@ -13,7 +13,7 @@ namespace Eldoria.Application.Common
                 Name = journey.Name,
                 Description = journey.Description,
                 PhotoUrl = journey.PhotoUrl,
-                CreateDate = journey.CreateDate,
+                CreatedAt = journey.CreatedAt,
             };
         }
     }

@@ -2,10 +2,10 @@
 {
     public enum IntroPageType
     {
-        ImageTop_ContentBottom,        
-        ImageLeft_ContentRight,
-        ImageRight_ContentLeft,
-        ImageCenter_OverlayCenterText,
-        CharacterShowcase
+        ImageTop_ContentBottom = 1,        
+        ImageLeft_ContentRight = 2,
+        ImageRight_ContentLeft = 3,
+        ImageCenter_OverlayCenterText = 4,
+        CharacterShowcase = 5
     }
 }

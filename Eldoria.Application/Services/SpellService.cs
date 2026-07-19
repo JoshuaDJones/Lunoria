@@ -74,8 +74,8 @@ namespace Eldoria.Application.Services
                 MagicEffect = magicEffect,
                 SpellTypeId = spellTypeId,
                 SpellType = spellType,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedAt = now,
+                UpdatedAt = now,
             };
 
             await _spellRepository.AddAsync(spell, ct);
@@ -130,7 +130,7 @@ namespace Eldoria.Application.Services
             spell.MagicEffect = magicEffect;
             spell.SpellTypeId = spellTypeId;
             spell.SpellType = spellType;
-            spell.UpdateDate = DateTime.UtcNow;
+            spell.UpdatedAt = DateTime.UtcNow;
 
             _spellRepository.Update(spell);
             await _spellRepository.SaveChangesAsync(ct);

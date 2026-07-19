@@ -1,4 +1,6 @@
-﻿namespace Eldoria.Core.Entities
+using Eldoria.Core.Enums;
+
+namespace Eldoria.Core.Entities
 {
     public class Character
     {
@@ -7,8 +9,8 @@
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
-        public string Portrait { get; set; } = string.Empty;
-        public string PortraitFileName { get; set; } = string.Empty;
+        public string? PortraitUrl { get; set; } = string.Empty;
+        public string? PortraitFileName { get; set; } = string.Empty;
 
         public int BaseMaxHp { get; set; }
         public int BaseMaxMp { get; set; }
@@ -18,12 +20,10 @@
         public int BaseMaxConsumableInventory { get; set; }
         public int BaseMaxEquippableInventory { get; set; }
 
-        public bool IsPlayer { get; set; }
-        public bool IsNPC { get; set; }
-        public bool IsEnemy { get; set; }
+        public CharacterType CharacterType { get; set; }
 
-        public DateTime CreateDate { get; set; }
-        public DateTime UpdateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }

@@ -27,7 +27,7 @@ namespace Eldoria.Application.Services
         Task<Result<SceneProgressDto>> SetStatusAsync(
             int userId,
             int sceneProgressId,
-            SceneProgressStatus status,
+            ScenePlaythroughStatus status,
             CancellationToken ct);
     }
 }

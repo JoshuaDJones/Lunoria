@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +10,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(s => s.Id);
 
+            builder.HasIndex(s => new {s.DialogPageId, s.OrderNum})
+                .IsUnique();
+
             builder.Property(s => s.OrderNum)
                 .IsRequired();
 
@@ -19,10 +22,10 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(s => s.IsNarrator)
                 .IsRequired();
 
-            builder.Property(s => s.CreateDate)
+            builder.Property(s => s.CreatedAt)
                 .IsRequired();
 
-            builder.Property(s => s.UpdateDate)
+            builder.Property(s => s.UpdatedAt)
                 .IsRequired();
 
             builder.HasOne(s => s.Character)

@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Core.Entities
+namespace Eldoria.Core.Entities
 {
     public class Spell
     {
@@ -13,8 +13,8 @@
         public int? DamageEffect { get; set; }
         public int? HealthEffect { get; set; }
         public int? MagicEffect { get; set; }
-        public DateTime CreateDate { get; set; }
-        public DateTime UpdateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public int UserId { get; set; }
         public User User { get; set; } = null!;

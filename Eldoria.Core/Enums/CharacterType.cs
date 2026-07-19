@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Eldoria.Core.Enums
+﻿namespace Eldoria.Core.Enums
 {
     public enum CharacterType
     {
-        Any,
-        Enemy,
-        NPC,
-        Player
+        Player = 1,
+        NPC = 2,
+        Enemy = 3
     }
 }

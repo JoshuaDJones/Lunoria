@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 
@@ -39,8 +39,8 @@ namespace Eldoria.Application.Services
                 OrderNum = orderNum,
                 ReadingText = readingText,
                 IsNarrator = isNarrator,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
 
             await _dialogPageSectionRepository.AddAsync(dialogPageSection, ct);

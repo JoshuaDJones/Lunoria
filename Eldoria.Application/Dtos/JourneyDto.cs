@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Application.Dtos
+namespace Eldoria.Application.Dtos
 {
     public class JourneyDto
     {
@@ -6,7 +6,7 @@
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;
-        public DateTime CreateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
         public List<SceneDto>? Scenes { get; set; } = [];
         public List<JourneyCharacterDto>? JourneyCharacters { get; set; } = [];
         public List<IntroPageDto>? IntroPages { get; set; } = [];

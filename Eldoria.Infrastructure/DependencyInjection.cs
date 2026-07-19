@@ -26,12 +26,16 @@ namespace Eldoria.Infrastructure
             services.AddScoped<ISpellRepository, SpellRepository>();
             services.AddScoped<IJourneyCharacterSpellRepository, JourneyCharacterSpellRepository>();
             services.AddScoped<IJourneyPlaythroughRepository, JourneyPlaythroughRepository>();
-            services.AddScoped<ISceneProgressRepository, SceneProgressRepository>();
+            services.AddScoped<IJourneyPlaythroughCharacterRepository, JourneyPlaythroughCharacterRepository>();
+            services.AddScoped<IScenePlaythroughRepository, ScenePlaythroughRepository>();
+            services.AddScoped<ISceneCharacterRepository, SceneCharacterRepository>();
+            services.AddScoped<ISceneChestRepository, SceneChestRepository>();
+            services.AddScoped<ISceneEventRepository, SceneEventRepository>();
+            services.AddScoped<ISeriesRepository, SeriesRepository>();
             services.AddScoped<ISpellTypeRepository, SpellTypeRepository>();
             services.AddScoped<IEquippableItemRepository, EquippableItemRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<IOwnershipRepository, OwnershipRepository>();
-            services.AddScoped<IJourneyCharacterEquipmentRepository, JourneyCharacterEquipmentRepository>();
 
             return services;
         }

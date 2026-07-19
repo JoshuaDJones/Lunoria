@@ -10,27 +10,25 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(c => c.Id);
 
-            builder.Property(c => c.CurrentHp)
-                .IsRequired();
+            builder.HasIndex(c => new { c.SceneId, c.CharacterId })
+                .IsUnique();
 
-            builder.Property(c => c.CurrentMp)
-                .IsRequired();
-
-            builder.Property(c => c.IsDown)
-                .IsRequired();
-
-            builder.Property(c => c.IsAlternateForm)
-                .IsRequired();
+            builder.Property(c => c.Movement).IsRequired();
+            builder.Property(c => c.MaxConsumableInventory).IsRequired();
+            builder.Property(c => c.MaxEquippableInventory).IsRequired();
+            builder.Property(c => c.MaxHp).IsRequired();
+            builder.Property(c => c.MaxMp).IsRequired();
+            builder.Property(c => c.IsInitiallyActive).IsRequired();
 
             builder.HasOne(c => c.Character)
                    .WithMany()
                    .HasForeignKey(s => s.CharacterId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasMany(c => c.SceneCharacterItems)
-                   .WithOne(i => i.SceneCharacter)
-                   .HasForeignKey(i => i.SceneCharacterId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(c => c.AlternateForm)
+                .WithMany()
+                .HasForeignKey(c => c.AlternateFormId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasQueryFilter(c => !c.Character.IsDeleted);
         }

@@ -14,7 +14,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .IsRequired()
                 .HasMaxLength(50);
 
-            builder.Property(d => d.DialogUnActiveColor)
+            builder.Property(d => d.DialogInActiveColor)
                 .IsRequired()
                 .HasMaxLength(50);
 

@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,6 +9,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         public void Configure(EntityTypeBuilder<Series> builder)
         {
             builder.HasKey(s => s.Id);
+
+            builder.HasIndex(s => new { s.UserId, s.Name })
+                .IsUnique();
 
             builder.Property(s => s.Name)
                    .IsRequired()
@@ -23,16 +26,16 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(s => s.FileName)
                    .HasMaxLength(250);
 
-            builder.Property(s => s.CreateDate)
+            builder.Property(s => s.CreatedAt)
                    .IsRequired();
 
-            builder.Property(s => s.UpdateDate)
+            builder.Property(s => s.UpdatedAt)
                    .IsRequired();
 
             builder.HasOne(s => s.User)
                    .WithMany(u => u.Series)
                    .HasForeignKey(s => s.UserId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(s => s.Journeys)
                    .WithOne(j => j.Series)

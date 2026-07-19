@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Dtos;
+using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 
 namespace Eldoria.Application.Common
@@ -25,7 +25,7 @@ namespace Eldoria.Application.Common
                 IsEnemy = character.IsEnemy,
                 AlternateFormId = character.BaseAlternateFormId,
                 AlternateForm = character.BaseAlternateForm?.ToDto(),
-                CreateDate = character.CreateDate,
+                CreatedAt = character.CreatedAt,
                 CharacterSpells = character.CharacterSpells.Select(s => s.ToDto()).ToList(),
                 CharacterDialogSettings = character.CharacterDialogSettings == null ? null : character.CharacterDialogSettings.ToDto()
             };

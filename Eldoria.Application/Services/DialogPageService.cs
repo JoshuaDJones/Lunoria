@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -29,8 +29,8 @@ namespace Eldoria.Application.Services
                 OrderNum = orderNum,
                 PhotoUrl = photoUrl,
                 FileName = fileName,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
 
             await _dialogPageRepository.AddAsync(dialogPage, ct);

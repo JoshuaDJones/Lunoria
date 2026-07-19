@@ -1,4 +1,4 @@
-﻿namespace Eldoria.BlazorClient.Dtos
+namespace Eldoria.BlazorClient.Dtos
 {
     public class CharacterDto
     {
@@ -15,7 +15,7 @@
         public bool IsPlayer { get; set; }
         public bool IsNPC { get; set; }
         public bool IsEnemy { get; set; }
-        public DateTime CreateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public int? AlternateFormId { get; set; }
         public CharacterDto? AlternateForm { get; set; }

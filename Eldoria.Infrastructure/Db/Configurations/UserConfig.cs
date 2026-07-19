@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -30,20 +30,34 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .HasMaxLength(255);
 
             builder.Property(u => u.IsDeleted)
+                .IsRequired()
                 .HasDefaultValue(false);
 
             builder.Property(u => u.IsLocked)
+                .IsRequired()
                 .HasDefaultValue(false);
 
-            builder.Property(u => u.CreateDate)
+            builder.Property(u => u.CreatedAt)
                 .IsRequired();
 
-            builder.Property(u => u.UpdateDate)
+            builder.Property(u => u.UpdatedAt)
                 .IsRequired();
+
+            builder.HasQueryFilter(u => !u.IsDeleted);
 
             builder.HasMany(u => u.Characters)
                    .WithOne(c => c.User)
                    .HasForeignKey(c => c.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(u => u.Series)
+                   .WithOne(s => s.User)
+                   .HasForeignKey(s => s.UserId)
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(u => u.Journeys)
+                   .WithOne(j => j.User)
+                   .HasForeignKey(j => j.UserId)
                    .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(u => u.Items)

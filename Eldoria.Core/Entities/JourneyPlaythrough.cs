@@ -10,6 +10,8 @@ namespace Eldoria.Core.Entities
         public int JourneyId { get; set; }
         public Journey Journey { get; set; } = null!;
 
-        public ICollection<SceneProgress> SceneProgressRecords { get; set; } = [];
+        public ICollection<JourneyPlaythroughCharacter> JourneyCharacters { get; set; } = [];
+        public ICollection<ScenePlaythrough> ScenePlaythroughs { get; set; } = [];
+        public ICollection<JourneyPlaythroughEventLog> PlaythroughEventLogs { get; set; } = [];
     }
 }

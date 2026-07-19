@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
@@ -40,8 +40,8 @@ namespace Eldoria.Application.Services
                 PhotoUrl = photoUrl,
                 FileName = fileName,
                 GridUrl = gridUrl,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
 
             await _sceneRepository.AddAsync(scene, ct);
@@ -136,7 +136,7 @@ namespace Eldoria.Application.Services
             scene.Name = name;
             scene.Description = description;
             scene.GridUrl = gridUrl;
-            scene.UpdateDate = DateTime.UtcNow;
+            scene.UpdatedAt = DateTime.UtcNow;
 
             if (photo is not null)
             {

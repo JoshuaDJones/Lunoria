@@ -1,11 +1,11 @@
-﻿using Eldoria.Application.Dtos;
+using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 
 namespace Eldoria.Application.Common
 {
     public static class ItemMappings
     {
-        public static ItemDto ToDto(this Item item)
+        public static ItemDto ToDto(this ConsumableItem item)
         {
             return new ItemDto
             {
@@ -15,7 +15,7 @@ namespace Eldoria.Application.Common
                 PhotoUrl = item.PhotoUrl,
                 HpEffect = item.HpEffect,
                 MpEffect = item.MpEffect,
-                CreateDate = item.CreateDate,
+                CreatedAt = item.CreatedAt,
             };
         }
     }

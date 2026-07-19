@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
@@ -23,7 +23,7 @@ namespace Eldoria.Application.Services
                 Name = j.Name,
                 Description = j.Description,
                 PhotoUrl = j.PhotoUrl,
-                CreateDate = j.CreateDate,
+                CreatedAt = j.CreatedAt,
             }).ToList();
 
             return Result<List<JourneyDto>>.Ok(dtos);
@@ -45,7 +45,7 @@ namespace Eldoria.Application.Services
                 Name = journey.Name,
                 Description = journey.Description,
                 PhotoUrl = journey.PhotoUrl,
-                CreateDate = journey.CreateDate,
+                CreatedAt = journey.CreatedAt,
                 Scenes = journey.Scenes.Select(jc => jc.ToDto()).ToList(),
                 JourneyCharacters = journey.JourneyCharacters.Select(jc => jc.ToDto()).ToList(),
                 IntroPages = journey.IntroPages.Select(ip => ip.ToDto()).ToList()
@@ -84,8 +84,8 @@ namespace Eldoria.Application.Services
                 Description = description,
                 PhotoUrl = photoUrl,
                 FileName = filename,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _journeyRepository.AddAsync(journey, ct);
@@ -97,7 +97,7 @@ namespace Eldoria.Application.Services
                 Name = journey.Name,
                 Description = journey.Description,
                 PhotoUrl = journey.PhotoUrl,
-                CreateDate = journey.CreateDate,
+                CreatedAt = journey.CreatedAt,
             };
 
             return Result<JourneyDto>.Ok(dto);
@@ -115,7 +115,7 @@ namespace Eldoria.Application.Services
 
             journey.Name = name;
             journey.Description = description;
-            journey.UpdateDate = DateTime.UtcNow;
+            journey.UpdatedAt = DateTime.UtcNow;
 
             if (photo != null)
             {

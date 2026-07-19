@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
@@ -23,8 +23,8 @@ namespace Eldoria.Application.Services
             {
                 SceneId = sceneId,
                 Title = sceneDialogTitle,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _sceneDialogRepository.AddAsync(newSceneDialog, ct);
@@ -54,7 +54,7 @@ namespace Eldoria.Application.Services
                 return Result.Fail(new Error("SceneDialog.NotFound", "Scene dialog does not exist."));
 
             sceneDialog.Title = title;
-            sceneDialog.UpdateDate = DateTime.UtcNow;
+            sceneDialog.UpdatedAt = DateTime.UtcNow;
 
             await _sceneDialogRepository.SaveChangesAsync(ct);
             return Result.Ok();

@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Common;
+using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
@@ -43,7 +43,7 @@ namespace Eldoria.Application.Services
             if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
             {
                 user.PasswordHash = _passwordHasher.HashPassword(user, password);
-                user.UpdateDate = DateTime.UtcNow;
+                user.UpdatedAt = DateTime.UtcNow;
                 await _userRepository.SaveChangesAsync(ct);
             }
 
@@ -74,8 +74,8 @@ namespace Eldoria.Application.Services
             var user = new User()
             {
                 Email = normalizedEmail,
-                CreateDate = now,
-                UpdateDate = now
+                CreatedAt = now,
+                UpdatedAt = now
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, password);

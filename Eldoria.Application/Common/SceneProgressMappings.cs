@@ -5,7 +5,7 @@ namespace Eldoria.Application.Common
 {
     public static class SceneProgressMappings
     {
-        public static SceneProgressDto ToDto(this SceneProgress progress)
+        public static SceneProgressDto ToDto(this ScenePlaythrough progress)
         {
             return new SceneProgressDto
             {

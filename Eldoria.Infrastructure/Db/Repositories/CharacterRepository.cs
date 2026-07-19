@@ -28,13 +28,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Include(c => c.CharacterDialogSettings)
                 .AsQueryable();
 
-            query = typeFilter switch
-            {
-                CharacterType.Enemy => query.Where(c => c.IsEnemy),
-                CharacterType.NPC => query.Where(c => c.IsNPC),
-                CharacterType.Player => query.Where(c => c.IsPlayer),
-                _ => query
-            };
+            query = query.Where(c => c.CharacterType == typeFilter);
 
             return await query
                 .Skip(skip)

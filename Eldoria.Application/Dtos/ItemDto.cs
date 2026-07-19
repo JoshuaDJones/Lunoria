@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Application.Dtos
+namespace Eldoria.Application.Dtos
 {
     public class ItemDto
     {
@@ -8,6 +8,6 @@
         public string PhotoUrl { get; set; } = string.Empty;
         public int HpEffect { get; set; }
         public int MpEffect { get; set; }
-        public DateTime CreateDate { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

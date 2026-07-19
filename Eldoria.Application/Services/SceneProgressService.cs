@@ -35,11 +35,11 @@ namespace Eldoria.Application.Services
             if (existing is not null)
                 return Result<SceneProgressDto>.Ok(existing.ToDto());
 
-            var progress = new SceneProgress
+            var progress = new ScenePlaythrough
             {
                 SceneId = sceneId,
                 JourneyPlaythroughId = context.Value.Id,
-                SceneProgressStatus = SceneProgressStatus.NotStarted,
+                SceneProgressStatus = ScenePlaythroughStatus.NotStarted,
             };
 
             await _progressRepository.AddAsync(progress, ct);
@@ -101,7 +101,7 @@ namespace Eldoria.Application.Services
         public async Task<Result<SceneProgressDto>> SetStatusAsync(
             int userId,
             int sceneProgressId,
-            SceneProgressStatus status,
+            ScenePlaythroughStatus status,
             CancellationToken ct)
         {
             var progress = await _progressRepository.GetAsync(
@@ -123,10 +123,10 @@ namespace Eldoria.Application.Services
                 return Result<SceneProgressDto>.Ok(progress.ToDto());
 
             var validTransition =
-                progress.SceneProgressStatus == SceneProgressStatus.NotStarted &&
-                status == SceneProgressStatus.InProgress ||
-                progress.SceneProgressStatus == SceneProgressStatus.InProgress &&
-                status == SceneProgressStatus.Completed;
+                progress.SceneProgressStatus == ScenePlaythroughStatus.NotStarted &&
+                status == ScenePlaythroughStatus.InProgress ||
+                progress.SceneProgressStatus == ScenePlaythroughStatus.InProgress &&
+                status == ScenePlaythroughStatus.Completed;
 
             if (!validTransition)
             {

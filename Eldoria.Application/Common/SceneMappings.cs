@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Dtos;
+using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 
 namespace Eldoria.Application.Common
@@ -15,7 +15,7 @@ namespace Eldoria.Application.Common
                 Description = scene.Description,
                 PhotoUrl = scene.PhotoUrl,
                 GridUrl = scene.GridUrl,
-                CreateDate = scene.CreateDate,
+                CreatedAt = scene.CreatedAt,
                 SceneDialogs = scene.SceneDialogs.Select(s => s.ToDto()).ToList(),
                 SceneCharacters = scene.SceneCharacters.Select(sc => sc.ToDto()).ToList()
             };

@@ -39,7 +39,7 @@ public class InventoryAndEquipmentTests
         };
 
         equipment.GetCharacterForUserAsync(7, 11, Ct).Returns(character);
-        items.GetByIdForUserAsync(7, 19, Ct).Returns(new Item { Id = 19 });
+        items.GetByIdForUserAsync(7, 19, Ct).Returns(new ConsumableItem { Id = 19 });
 
         var service = new JourneyCharacterItemService(
             assignments, equipment, ownership, items);
@@ -66,7 +66,7 @@ public class InventoryAndEquipmentTests
         };
 
         equipment.GetCharacterForUserAsync(7, 11, Ct).Returns(character);
-        items.GetByIdForUserAsync(7, 19, Ct).Returns(new Item { Id = 19 });
+        items.GetByIdForUserAsync(7, 19, Ct).Returns(new ConsumableItem { Id = 19 });
 
         var service = new JourneyCharacterItemService(
             assignments, equipment, ownership, items);

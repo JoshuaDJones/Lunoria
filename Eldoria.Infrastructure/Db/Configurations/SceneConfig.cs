@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,33 +10,36 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(s => s.Id);
 
+            builder.HasIndex(s => new { s.JourneyId, s.SortOrder })
+                .IsUnique();
+
             builder.Property(s => s.Name)
                 .IsRequired()
                 .HasMaxLength(250);
 
             builder.Property(s => s.Description)
-                .IsRequired()
+                .IsRequired(false)
                 .HasMaxLength(250);
 
             builder.Property(s => s.PhotoUrl)
-                .IsRequired()
+                .IsRequired(false)
                 .HasMaxLength(2048);
 
             builder.Property(s => s.FileName)
-                .IsRequired()
+                .IsRequired(false)
                 .HasMaxLength(250);
 
             builder.Property(s => s.GridUrl)
-                .IsRequired()
-                .HasMaxLength(250);
+                .IsRequired(false)
+                .HasMaxLength(2048);
 
             builder.Property(s => s.SortOrder)
                 .IsRequired();
 
-            builder.Property(s => s.CreateDate)
+            builder.Property(s => s.CreatedAt)
                 .IsRequired();
 
-            builder.Property(s => s.UpdateDate)
+            builder.Property(s => s.UpdatedAt)
                 .IsRequired();
 
             builder.HasMany(s => s.SceneDialogs)
@@ -49,7 +52,22 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .HasForeignKey(s => s.SceneId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(s => s.ProgressRecords)
+            builder.HasMany(s => s.SceneChests)
+                   .WithOne(c => c.Scene)
+                   .HasForeignKey(c => c.SceneId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.SceneIntroPages)
+                   .WithOne(p => p.Scene)
+                   .HasForeignKey(p => p.SceneId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.SceneEvents)
+                   .WithOne(e => e.Scene)
+                   .HasForeignKey(e => e.SceneId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.ScenePlaythroughs)
                    .WithOne(p => p.Scene)
                    .HasForeignKey(p => p.SceneId)
                    .OnDelete(DeleteBehavior.Restrict);

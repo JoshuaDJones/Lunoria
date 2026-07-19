@@ -67,8 +67,8 @@ namespace Eldoria.Application.Services
                 UserId = userId,
                 PhotoUrl = photoUrl,
                 FileName = fileName,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedAt = now,
+                UpdatedAt = now,
                 AffectedSpellType = references.SpellType,
                 AddedSpells = references.Spells,
             };
@@ -114,7 +114,7 @@ namespace Eldoria.Application.Services
             foreach (var spell in references.Spells)
                 item.AddedSpells.Add(spell);
 
-            item.UpdateDate = DateTime.UtcNow;
+            item.UpdatedAt = DateTime.UtcNow;
 
             _equippableItemRepository.Update(item);
             await _equippableItemRepository.SaveChangesAsync(ct);

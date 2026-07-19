@@ -21,7 +21,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(jcs => jcs.Spell)
                    .WithMany(s => s.JourneyCharacterSpells)
                    .HasForeignKey(jcs => jcs.SpellId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasQueryFilter(jcs => !jcs.JourneyCharacter.Character.IsDeleted);
         }

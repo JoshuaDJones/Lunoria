@@ -5,17 +5,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Eldoria.Infrastructure.Db.Repositories
 {
     public class ItemRepository(ApplicationDbContext dbContext)
-        : Repository<Item>(dbContext), IItemRepository
+        : Repository<ConsumableItem>(dbContext), IItemRepository
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public Task<List<Item>> GetListForUserAsync(
+        public Task<List<ConsumableItem>> GetListForUserAsync(
             int userId,
             int skip,
             int take,
             CancellationToken ct)
         {
-            return _dbContext.Items
+            return _dbContext.ConsumableItems
                 .AsNoTracking()
                 .Where(item => item.UserId == userId)
                 .OrderBy(item => item.Name)
@@ -24,9 +24,9 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .ToListAsync(ct);
         }
 
-        public Task<Item?> GetByIdForUserAsync(int userId, int id, CancellationToken ct)
+        public Task<ConsumableItem?> GetByIdForUserAsync(int userId, int id, CancellationToken ct)
         {
-            return _dbContext.Items.SingleOrDefaultAsync(
+            return _dbContext.ConsumableItems.SingleOrDefaultAsync(
                 item => item.Id == id && item.UserId == userId,
                 ct);
         }

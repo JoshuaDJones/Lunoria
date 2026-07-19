@@ -22,6 +22,21 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasIndex(p => p.JourneyId)
                    .IsUnique()
                    .HasFilter("[IsActive] = 1");
+
+            builder.HasMany(p => p.JourneyCharacters)
+                .WithOne(c => c.JourneyPlaythrough)
+                .HasForeignKey(c => c.JourneyPlaythroughId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(p => p.ScenePlaythroughs)
+                .WithOne(s => s.JourneyPlaythrough)
+                .HasForeignKey(s => s.JourneyPlaythroughId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(p => p.PlaythroughEventLogs)
+                .WithOne(l => l.JourneyPlaythrough)
+                .HasForeignKey(l => l.JourneyPlaythroughId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

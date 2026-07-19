@@ -57,8 +57,8 @@ namespace Eldoria.Application.Services
                 IsEnemy = isEnemy,
                 BaseAlternateFormId = alternateFormId,
                 BaseAlternateForm = alternateForm,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedAt = now,
+                UpdatedAt = now,
             };
 
             await _characterRepository.AddAsync(character, ct);
@@ -74,7 +74,7 @@ namespace Eldoria.Application.Services
 
             character.IsDeleted = true;
             character.DeletedAt = DateTime.UtcNow;
-            character.UpdateDate = DateTime.UtcNow;
+            character.UpdatedAt = DateTime.UtcNow;
 
             _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);
@@ -162,7 +162,7 @@ namespace Eldoria.Application.Services
             character.IsEnemy = isEnemy;
             character.BaseAlternateFormId = alternateFormId;
             character.BaseAlternateForm = alternateForm;
-            character.UpdateDate = DateTime.UtcNow;
+            character.UpdatedAt = DateTime.UtcNow;
 
             _characterRepository.Update(character);
             await _characterRepository.SaveChangesAsync(ct);

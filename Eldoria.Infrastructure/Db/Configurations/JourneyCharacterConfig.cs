@@ -10,11 +10,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(j => j.Id);
 
-            builder.Property(j => j.CurrentHp)
-                .IsRequired();
-
-            builder.Property(j => j.CurrentMp)
-                .IsRequired();
+            builder.HasIndex(j => new { j.JourneyId, j.CharacterId })
+                .IsUnique();
 
             builder.Property(j => j.MaxHp)
                 .IsRequired();
@@ -31,26 +28,18 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(j => j.MaxEquippableInventory)
                 .IsRequired();
 
-            builder.Property(j => j.IsDown)
-                .IsRequired();
-
-            builder.Property(j => j.IsInAlternateForm)
+            builder.Property(j => j.IsInitiallyActive)
                 .IsRequired();
 
             builder.HasOne(j => j.Character)
                    .WithMany()
                    .HasForeignKey(j => j.CharacterId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(j => j.AlternateForm)
                    .WithMany()
                    .HasForeignKey(j => j.AlternateFormId)
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasMany(j => j.JourneyCharacterItems)
-                   .WithOne(i => i.JourneyCharacter)
-                   .HasForeignKey(j => j.JourneyCharacterId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasQueryFilter(j => !j.Character.IsDeleted);
         }

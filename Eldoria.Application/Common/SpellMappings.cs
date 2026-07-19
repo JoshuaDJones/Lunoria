@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Dtos;
+using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 
 namespace Eldoria.Application.Common
@@ -19,7 +19,7 @@ namespace Eldoria.Application.Common
                 DamageEffect = spell.DamageEffect,
                 HealthEffect = spell.HealthEffect,
                 MagicEffect = spell.MagicEffect,
-                CreateDate = spell.CreateDate,
+                CreatedAt = spell.CreatedAt,
                 SpellTypeId = spell.SpellTypeId,
                 SpellType = spell.SpellType?.ToDto(),
             };

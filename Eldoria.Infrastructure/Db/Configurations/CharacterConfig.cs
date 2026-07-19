@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -26,12 +26,12 @@ namespace Eldoria.Infrastructure.Db.Configurations
                 .IsRequired()
                 .HasMaxLength(250);
 
-            builder.Property(c => c.Portrait)
-                .IsRequired()
+            builder.Property(c => c.PortraitUrl)
+                .IsRequired(false)
                 .HasMaxLength(2048);
 
             builder.Property(c => c.PortraitFileName)
-                .IsRequired()
+                .IsRequired(false)
                 .HasMaxLength(250);
 
             builder.Property(c => c.BaseMaxHp)
@@ -49,22 +49,15 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(c => c.BaseMaxEquippableInventory)
                 .IsRequired();
 
-            builder.Property(c => c.IsPlayer)
+            builder.Property(c => c.CharacterType)
                 .IsRequired();
 
-            builder.Property(c => c.IsNPC)
+            builder.Property(c => c.CreatedAt)
                 .IsRequired();
 
-            builder.Property(c => c.IsEnemy)
+            builder.Property(c => c.UpdatedAt)
                 .IsRequired();
 
-            builder.Property(c => c.CreateDate)
-                .IsRequired();
-
-            builder.Property(c => c.UpdateDate)
-                .IsRequired();
-
-            // Soft delete configuration
             builder.Property(c => c.IsDeleted)
                 .IsRequired()
                 .HasDefaultValue(false);
@@ -72,7 +65,6 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(c => c.DeletedAt)
                 .IsRequired(false);
 
-            // Global query filter to exclude soft-deleted characters
             builder.HasQueryFilter(c => !c.IsDeleted);
 
             builder.HasOne(c => c.BaseAlternateForm)

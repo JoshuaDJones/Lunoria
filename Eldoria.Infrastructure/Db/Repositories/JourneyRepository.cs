@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +16,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Where(j => j.UserId == userId);
 
             return await query
-                .OrderBy(j => j.CreateDate)
+                .OrderBy(j => j.CreatedAt)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync(ct);
@@ -49,24 +49,12 @@ namespace Eldoria.Infrastructure.Db.Repositories
                         .ThenInclude(c => c.CharacterSpells)
                             .ThenInclude(ch => ch.Spell)
                 .Include(j => j.JourneyCharacters)
-                    .ThenInclude(jc => jc.JourneyCharacterItems)
-                        .ThenInclude(jci => jci.Item)
-                .Include(j => j.JourneyCharacters)
                     .ThenInclude(jc => jc.AlternateForm)
                         .ThenInclude(character => character.CharacterSpells)
                             .ThenInclude(characterSpell => characterSpell.Spell)
                 .Include(j => j.JourneyCharacters)
                     .ThenInclude(jc => jc.AlternateForm)
                         .ThenInclude(character => character.CharacterDialogSettings)
-                .Include(j => j.JourneyCharacters)
-                    .ThenInclude(jc => jc.JourneyCharacterEquippableItems)
-                        .ThenInclude(item => item.EquippableItem)
-                            .ThenInclude(item => item.AddedSpells)
-                                .ThenInclude(spell => spell.SpellType)
-                .Include(j => j.JourneyCharacters)
-                    .ThenInclude(jc => jc.JourneyCharacterEquippableItems)
-                        .ThenInclude(item => item.EquippableItem)
-                            .ThenInclude(item => item.AffectedSpellType)
                 .Include(j => j.JourneyCharacters)
                     .ThenInclude(jc => jc.JourneyCharacterSpells)
                         .ThenInclude(item => item.Spell)

@@ -252,7 +252,7 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        private Task<SceneProgress?> GetProgressAsync(
+        private Task<ScenePlaythrough?> GetProgressAsync(
             int userId,
             int sceneProgressId,
             CancellationToken ct) =>

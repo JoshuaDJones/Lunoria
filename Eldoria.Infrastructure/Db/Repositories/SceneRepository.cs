@@ -49,8 +49,14 @@ namespace Eldoria.Infrastructure.Db.Repositories
                             .ThenInclude(cs => cs.Spell)
 
                 .Include(s => s.SceneCharacters)
-                    .ThenInclude(sc => sc.SceneCharacterItems)
-                        .ThenInclude(sci => sci.Item)
+                    .ThenInclude(sc => sc.SceneCharacterSpells)
+                        .ThenInclude(spell => spell.Spell)
+
+                .Include(s => s.SceneChests)
+                    .ThenInclude(chest => chest.LootEntries)
+
+                .Include(s => s.SceneEvents)
+                    .ThenInclude(sceneEvent => sceneEvent.SceneEventActions)
 
                 .Where(s => s.Id == sceneId)
                 .FirstOrDefaultAsync(ct);

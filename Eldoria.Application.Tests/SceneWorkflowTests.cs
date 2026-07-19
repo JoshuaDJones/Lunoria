@@ -20,17 +20,17 @@ public class SceneWorkflowTests
             .Returns(new Scene { Id = 5, JourneyId = 4 });
         playthroughs.GetActiveForJourneyAsync(7, 4, Ct)
             .Returns(new JourneyPlaythrough { Id = 8, JourneyId = 4, IsActive = true });
-        progress.GetForSceneAsync(7, 8, 5, Ct).Returns((SceneProgress?)null);
+        progress.GetForSceneAsync(7, 8, 5, Ct).Returns((ScenePlaythrough?)null);
 
         var service = new SceneProgressService(progress, playthroughs, ownership);
         var result = await service.CreateOrGetAsync(7, 4, 5, Ct);
 
         Assert.True(result.Success);
         await progress.Received(1).AddAsync(
-            Arg.Is<SceneProgress>(item =>
+            Arg.Is<ScenePlaythrough>(item =>
                 item.SceneId == 5 &&
                 item.JourneyPlaythroughId == 8 &&
-                item.SceneProgressStatus == SceneProgressStatus.NotStarted),
+                item.SceneProgressStatus == ScenePlaythroughStatus.NotStarted),
             Ct);
     }
 
@@ -41,11 +41,11 @@ public class SceneWorkflowTests
         var playthroughs = Substitute.For<IJourneyPlaythroughRepository>();
         var ownership = Substitute.For<IOwnershipRepository>();
         progress.GetAsync(7, 6, Ct).Returns(
-            Progress(SceneProgressStatus.NotStarted));
+            Progress(ScenePlaythroughStatus.NotStarted));
 
         var service = new SceneProgressService(progress, playthroughs, ownership);
         var result = await service.SetStatusAsync(
-            7, 6, SceneProgressStatus.Completed, Ct);
+            7, 6, ScenePlaythroughStatus.Completed, Ct);
 
         Assert.False(result.Success);
         Assert.Equal("SceneProgress.InvalidTransition", result.Error.Code);
@@ -156,10 +156,10 @@ public class SceneWorkflowTests
         Assert.Equal("SceneProgress.PlaythroughInactive", result.Error.Code);
     }
 
-    private static SceneProgress Progress(
-        SceneProgressStatus status = SceneProgressStatus.NotStarted)
+    private static ScenePlaythrough Progress(
+        ScenePlaythroughStatus status = ScenePlaythroughStatus.NotStarted)
     {
-        return new SceneProgress
+        return new ScenePlaythrough
         {
             Id = 6,
             SceneId = 5,

@@ -34,13 +34,17 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
         public Task<bool> IsAssignedAsync(int userId, int id, CancellationToken ct)
         {
-            return _dbContext.JourneyCharacterEquippableItems
-                .IgnoreQueryFilters()
-                .AnyAsync(
-                    assignment =>
-                        assignment.EquippableItemId == id &&
-                        assignment.EquippableItem.UserId == userId,
-                ct);
+            return IsAssignedInternalAsync(userId, id, ct);
+        }
+
+        private async Task<bool> IsAssignedInternalAsync(int userId, int id, CancellationToken ct)
+        {
+            return await _dbContext.JourneyPlaythroughCharacterEquippableItems.AnyAsync(
+                       assignment => assignment.EquippableItemId == id && assignment.EquippableItem.UserId == userId, ct)
+                || await _dbContext.ScenePlaythroughCharacterEquippableItems.AnyAsync(
+                       assignment => assignment.EquippableItemId == id && assignment.EquippableItem.UserId == userId, ct)
+                || await _dbContext.SceneChestLootEntries.AnyAsync(
+                       entry => entry.EquippableItemId == id && entry.EquippableItem!.UserId == userId, ct);
         }
 
         private IQueryable<EquippableItem> QueryForUser(int userId)

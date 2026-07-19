@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,12 +11,13 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasKey(sd => sd.Id);
 
             builder.Property(sd => sd.Title)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(250);
 
-            builder.Property(sd => sd.CreateDate)
+            builder.Property(sd => sd.CreatedAt)
                     .IsRequired();
 
-            builder.Property(sd => sd.UpdateDate)
+            builder.Property(sd => sd.UpdatedAt)
                     .IsRequired();
 
             builder.HasMany(sd => sd.DialogPages)

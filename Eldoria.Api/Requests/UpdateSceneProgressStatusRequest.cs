@@ -6,7 +6,7 @@ namespace Eldoria.Api.Requests
     public class UpdateSceneProgressStatusRequest
     {
         [Required]
-        [EnumDataType(typeof(SceneProgressStatus))]
-        public SceneProgressStatus? Status { get; set; }
+        [EnumDataType(typeof(ScenePlaythroughStatus))]
+        public ScenePlaythroughStatus? Status { get; set; }
     }
 }
