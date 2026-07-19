@@ -13,29 +13,6 @@ namespace Eldoria.Application.Services
         private readonly IOwnershipRepository _ownershipRepository = ownershipRepository;
         private readonly ICharacterRepository _characterRepository = characterRepository;
 
-        public async Task<Result> UpdateJourneyCharacter(
-            int userId,
-            int journeyCharacterId,
-            int newHp,
-            int newMp,
-            bool isAlternateForm,
-            CancellationToken ct)
-        {
-            var character = await _ownershipRepository.GetJourneyCharacterAsync(
-                userId,
-                journeyCharacterId,
-                ct);
-
-            if (character is null)
-                return Result.Fail(new Error("JourneyCharacter.NotFound", "Journey character was not found."));
-
-            character.CurrentHp = newHp;
-            character.CurrentMp = newMp;
-            character.IsInAlternateForm = isAlternateForm;
-            await _journeyCharacterRepository.SaveChangesAsync(ct);
-            return Result.Ok();
-        }
-
         public async Task<Result> DeleteAsync(
             int userId,
             int journeyCharacterId,
@@ -123,8 +100,6 @@ namespace Eldoria.Application.Services
             {
                 await _journeyCharacterRepository.AddAsync(new JourneyCharacter
                 {
-                    CurrentHp = character.BaseMaxHp,
-                    CurrentMp = character.BaseMaxMp,
                     MaxHp = character.BaseMaxHp,
                     MaxMp = character.BaseMaxMp,
                     MeleeAttackDamage = character.BaseMeleeAttackDamage,
@@ -132,8 +107,7 @@ namespace Eldoria.Application.Services
                     Movement = character.BaseMovement,
                     MaxConsumableInventory = character.BaseMaxConsumableInventory,
                     MaxEquippableInventory = character.BaseMaxEquippableInventory,
-                    IsDown = false,
-                    IsInAlternateForm = false,
+                    IsInitiallyActive = true,
                     JourneyId = journeyId,
                     CharacterId = character.Id,
                     JourneyCharacterSpells = character.CharacterSpells

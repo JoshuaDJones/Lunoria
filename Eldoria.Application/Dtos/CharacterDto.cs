@@ -1,4 +1,4 @@
-using Eldoria.Core.Entities;
+using Eldoria.Core.Enums;
 
 namespace Eldoria.Application.Dtos
 {
@@ -15,9 +15,7 @@ namespace Eldoria.Application.Dtos
         public int Movement { get; set; }
         public int BaseMaxConsumableInventory { get; set; }
         public int BaseMaxEquippableInventory { get; set; }
-        public bool IsPlayer { get; set; }
-        public bool IsNPC { get; set; }
-        public bool IsEnemy { get; set; }
+        public CharacterType CharacterType { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public int? AlternateFormId { get; set; }

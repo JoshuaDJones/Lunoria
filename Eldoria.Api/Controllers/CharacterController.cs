@@ -17,7 +17,7 @@ namespace Eldoria.Api.Controllers
         public async Task<ActionResult<List<CharacterDto>>> List(
             [FromQuery] int skip = 0,
             [FromQuery] int take = 500,
-            [FromQuery] CharacterType typeFilter = CharacterType.Any,
+            [FromQuery] CharacterType typeFilter = CharacterType.Player,
             CancellationToken ct = default)
         {
             var result = await _characterService.GetListAsync(User.GetUserId(), skip, take, typeFilter, ct);
@@ -74,9 +74,7 @@ namespace Eldoria.Api.Controllers
                 req.Movement!.Value,
                 req.BaseMaxConsumableInventory!.Value,
                 req.BaseMaxEquippableInventory!.Value,
-                req.IsPlayer!.Value,
-                req.IsNPC!.Value,
-                req.IsEnemy!.Value,
+                req.CharacterType!.Value,
                 req.AlternateFormId,
                 ct);
 
@@ -103,9 +101,7 @@ namespace Eldoria.Api.Controllers
                 req.Movement!.Value,
                 req.BaseMaxConsumableInventory!.Value,
                 req.BaseMaxEquippableInventory!.Value,
-                req.IsPlayer!.Value,
-                req.IsNPC!.Value,
-                req.IsEnemy!.Value,
+                req.CharacterType!.Value,
                 req.AlternateFormId,
                 ct);
 

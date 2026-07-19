@@ -20,14 +20,12 @@ namespace Eldoria.Application.Common
                 Movement = character.BaseMovement,
                 BaseMaxConsumableInventory = character.BaseMaxConsumableInventory,
                 BaseMaxEquippableInventory = character.BaseMaxEquippableInventory,
-                IsPlayer = character.IsPlayer,
-                IsNPC = character.IsNPC,
-                IsEnemy = character.IsEnemy,
+                CharacterType = character.CharacterType,
                 AlternateFormId = character.BaseAlternateFormId,
                 AlternateForm = character.BaseAlternateForm?.ToDto(),
                 CreatedAt = character.CreatedAt,
-                CharacterSpells = character.CharacterSpells.Select(s => s.ToDto()).ToList(),
-                CharacterDialogSettings = character.CharacterDialogSettings == null ? null : character.CharacterDialogSettings.ToDto()
+                CharacterSpells = [.. character.CharacterSpells.Select(s => s.ToDto())],
+                CharacterDialogSettings = character.CharacterDialogSettings?.ToDto()
             };
         }
     }

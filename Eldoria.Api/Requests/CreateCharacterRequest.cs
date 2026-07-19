@@ -32,13 +32,7 @@ namespace Eldoria.Api.Requests
         public int? BaseMaxEquippableInventory { get; set; }
 
         [Required]
-        public bool? IsPlayer { get; set; }
-
-        [Required]
-        public bool? IsNPC { get; set; }
-
-        [Required]
-        public bool? IsEnemy { get; set; }
+        public Eldoria.Core.Enums.CharacterType? CharacterType { get; set; }
 
         public int? AlternateFormId { get; set; }
     }

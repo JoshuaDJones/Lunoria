@@ -12,7 +12,7 @@ namespace Eldoria.Application.Common
                 Id = dialogPage.Id,
                 OrderNum = dialogPage.OrderNum,
                 PhotoUrl = dialogPage.PhotoUrl,
-                DialogPageSections = dialogPage.DialogPageSections.Select(s => s.ToDto()).ToList()
+                DialogPageSections = [.. dialogPage.DialogPageSections.Select(s => s.ToDto())]
             };
         }
     }

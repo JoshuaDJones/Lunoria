@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Application.Dtos
+﻿    namespace Eldoria.Application.Dtos
 {
     public class CharacterDialogSettingsDto
     {

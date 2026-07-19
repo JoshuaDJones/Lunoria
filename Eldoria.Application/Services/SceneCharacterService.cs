@@ -28,30 +28,17 @@ namespace Eldoria.Application.Services
 
             await _sceneCharacterRepository.AddAsync(new SceneCharacter
             {
-                CurrentHp = character.BaseMaxHp,
-                CurrentMp = character.BaseMaxMp,
-                IsDown = false,
-                IsAlternateForm = false,
+                MaxHp = character.BaseMaxHp,
+                MaxMp = character.BaseMaxMp,
+                MeleeAttackDamage = character.BaseMeleeAttackDamage,
+                BowAttackDamage = character.BaseBowAttackDamage,
+                Movement = character.BaseMovement,
+                MaxConsumableInventory = character.BaseMaxConsumableInventory,
+                MaxEquippableInventory = character.BaseMaxEquippableInventory,
+                IsInitiallyActive = true,
                 SceneId = sceneId,
                 CharacterId = characterId,
             }, ct);
-            await _sceneCharacterRepository.SaveChangesAsync(ct);
-            return Result.Ok();
-        }
-
-        public async Task<Result> AdjustCharacterHpMpAsync(
-            int userId,
-            int sceneCharacterId,
-            int newHp,
-            int newMp,
-            CancellationToken ct)
-        {
-            var character = await _ownershipRepository.GetSceneCharacterAsync(userId, sceneCharacterId, ct);
-            if (character is null)
-                return Result.Fail(new Error("SceneCharacter.NotFound", "Scene character was not found."));
-
-            character.CurrentHp = newHp;
-            character.CurrentMp = newMp;
             await _sceneCharacterRepository.SaveChangesAsync(ct);
             return Result.Ok();
         }

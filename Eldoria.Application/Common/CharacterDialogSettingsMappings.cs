@@ -11,7 +11,7 @@ namespace Eldoria.Application.Common
             {
                 Id = characterDialogSettings.Id,
                 DialogActiveColor = characterDialogSettings.DialogActiveColor,
-                DialogUnActiveColor = characterDialogSettings.DialogUnActiveColor
+                DialogUnActiveColor = characterDialogSettings.DialogInActiveColor
             };
         }
     }

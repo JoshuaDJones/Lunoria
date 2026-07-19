@@ -42,19 +42,5 @@ namespace Eldoria.Api.Controllers
             };
         }
 
-        [HttpPatch("{sceneCharacterId:int}")]
-        public async Task<IActionResult> Modify(int sceneCharacterId, [FromBody] UpdateSceneCharacterHpMpRequest req, CancellationToken ct)
-        {
-            var result = await _sceneCharacterService.AdjustCharacterHpMpAsync(User.GetUserId(), sceneCharacterId, req.Hp, req.Mp, ct);
-
-            if(result.Success)
-                return Ok();
-
-            return result.Error?.Code switch
-            {
-                "SceneCharacter.NotFound" => BadRequest(result?.Error),
-                _ => BadRequest(result?.Error)
-            };
-        }
     }
 }

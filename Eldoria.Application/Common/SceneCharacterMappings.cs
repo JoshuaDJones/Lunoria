@@ -10,14 +10,19 @@ namespace Eldoria.Application.Common
             return new SceneCharacterDto
             {
                 Id = sceneCharacter.Id,
-                CurrentHp = sceneCharacter.CurrentHp,
-                CurrentMp = sceneCharacter.CurrentMp,
-                IsDown = sceneCharacter.IsDown,
-                IsAlternateForm = sceneCharacter.IsAlternateForm,
+                MeleeAttackDamage = sceneCharacter.MeleeAttackDamage,
+                BowAttackDamage = sceneCharacter.BowAttackDamage,
+                Movement = sceneCharacter.Movement,
+                MaxConsumableInventory = sceneCharacter.MaxConsumableInventory,
+                MaxEquippableInventory = sceneCharacter.MaxEquippableInventory,
+                MaxHp = sceneCharacter.MaxHp,
+                MaxMp = sceneCharacter.MaxMp,
+                IsInitiallyActive = sceneCharacter.IsInitiallyActive,
                 SceneId = sceneCharacter.SceneId,
+                AlternateForm = sceneCharacter.AlternateForm?.ToDto(),
                 CharacterId = sceneCharacter.CharacterId,
                 Character = sceneCharacter.Character.ToDto(),
-                SceneCharacterItems = sceneCharacter.SceneCharacterItems.Select(sci => sci.ToDto()).ToList()
+                SceneCharacterSpells = [.. sceneCharacter.SceneCharacterSpells.Select(spell => spell.ToDto())]
             };
         }
     }

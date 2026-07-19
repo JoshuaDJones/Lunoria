@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Eldoria.Application.Dtos
+﻿namespace Eldoria.Application.Dtos
 {
     public class SceneCharacterDto
     {
         public int Id { get; set; }
-        public int CurrentHp { get; set; }
-        public int CurrentMp { get; set; }
-        public bool IsDown { get; set; }
-        public bool IsAlternateForm { get; set; }
+        public int? MeleeAttackDamage { get; set; }
+        public int? BowAttackDamage { get; set; }
+        public int Movement { get; set; }
+        public int MaxConsumableInventory { get; set; }
+        public int MaxEquippableInventory { get; set; }
+        public int MaxHp { get; set; }
+        public int MaxMp { get; set; }
+        public bool IsInitiallyActive { get; set; }
         public int SceneId { get; set; }
+        public CharacterDto? AlternateForm { get; set; }
         public int CharacterId { get; set; }
         public CharacterDto Character { get; set; } = null!;
-        public List<SceneCharacterItemDto> SceneCharacterItems { get; set; } = [];
+        public List<SceneCharacterSpellDto> SceneCharacterSpells { get; set; } = [];
 
     }
 }

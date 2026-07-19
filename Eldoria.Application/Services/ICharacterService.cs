@@ -22,9 +22,7 @@ namespace Eldoria.Application.Services
             int movement,
             int baseMaxConsumableInventory,
             int baseMaxEquippableInventory,
-            bool isPlayer,
-            bool isNPC,
-            bool isEnemy,
+            CharacterType characterType,
             int? alternateFormId,
             CancellationToken ct);
 
@@ -40,9 +38,7 @@ namespace Eldoria.Application.Services
             int movement,
             int baseMaxConsumableInventory,
             int baseMaxEquippableInventory,
-            bool isPlayer,
-            bool isNPC,
-            bool isEnemy,
+            CharacterType characterType,
             int? alternateFormId,
             CancellationToken ct);
     }

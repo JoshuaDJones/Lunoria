@@ -23,6 +23,6 @@
 
         public int? AffectedSpellTypeId { get; set; }
         public SpellTypeDto? AffectedSpellType { get; set; }
-        public int SpellDamageModifier { get; set; }
+        public int? SpellDamageModifier { get; set; }
     }
 }

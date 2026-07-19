@@ -26,9 +26,7 @@ namespace Eldoria.Application.Services
             int movement,
             int baseMaxConsumableInventory,
             int baseMaxEquippableInventory,
-            bool isPlayer,
-            bool isNPC,
-            bool isEnemy,
+            CharacterType characterType,
             int? alternateFormId,
             CancellationToken ct)
         {
@@ -52,9 +50,7 @@ namespace Eldoria.Application.Services
                 BaseMovement = movement,
                 BaseMaxConsumableInventory = baseMaxConsumableInventory,
                 BaseMaxEquippableInventory = baseMaxEquippableInventory,
-                IsPlayer = isPlayer,
-                IsNPC = isNPC,
-                IsEnemy = isEnemy,
+                CharacterType = characterType,
                 BaseAlternateFormId = alternateFormId,
                 BaseAlternateForm = alternateForm,
                 CreatedAt = now,
@@ -123,9 +119,7 @@ namespace Eldoria.Application.Services
             int movement,
             int baseMaxConsumableInventory,
             int baseMaxEquippableInventory,
-            bool isPlayer,
-            bool isNPC,
-            bool isEnemy,
+            CharacterType characterType,
             int? alternateFormId,
             CancellationToken ct)
         {
@@ -157,9 +151,7 @@ namespace Eldoria.Application.Services
             character.BaseMovement = movement;
             character.BaseMaxConsumableInventory = baseMaxConsumableInventory;
             character.BaseMaxEquippableInventory = baseMaxEquippableInventory;
-            character.IsPlayer = isPlayer;
-            character.IsNPC = isNPC;
-            character.IsEnemy = isEnemy;
+            character.CharacterType = characterType;
             character.BaseAlternateFormId = alternateFormId;
             character.BaseAlternateForm = alternateForm;
             character.UpdatedAt = DateTime.UtcNow;

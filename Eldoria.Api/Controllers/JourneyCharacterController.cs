@@ -28,22 +28,6 @@ namespace Eldoria.Api.Controllers
             };
         }
 
-        [HttpPatch("{journeyCharacterId:int}")]
-        public async Task<IActionResult> Modify(int journeyCharacterId, [FromBody] UpdateJourneyCharacterRequest req, CancellationToken ct)
-        {
-            var result = await _journeyCharacterService.UpdateJourneyCharacter(User.GetUserId(), journeyCharacterId, req.Hp!.Value, req.Mp!.Value, req.IsAlternateForm, ct);
-
-            if (result.Success) 
-                return Ok();
-
-            return result.Error?.Code switch
-            {
-                "JourneyCharacter.NotFound" => BadRequest(result?.Error),
-                "JourneyCharacter.InUse" => Conflict(result?.Error),
-                _ => BadRequest(result?.Error)
-            };
-        }
-
         [HttpDelete("{journeyCharacterId:int}")]
         public async Task<IActionResult> Delete(int journeyCharacterId, CancellationToken ct)
         {
