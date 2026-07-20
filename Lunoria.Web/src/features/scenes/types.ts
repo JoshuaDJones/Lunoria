@@ -1,6 +1,7 @@
 import type { Character } from "@/features/characters/types";
 import type { Item } from "@/features/items/types";
 import type { JourneyCharacter } from "@/features/journeys/types";
+import type { Spell } from "@/features/spells/types";
 
 export enum SceneProgressStatus {
   NotStarted = 0,
@@ -39,14 +40,27 @@ export interface SceneCharacterItem {
 
 export interface SceneCharacter {
   id: number;
-  currentHp: number;
-  currentMp: number;
-  isDown: boolean;
-  isAlternateForm: boolean;
+  meleeAttackDamage: number | null;
+  bowAttackDamage: number | null;
+  movement: number;
+  maxConsumableInventory: number;
+  maxEquippableInventory: number;
+  maxHp: number;
+  maxMp: number;
+  isInitiallyActive: boolean;
   sceneId: number;
-  characterId: number;
-  character: Character;
-  sceneCharacterItems: SceneCharacterItem[];
+  alternateFormId: number | null;
+  isAlternateForm: boolean;
+  alternateForm: Character | null;
+  characterId: number | null;
+  character: Character | null;
+  sceneCharacterSpells: SceneCharacterSpell[];
+}
+
+export interface SceneCharacterSpell {
+  id: number; 
+  sceneCharacter: SceneCharacter;
+  spell: Spell;
 }
 
 export interface Scene {

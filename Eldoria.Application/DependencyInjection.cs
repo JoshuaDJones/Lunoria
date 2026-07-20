@@ -28,6 +28,7 @@ namespace Eldoria.Application
             services.AddScoped<IImagesService, ImagesService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IAzureStorageBlob, AzureStorageBlob>();
+            services.AddScoped<ISeriesService, SeriesService>();
 
             return services;
         }

@@ -9,6 +9,6 @@
         public string? FileName { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public ICollection<JourneyDto> Journeys { get; set; } = [];
+        public List<JourneyDto>? Journeys { get; set; } = [];
     }
 }

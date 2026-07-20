@@ -7,11 +7,16 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { Drawer } from "@/components/ui/Drawer";
+import {
+  createJourney,
+  deleteJourney,
+  JourneyGrid,
+  listJourneys,
+  updateJourney,
+  type Journey,
+} from "@/features/journeys";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
-import { Series } from "@/features/series/types";
-import { createSeries, deleteSeries, listSeries, updateSeries } from "@/features/series/api/seriesApi";
-import { SeriesGrid } from "@/features/series";
 
 const fields: ResourceFormField[] = [
   { name: "name", label: "Name", required: true },
@@ -19,15 +24,15 @@ const fields: ResourceFormField[] = [
     name: "description",
     label: "Description",
     type: "textarea",
-    required: false,
+    required: true,
   },
 ];
 
-export function HomePage() {
+export function JourneysPage() {
   const navigate = useNavigate();
   const { confirm } = useConfirmDialog();
   const toast = useToast();
-  const [editing, setEditing] = useState<Series | null | undefined>();
+  const [editing, setEditing] = useState<Journey | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleSaved = () => {
@@ -35,9 +40,9 @@ export function HomePage() {
     setReloadKey((value) => value + 1);
   };
 
-  const openConfirmDelete = async (series: Series) => {
+  const openConfirmDelete = async (journey: Journey) => {
     const confirmed = await confirm({
-      title: `Delete series "${series.name}"?`,
+      title: `Delete journey "${journey.name}"?`,
       message: "This action cannot be undone.",
       confirmLabel: "Delete",
       variant: "danger",
@@ -46,13 +51,13 @@ export function HomePage() {
     if (!confirmed) return;
 
     try {
-      await deleteSeries(series.id);
+      await deleteJourney(journey.id);
       setReloadKey((value) => value + 1);
-      toast.success(`Series "${series.name}" was deleted.`);
+      toast.success(`Journey "${journey.name}" was deleted.`);
     } catch (requestError) {
       toast.error(
         getApiError(requestError).message,
-        "Unable to delete series",
+        "Unable to delete journey",
       );
     }
   };
@@ -60,23 +65,26 @@ export function HomePage() {
   return (
     <>
       <CollectionPage
-        title="Series"
-        itemName="series"
-        loadItems={listSeries}
+        title="Journeys"
+        itemName="journey"
+        loadItems={listJourneys}
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
-        renderItems={(seriesList) => (
-          <SeriesGrid
-            series={seriesList}
+        renderItems={(journeys) => (
+          <JourneyGrid
+            journeys={journeys}
             onDelete={openConfirmDelete}
             onSelect={setEditing}
+            onViewScenes={(journey) =>
+              navigate(`/journeys/${journey.id}/scenes`)
+            }
           />
         )}
       />
 
       {editing !== undefined && (
         <Drawer
-          title={editing ? "Edit series" : "Create series"}
+          title={editing ? "Edit journey" : "Create journey"}
           onClose={() => setEditing(undefined)}
         >
           <ResourceForm
@@ -94,17 +102,18 @@ export function HomePage() {
               };
 
               if (editing) {
-            requirePhoto={!editing}
-            onSubmit={async (values, photo) => {
-              const input = {
-                name: textValue(values, "name"),
-                description: textValue(values, "description"),
-              };
-
-              if (editing) {
-                await updateSeries(editing.id, { ...input, photo });
-                toast.success(`Series "${input.name}" was updated.`);
+                await updateJourney(editing.id, { ...input, photo });
+                toast.success(`Journey "${input.name}" was updated.`);
               } else {
-                await createSeries({ ...input, photo: requiredPhoto(photo) });
-                toast.success(`Series "${input.name}" was created.`);
+                await createJourney({ ...input, photo: requiredPhoto(photo) });
+                toast.success(`Journey "${input.name}" was created.`);
+              }
+
+              handleSaved();
+            }}
+          />
+        </Drawer>
+      )}
+    </>
+  );
 }
