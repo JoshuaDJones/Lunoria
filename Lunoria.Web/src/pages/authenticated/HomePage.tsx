@@ -11,7 +11,7 @@ import { useConfirmDialog, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
 import { Series } from "@/features/series/types";
 import { createSeries, deleteSeries, listSeries, updateSeries } from "@/features/series/api/seriesApi";
-import { SeriesGrid } from "@/features/series";
+import { SeriesGrid } from "@/features/series/components/SeriesGrid";
 
 const fields: ResourceFormField[] = [
   { name: "name", label: "Name", required: true },
@@ -65,46 +65,49 @@ export function HomePage() {
         loadItems={listSeries}
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
-        renderItems={(seriesList) => (
-          <SeriesGrid
-            series={seriesList}
+        renderItems={(series) => (
+          <SeriesGrid 
+            series={series}
             onDelete={openConfirmDelete}
             onSelect={setEditing}
+            onViewJourneys={(series) =>
+              navigate(`/series/${series.id}/journeys`)
+            }
           />
         )}
       />
 
       {editing !== undefined && (
         <Drawer
-          title={editing ? "Edit series" : "Create series"}
-          onClose={() => setEditing(undefined)}
-        >
-          <ResourceForm
-            fields={fields}
+          title={editing ? `Edit series` : "Create new series"}
+          onClose={() => setEditing(undefined)}>
+            <ResourceForm fields={fields}
             initialValues={{
               name: editing?.name ?? "",
-              description: editing?.description ?? "",
+              description: editing?.description ?? ""
             }}
-            existingPhotoUrl={editing?.photoUrl}
+            existingPhotoUrl={editing?.photoUrl ?? undefined}
             requirePhoto={!editing}
-            onSubmit={async (values, photo) => {
+            onSubmit={async (values, photoFile) => {
               const input = {
                 name: textValue(values, "name"),
                 description: textValue(values, "description"),
+                photo: photoFile ?? undefined,
               };
 
               if (editing) {
-            requirePhoto={!editing}
-            onSubmit={async (values, photo) => {
-              const input = {
-                name: textValue(values, "name"),
-                description: textValue(values, "description"),
-              };
-
-              if (editing) {
-                await updateSeries(editing.id, { ...input, photo });
-                toast.success(`Series "${input.name}" was updated.`);
+                await updateSeries(editing.id, input);
+                toast.success(`Series "${editing.name}" was updated.`);
               } else {
-                await createSeries({ ...input, photo: requiredPhoto(photo) });
+                await createSeries(input);
                 toast.success(`Series "${input.name}" was created.`);
+              }
+
+              handleSaved();
+            }}
+            />
+          </Drawer>
+      )}
+    </>
+  );
 }

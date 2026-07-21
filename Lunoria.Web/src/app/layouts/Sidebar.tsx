@@ -34,8 +34,8 @@ interface SidebarProps {
 }
 
 const defaultItems: SidebarItem[] = [
-  { label: "Series", to: "/series", icon: faScroll },
-  { label: "Journeys", to: "/home", icon: faBookOpen },
+  { label: "Series", to: "/home", icon: faScroll },
+  { label: "Journeys", to: "/journeys", icon: faBookOpen },
   { label: "Characters", to: "/characters", icon: faUser },
   { label: "Spells", to: "/spells", icon: faWandMagicSparkles },
   { label: "Consumables", to: "/consumables", icon: faBottleDroplet },
