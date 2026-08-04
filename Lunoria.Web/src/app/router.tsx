@@ -81,6 +81,10 @@ export const router = createBrowserRouter([
         path: "/journeys/:journeyId/all-dialogs",
         element: <AllDialogsPage />,
       },
+      {
+        path: "/series/:seriesId/journeys",
+        element: <JourneysPage />,
+      },
     ],
   },
   {

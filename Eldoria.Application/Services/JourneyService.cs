@@ -73,13 +73,14 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        public async Task<Result<JourneyDto>> CreateAsync(int userId, string name, string description, IFormFile photo, CancellationToken ct)
+        public async Task<Result<JourneyDto>> CreateAsync(int userId, int seriesId, string name, string description, IFormFile photo, CancellationToken ct)
         {
             var (photoUrl, filename) = await _azureStorageBlob.UploadPhoto(photo);
 
             var journey = new Journey
             {
                 UserId = userId,
+                SeriesId = seriesId,
                 Name = name,
                 Description = description,
                 PhotoUrl = photoUrl,
@@ -89,7 +90,7 @@ namespace Eldoria.Application.Services
             };
 
             await _journeyRepository.AddAsync(journey, ct);
-            await _journeyRepository.SaveChangesAsync(ct);
+            await _journeyRepository.SaveChangesAsync(ct);            
 
             var dto = new JourneyDto
             {

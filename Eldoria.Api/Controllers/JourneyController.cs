@@ -59,7 +59,7 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateJourneyRequest req, CancellationToken ct)
         {
-            var result = await _journeyService.CreateAsync(User.GetUserId(), req.Name, req.Description, req.Photo, ct);
+            var result = await _journeyService.CreateAsync(User.GetUserId(), req.SeriesId, req.Name, req.Description, req.Photo, ct);
 
             if(result.Success)
                 return CreatedAtAction(nameof(Get), new { id = result.Value?.Id }, result.Value);

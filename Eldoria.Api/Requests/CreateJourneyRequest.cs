@@ -5,6 +5,9 @@ namespace Eldoria.Api.Requests
     public class CreateJourneyRequest
     {
         [Required]
+        public int SeriesId { get; set; }
+
+        [Required]
         public string Name { get; set; } = string.Empty;
 
         [Required]

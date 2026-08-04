@@ -3,7 +3,7 @@ import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import { Button } from "@/components/ui";
 import type { Journey } from "@/features/journeys/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImages, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faTrash, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
 
 interface JourneyCardProps {
   journey: Journey;
@@ -27,7 +27,7 @@ export function JourneyCard({
       <StatGrid className="mt-4 px-4 pb-4">
         <Stat
           label="Created"
-          value={new Intl.DateTimeFormat().format(new Date(journey.createDate))}
+          value={new Intl.DateTimeFormat().format(new Date(journey.createdAt))}
         />
       </StatGrid>
       {onViewScenes && (
@@ -39,9 +39,9 @@ export function JourneyCard({
             }}
             variant="primary"
             inverted
-            leftIcon={<FontAwesomeIcon icon={faImages} />}
+            leftIcon={<FontAwesomeIcon icon={faFolderOpen} />}
           >
-            Scenes
+            Open
           </Button>
           <Button
             onClick={onDelete ? () => onDelete(journey) : undefined}

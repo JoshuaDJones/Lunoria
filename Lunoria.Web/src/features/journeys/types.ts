@@ -91,7 +91,7 @@ export interface Journey {
   name: string;
   description: string;
   photoUrl: string;
-  createDate: string;
+  createdAt: string;
   scenes: Scene[] | null;
   journeyCharacters: JourneyCharacter[] | null;
   introPages: IntroPage[] | null;
@@ -104,4 +104,4 @@ export interface JourneyInput {
   photo?: File;
 }
 
-export type CreateJourneyInput = JourneyInput & { photo: File };
+export type CreateJourneyInput = JourneyInput & { seriesId: number; photo: File };

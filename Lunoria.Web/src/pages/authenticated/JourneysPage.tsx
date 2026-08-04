@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import { requiredPhoto, textValue } from "@/components/forms/formValues";
 import {
@@ -29,6 +29,12 @@ const fields: ResourceFormField[] = [
 ];
 
 export function JourneysPage() {
+  const { seriesId: seriesIdParam } = useParams();
+  const parsedSeriesId = Number(seriesIdParam);
+  const seriesId =
+    Number.isInteger(parsedSeriesId) && parsedSeriesId > 0
+      ? parsedSeriesId
+      : undefined;
   const navigate = useNavigate();
   const { confirm } = useConfirmDialog();
   const toast = useToast();
@@ -69,7 +75,7 @@ export function JourneysPage() {
         itemName="journey"
         loadItems={listJourneys}
         reloadKey={reloadKey}
-        onAdd={() => setEditing(null)}
+        onAdd={seriesId === undefined ? undefined : () => setEditing(null)}
         renderItems={(journeys) => (
           <JourneyGrid
             journeys={journeys}
@@ -105,7 +111,15 @@ export function JourneysPage() {
                 await updateJourney(editing.id, { ...input, photo });
                 toast.success(`Journey "${input.name}" was updated.`);
               } else {
-                await createJourney({ ...input, photo: requiredPhoto(photo) });
+                if (seriesId === undefined) {
+                  throw new Error("A series is required to create a journey.");
+                }
+
+                await createJourney({
+                  ...input,
+                  seriesId,
+                  photo: requiredPhoto(photo),
+                });
                 toast.success(`Journey "${input.name}" was created.`);
               }
 

@@ -6,8 +6,8 @@ export interface Series{
     description: string | null;
     photoUrl: string | null;
     fileName: string | null;
-    CreatedAt: string;
-    UpdatedAt: string;
+    createdAt: string;
+    updatedAt: string;
     journeys: Journey[];
 }
 

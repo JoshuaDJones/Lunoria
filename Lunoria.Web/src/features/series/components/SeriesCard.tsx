@@ -16,13 +16,14 @@ export function SeriesCard({
     onDelete,
     onViewJourneys,
 }: SeriesCardProps){
+
     return (
         <MediaCard
             title={series.name}
             description={series.description ?? ""}
             imageUrl={series.photoUrl}>
             <StatGrid className="mt-4 px-4 pb-4">
-                <Stat label="Created" value={new Intl.DateTimeFormat().format(new Date(series.CreatedAt))}/>
+                <Stat label="Created" value={new Intl.DateTimeFormat().format(new Date(series.createdAt))}/>
             </StatGrid>
             <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end">
           <Button
@@ -34,7 +35,7 @@ export function SeriesCard({
             inverted
             leftIcon={<FontAwesomeIcon icon={faImages} />}
           >
-            Scenes
+            Journeys
           </Button>
           <Button
             onClick={() => onDelete(series)}
