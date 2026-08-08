@@ -8,7 +8,12 @@ import {
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
 import { ApiLoadError, Button, Drawer } from "@/components/ui";
-import { getJourney, type Journey } from "@/features/journeys";
+import {
+  getJourney,
+  JourneyCharacterPicker,
+  replaceJourneyCharacters,
+  type Journey,
+} from "@/features/journeys";
 import {
   createScene,
   deleteScene,
@@ -49,6 +54,7 @@ export function JourneyEditorPage() {
   const [areScenesLoading, setAreScenesLoading] = useState(true);
   const [editingScene, setEditingScene] = useState<Scene | null | undefined>();
   const [isOrderingScenes, setIsOrderingScenes] = useState(false);
+  const [isManagingCharacters, setIsManagingCharacters] = useState(false);
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
 
   const loadJourney = async () => {
@@ -264,6 +270,7 @@ export function JourneyEditorPage() {
                 Intro Pages
               </Button>
               <Button
+                onClick={() => setIsManagingCharacters(true)}
                 variant="secondary"
                 inverted
                 size="lg"
@@ -335,6 +342,28 @@ export function JourneyEditorPage() {
               );
               setIsOrderingScenes(false);
               toast.success("Scene order was updated.");
+            }}
+          />
+        </Drawer>
+      )}
+
+      {isManagingCharacters && journey && (
+        <Drawer
+          title="Journey Characters"
+          onClose={() => setIsManagingCharacters(false)}
+        >
+          <JourneyCharacterPicker
+            selectedCharacterIds={
+              journey.journeyCharacters?.map(
+                (journeyCharacter) => journeyCharacter.character.id,
+              ) ?? []
+            }
+            onCancel={() => setIsManagingCharacters(false)}
+            onSave={async (characterIds) => {
+              await replaceJourneyCharacters(journeyId, characterIds);
+              setJourney(await getJourney(journeyId));
+              setIsManagingCharacters(false);
+              toast.success("Journey characters were updated.");
             }}
           />
         </Drawer>

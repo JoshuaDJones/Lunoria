@@ -2,6 +2,7 @@ export * from "./api/journeysApi";
 export * from "./api/introPagesApi";
 export * from "./components/JourneyCard";
 export * from "./components/JourneyGrid";
+export * from "./components/JourneyCharacterPicker";
 export * from "./components/IntroPageEditor";
 export * from "./components/IntroPagePreview";
 export * from "./components/IntroPageViewer";

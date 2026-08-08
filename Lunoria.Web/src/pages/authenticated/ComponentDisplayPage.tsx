@@ -23,6 +23,7 @@ const buttonExamples = [
   { variant: "accent", label: "Accent", icon: faPen },
   { variant: "add", label: "Add", icon: faPlus },
   { variant: "magic", label: "Magic", icon: faHatWizard },
+  { variant: "utility", label: "Utility", icon: faLayerGroup },
   { variant: "danger", label: "Danger", icon: faTrash },
 ] as const;
 

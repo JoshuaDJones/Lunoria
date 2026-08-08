@@ -2,9 +2,9 @@ import type { Spell } from "@/features/spells/types";
 
 export enum CharacterType {
   Any = 0,
-  Enemy = 1,
+  Player = 1,
   NPC = 2,
-  Player = 3,
+  Enemy = 3,
 }
 
 export interface CharacterDialogSettings {
