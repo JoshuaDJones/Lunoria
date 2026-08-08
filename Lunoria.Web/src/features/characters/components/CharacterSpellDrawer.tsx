@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card } from "@/components/ui";
+import { ApiLoadError, Button, Card } from "@/components/ui";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import { replaceCharacterSpells } from "@/features/characters/api/charactersApi";
 import { listSpells, type Spell } from "@/features/spells";
@@ -21,6 +21,19 @@ export function CharacterSpellDrawer({
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number>();
   const [error, setError] = useState("");
+
+  const retryLoad = async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      setSpells(await listSpells());
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let isCurrent = true;
@@ -67,15 +80,11 @@ export function CharacterSpellDrawer({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <p className="text-sm text-danger" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ApiLoadError error={error} onRetry={retryLoad} />}
 
-      {spells.length === 0 ? (
+      {!error && spells.length === 0 ? (
         <p className="text-content-muted">No spells are available.</p>
-      ) : (
+      ) : !error ? (
         spells.map((spell) => {
           const isAttached = selection.has(spell.id);
 
@@ -141,7 +150,7 @@ export function CharacterSpellDrawer({
             </Card>
           );
         })
-      )}
+      ) : null}
     </div>
   );
 }

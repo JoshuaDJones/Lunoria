@@ -1,5 +1,6 @@
 import BreakpointIndicator from "./BreakpointIndicator";
 export { Button, type ButtonProps } from "./Button";
+export { ApiLoadError } from "./ApiLoadError";
 export { Card } from "./Card";
 export { CardGrid } from "./CardGrid";
 export { Drawer } from "./Drawer";

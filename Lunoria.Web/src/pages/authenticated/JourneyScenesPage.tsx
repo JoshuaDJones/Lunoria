@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import { requiredPhoto, textValue } from "@/components/forms/formValues";
 import {
@@ -75,18 +75,15 @@ export function JourneyScenesPage() {
     <>
       <CollectionPage
         title="Scenes"
+        backNavigation={
+          journeyId === undefined
+            ? undefined
+            : { to: `/journeys/${journeyId}`, label: "Back to journey" }
+        }
         itemName="scene"
         loadItems={loadJourneyScenes}
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
-        toolbar={
-          <Link
-            to="/home"
-            className="text-sm text-content-secondary hover:text-brand-hover"
-          >
-            ← Back to journeys
-          </Link>
-        }
         renderItems={(scenes) => (
           <SceneGrid
             scenes={scenes}

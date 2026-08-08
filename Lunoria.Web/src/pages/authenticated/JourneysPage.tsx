@@ -87,7 +87,7 @@ export function JourneysPage() {
             onDelete={openConfirmDelete}
             onSelect={setEditing}
             onViewScenes={(journey) =>
-              navigate(`/journeys/${journey.id}/scenes`)
+              navigate(`/series/${seriesId}/journeys/${journey.id}`)
             }
           />
         )}

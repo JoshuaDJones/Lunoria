@@ -7,7 +7,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Button } from "@/components/ui";
+import { ApiLoadError, Button } from "@/components/ui";
 import { getApiError } from "@/lib/apiClient";
 import {
   createSpellType,
@@ -157,14 +157,7 @@ export function SpellTypeManager({ onChanged }: SpellTypeManagerProps) {
 
       {isLoading && <p role="status">Loading spell types...</p>}
 
-      {!isLoading && error && (
-        <div role="alert" className="rounded-lg border border-danger/40 p-4">
-          <p className="text-danger">{error}</p>
-          <Button className="mt-3" onClick={() => void load()}>
-            Try again
-          </Button>
-        </div>
-      )}
+      {!isLoading && error && <ApiLoadError error={error} onRetry={load} />}
 
       {!isLoading && !error && spellTypes.length === 0 && (
         <p className="rounded-lg border border-border p-5 text-content-muted">

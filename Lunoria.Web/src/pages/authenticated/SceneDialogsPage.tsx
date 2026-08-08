@@ -12,7 +12,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Button, Drawer } from "@/components/ui";
+import { ApiLoadError, Button, Drawer } from "@/components/ui";
 import {
   createDialogPage,
   createDialogPageSection,
@@ -212,6 +212,19 @@ export function SceneDialogsPage() {
     setError("");
   };
 
+  const retryLoad = async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      setDialogs(await listSceneDialogs(sceneId));
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const remove = async (
     message: string,
     successMessage: string,
@@ -258,20 +271,17 @@ export function SceneDialogsPage() {
           </div>
         </header>
 
-        {error && (
-          <p
-            className="mb-4 rounded-lg border border-danger/40 bg-surface p-3 text-danger"
-            role="alert"
-          >
-            {error}
-          </p>
+        {!isLoading && error && (
+          <div className="mb-4">
+            <ApiLoadError error={error} onRetry={retryLoad} />
+          </div>
         )}
 
         {isLoading ? (
           <p className="text-content-secondary" role="status">
             Loading dialog editor...
           </p>
-        ) : (
+        ) : !error ? (
           <div className="grid flex-1 gap-4 lg:grid-cols-3">
             <EditorColumn
               title="Dialogs"
@@ -402,7 +412,7 @@ export function SceneDialogsPage() {
               ))}
             </EditorColumn>
           </div>
-        )}
+        ) : null}
       </main>
 
       {editingDialog !== undefined && (

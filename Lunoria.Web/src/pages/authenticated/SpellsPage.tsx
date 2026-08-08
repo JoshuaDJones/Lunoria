@@ -10,7 +10,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Button, Drawer, Select } from "@/components/ui";
+import { ApiLoadError, Button, Drawer, Select } from "@/components/ui";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
 import {
@@ -53,6 +53,7 @@ export function SpellsPage() {
   const [editing, setEditing] = useState<Spell | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
   const [spellTypes, setSpellTypes] = useState<SpellType[]>([]);
+  const [spellTypesError, setSpellTypesError] = useState("");
   const [managingSpellTypes, setManagingSpellTypes] = useState(false);
   const [spellTypeFilter, setSpellTypeFilter] = useState(0);
 
@@ -65,34 +66,30 @@ export function SpellsPage() {
   const loadAvailableSpellTypes = useCallback(async () => {
     try {
       setSpellTypes(await listSpellTypes());
+      setSpellTypesError("");
     } catch (requestError) {
-      toast.error(
-        getApiError(requestError).message,
-        "Unable to load spell types",
-      );
+      setSpellTypesError(getApiError(requestError).message);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
 
     void listSpellTypes()
       .then((items) => {
-        if (isCurrent) setSpellTypes(items);
+        if (isCurrent) {
+          setSpellTypes(items);
+          setSpellTypesError("");
+        }
       })
       .catch((requestError: unknown) => {
-        if (isCurrent) {
-          toast.error(
-            getApiError(requestError).message,
-            "Unable to load spell types",
-          );
-        }
+        if (isCurrent) setSpellTypesError(getApiError(requestError).message);
       });
 
     return () => {
       isCurrent = false;
     };
-  }, [toast]);
+  }, []);
 
   const spellFields = fields.map((field) =>
     field.name === "spellTypeId"
@@ -141,33 +138,44 @@ export function SpellsPage() {
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
         toolbar={
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <label
-                htmlFor="spell-type-filter"
-                className="text-sm font-semibold text-content-secondary"
+          <div className="space-y-4">
+            {spellTypesError && (
+              <ApiLoadError
+                error={spellTypesError}
+                onRetry={loadAvailableSpellTypes}
+              />
+            )}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="spell-type-filter"
+                  className="text-sm font-semibold text-content-secondary"
+                >
+                  Spell type
+                </label>
+                <Select
+                  id="spell-type-filter"
+                  value={spellTypeFilter}
+                  onChange={(event) =>
+                    setSpellTypeFilter(Number(event.target.value))
+                  }
+                  className="w-auto px-3 py-2"
+                >
+                  <option value={0}>All spell types</option>
+                  {spellTypes.map((spellType) => (
+                    <option key={spellType.id} value={spellType.id}>
+                      {spellType.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <Button
+                variant="magic"
+                onClick={() => setManagingSpellTypes(true)}
               >
-                Spell type
-              </label>
-              <Select
-                id="spell-type-filter"
-                value={spellTypeFilter}
-                onChange={(event) =>
-                  setSpellTypeFilter(Number(event.target.value))
-                }
-                className="w-auto px-3 py-2"
-              >
-                <option value={0}>All spell types</option>
-                {spellTypes.map((spellType) => (
-                  <option key={spellType.id} value={spellType.id}>
-                    {spellType.name}
-                  </option>
-                ))}
-              </Select>
+                Manage spell types
+              </Button>
             </div>
-            <Button variant="magic" onClick={() => setManagingSpellTypes(true)}>
-              Manage spell types
-            </Button>
           </div>
         }
         renderItems={(spells) => (

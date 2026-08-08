@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listSpells, type Spell } from "@/features/spells";
 import { getApiError } from "@/lib/apiClient";
-import { Button, Card } from "@/components/ui";
+import { ApiLoadError, Button, Card } from "@/components/ui";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 
 interface SpellPickerDialogProps {
@@ -19,6 +19,19 @@ export function SpellPickerDialog({
   const [selection, setSelection] = useState(() => new Set(selectedIds));
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  const retryLoad = async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      setSpells(await listSpells());
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let isCurrent = true;
@@ -72,10 +85,8 @@ export function SpellPickerDialog({
           </p>
         )}
 
-        {error && (
-          <p className="text-danger" role="alert">
-            {error}
-          </p>
+        {!isLoading && error && (
+          <ApiLoadError error={error} onRetry={retryLoad} />
         )}
 
         {!isLoading && !error && spells.length === 0 && (

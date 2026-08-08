@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import AppLayout from "@/app/layouts/AppLayout";
 import { getApiError } from "@/lib/apiClient";
-import { Button } from "@/components/ui";
+import { ApiLoadError, Button } from "@/components/ui";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
@@ -120,18 +120,7 @@ export function CollectionPage<T>({
         )}
 
         {!isLoading && error && (
-          <div
-            className="rounded-xl border border-danger/40 bg-surface/90 p-5"
-            role="alert"
-          >
-            <p className="text-danger">{error}</p>
-            <Button
-              onClick={() => void retryLoad()}
-              className="mt-4 text-content"
-            >
-              Try again
-            </Button>
-          </div>
+          <ApiLoadError error={error} onRetry={retryLoad} />
         )}
 
         {!isLoading && !error && items.length === 0 && (

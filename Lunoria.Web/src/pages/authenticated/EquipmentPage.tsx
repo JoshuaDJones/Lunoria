@@ -10,7 +10,7 @@ import {
   ResourceForm,
   type ResourceFormField,
 } from "@/components/forms/ResourceForm";
-import { Button, Drawer } from "@/components/ui";
+import { ApiLoadError, Button, Drawer } from "@/components/ui";
 import { useConfirmDialog, useModalStack, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
 import {
@@ -93,6 +93,22 @@ export function EquipmentPage() {
   const [selectedSpellIds, setSelectedSpellIds] = useState<number[]>([]);
   const [spells, setSpells] = useState<Spell[]>([]);
   const [spellTypes, setSpellTypes] = useState<SpellType[]>([]);
+  const [spellOptionsError, setSpellOptionsError] = useState("");
+
+  const loadSpellOptions = async () => {
+    setSpellOptionsError("");
+
+    try {
+      const [loadedSpells, loadedSpellTypes] = await Promise.all([
+        listSpells(),
+        listSpellTypes(),
+      ]);
+      setSpells(loadedSpells);
+      setSpellTypes(loadedSpellTypes);
+    } catch (requestError) {
+      setSpellOptionsError(getApiError(requestError).message);
+    }
+  };
 
   useEffect(() => {
     let isCurrent = true;
@@ -102,14 +118,12 @@ export function EquipmentPage() {
         if (isCurrent) {
           setSpells(loadedSpells);
           setSpellTypes(loadedSpellTypes);
+          setSpellOptionsError("");
         }
       })
       .catch((requestError: unknown) => {
         if (isCurrent) {
-          toast.error(
-            getApiError(requestError).message,
-            "Unable to load spell options",
-          );
+          setSpellOptionsError(getApiError(requestError).message);
         }
       });
 
@@ -213,6 +227,14 @@ export function EquipmentPage() {
         loadItems={listEquipment}
         reloadKey={reloadKey}
         onAdd={openCreate}
+        toolbar={
+          spellOptionsError ? (
+            <ApiLoadError
+              error={spellOptionsError}
+              onRetry={loadSpellOptions}
+            />
+          ) : undefined
+        }
         renderItems={(equipment) => (
           <EquipmentGrid
             equipment={equipment}
