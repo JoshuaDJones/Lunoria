@@ -142,7 +142,12 @@ function ItemActions({ onView, onEdit, onDelete }: ItemActionsProps) {
 export function SceneDialogsPage() {
   const { confirm } = useConfirmDialog();
   const toast = useToast();
-  const { journeyId: journeyIdParam, sceneId: sceneIdParam } = useParams();
+  const {
+    seriesId: seriesIdParam,
+    journeyId: journeyIdParam,
+    sceneId: sceneIdParam,
+  } = useParams();
+  const seriesId = Number(seriesIdParam);
   const journeyId = Number(journeyIdParam);
   const sceneId = Number(sceneIdParam);
 
@@ -188,6 +193,8 @@ export function SceneDialogsPage() {
   }, [sceneId]);
 
   if (
+    !Number.isInteger(seriesId) ||
+    seriesId <= 0 ||
     !Number.isInteger(journeyId) ||
     journeyId <= 0 ||
     !Number.isInteger(sceneId) ||
@@ -263,10 +270,10 @@ export function SceneDialogsPage() {
               Dialog editor
             </h1>
             <Link
-              to={`/journeys/${journeyId}/scenes`}
+              to={`/series/${seriesId}/journeys/${journeyId}`}
               className="text-sm text-content-secondary hover:text-brand-hover"
             >
-              ← Back to scenes
+              ← Back to journey
             </Link>
           </div>
         </header>

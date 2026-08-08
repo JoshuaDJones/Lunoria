@@ -70,7 +70,7 @@ export interface Scene {
   description: string;
   photoUrl: string;
   gridUrl: string;
-  createDate: string;
+  createdAt: string;
   sceneDialogs: SceneDialog[] | null;
   sceneCharacters: SceneCharacter[] | null;
 }

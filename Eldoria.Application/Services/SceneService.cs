@@ -44,8 +44,15 @@ namespace Eldoria.Application.Services
                 UpdatedAt = DateTime.UtcNow,
             };
 
-            await _sceneRepository.AddAsync(scene, ct);
-            await _sceneRepository.SaveChangesAsync(ct);
+            try
+            {
+                await _sceneRepository.AddWithNextSortOrderAsync(scene, ct);
+            }
+            catch
+            {
+                await _azureStorageBlob.DeletePhotoFromUrl(photoUrl);
+                throw;
+            }
 
             return Result<SceneDto>.Ok(scene.ToDto());
         }

@@ -18,6 +18,10 @@ export function SceneCard({
   onEdit,
   onDelete,
 }: SceneCardProps) {
+  const createdAt = new Date(scene.createdAt);
+  const formattedCreatedAt = Number.isNaN(createdAt.getTime())
+    ? "Unknown"
+    : new Intl.DateTimeFormat().format(createdAt);
   const gridUrl = scene.gridUrl
     ? /^https?:\/\//i.test(scene.gridUrl)
       ? scene.gridUrl
@@ -44,7 +48,7 @@ export function SceneCard({
                     "popup=yes,width=1200,height=800,noopener,noreferrer",
                   )
                 }
-                className="cursor-pointer text-brand-hover underline decoration-brand-subtle/60 underline-offset-2 hover:text-brand"
+                className="cursor-pointer break-all text-left text-brand-hover underline decoration-brand-subtle/60 underline-offset-2 hover:text-brand"
               >
                 {scene.gridUrl}
               </button>
@@ -53,12 +57,9 @@ export function SceneCard({
             )
           }
         />
-        <Stat
-          label="Created"
-          value={new Intl.DateTimeFormat().format(new Date(scene.createDate))}
-        />
+        <Stat label="Created" value={formattedCreatedAt} />
       </StatGrid>
-      <div className="mt-4 flex items-center justify-end gap-2 border-t border-border px-4 py-3">
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
         <Button
           onClick={(event) => {
             event.stopPropagation();

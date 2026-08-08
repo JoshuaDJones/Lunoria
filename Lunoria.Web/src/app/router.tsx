@@ -11,7 +11,6 @@ import { CharactersPage } from "@/pages/authenticated/CharactersPage";
 import { SpellsPage } from "@/pages/authenticated/SpellsPage";
 import { ConsumablesPage } from "@/pages/authenticated/ConsumablesPage";
 import { EquipmentPage } from "@/pages/authenticated/EquipmentPage";
-import { JourneyScenesPage } from "@/pages/authenticated/JourneyScenesPage";
 import { SceneDialogsPage } from "@/pages/authenticated/SceneDialogsPage";
 import { ComponentDisplayPage } from "@/pages/authenticated/ComponentDisplayPage";
 import { JourneysPage } from "@/pages/authenticated/JourneysPage";
@@ -71,14 +70,6 @@ export const router = createBrowserRouter([
         element: <ComponentDisplayPage />,
       },
       {
-        path: "/journeys/:journeyId/scenes",
-        element: <JourneyScenesPage />,
-      },
-      {
-        path: "/journeys/:journeyId/scenes/:sceneId/dialogs",
-        element: <SceneDialogsPage />,
-      },
-      {
         path: "/journeys/:journeyId/all-dialogs",
         element: <AllDialogsPage />,
       },
@@ -89,6 +80,10 @@ export const router = createBrowserRouter([
       {
         path: "/series/:seriesId/journeys/:journeyId",
         element: <JourneyEditorPage />,
+      },
+      {
+        path: "/series/:seriesId/journeys/:journeyId/scenes/:sceneId/dialogs",
+        element: <SceneDialogsPage />,
       },
     ],
   },

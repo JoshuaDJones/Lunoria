@@ -1,6 +1,7 @@
 ﻿using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
@@ -8,6 +9,24 @@ namespace Eldoria.Infrastructure.Db.Repositories
         : Repository<Scene>(dbContext), ISceneRepository
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
+
+        public async Task AddWithNextSortOrderAsync(Scene scene, CancellationToken ct)
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable,
+                ct);
+
+            var highestSortOrder = await _dbContext.Scenes
+                .Where(existingScene => existingScene.JourneyId == scene.JourneyId)
+                .Select(existingScene => (int?)existingScene.SortOrder)
+                .MaxAsync(ct);
+
+            scene.SortOrder = (highestSortOrder ?? -1) + 1;
+
+            await _dbContext.Scenes.AddAsync(scene, ct);
+            await _dbContext.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+        }
 
         public async Task<List<Scene>> GetJourneyScenes(int journeyId, int skip, int take, CancellationToken ct)
         {
