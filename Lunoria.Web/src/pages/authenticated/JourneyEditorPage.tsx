@@ -55,6 +55,7 @@ export function JourneyEditorPage() {
   const [editingScene, setEditingScene] = useState<Scene | null | undefined>();
   const [isOrderingScenes, setIsOrderingScenes] = useState(false);
   const [isManagingCharacters, setIsManagingCharacters] = useState(false);
+  const [eventsScene, setEventsScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
 
   const loadJourney = async () => {
@@ -235,6 +236,7 @@ export function JourneyEditorPage() {
                   <SceneGrid
                     scenes={scenes}
                     className="sm:grid-cols-1 xl:grid-cols-2"
+                    onViewEvents={setEventsScene}
                     onEdit={setEditingScene}
                     onDelete={(scene) => void openConfirmDeleteScene(scene)}
                     onViewDialogs={(scene) =>
@@ -318,6 +320,15 @@ export function JourneyEditorPage() {
               setScenesReloadKey((value) => value + 1);
             }}
           />
+        </Drawer>
+      )}
+
+      {eventsScene && (
+        <Drawer
+          title={`${eventsScene.name} Events`}
+          onClose={() => setEventsScene(undefined)}
+        >
+          <div />
         </Drawer>
       )}
 

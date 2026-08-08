@@ -3,10 +3,16 @@ import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import { Button } from "@/components/ui";
 import type { Scene } from "@/features/scenes/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComments, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBolt,
+  faComments,
+  faPen,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface SceneCardProps {
   scene: Scene;
+  onViewEvents: (scene: Scene) => void;
   onViewDialogs: (scene: Scene) => void;
   onEdit: (scene: Scene) => void;
   onDelete: (scene: Scene) => void;
@@ -14,6 +20,7 @@ interface SceneCardProps {
 
 export function SceneCard({
   scene,
+  onViewEvents,
   onViewDialogs,
   onEdit,
   onDelete,
@@ -60,6 +67,18 @@ export function SceneCard({
         <Stat label="Created" value={formattedCreatedAt} />
       </StatGrid>
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
+        <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewEvents(scene);
+          }}
+          variant="utility"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faBolt} />}
+        >
+          Events
+        </Button>
         <Button
           onClick={(event) => {
             event.stopPropagation();

@@ -5,6 +5,7 @@ import type { Scene } from "@/features/scenes/types";
 interface SceneGridProps {
   scenes: Scene[];
   className?: string;
+  onViewEvents: (scene: Scene) => void;
   onViewDialogs: (scene: Scene) => void;
   onEdit: (scene: Scene) => void;
   onDelete: (scene: Scene) => void;
@@ -13,6 +14,7 @@ interface SceneGridProps {
 export function SceneGrid({
   scenes,
   className,
+  onViewEvents,
   onViewDialogs,
   onEdit,
   onDelete,
@@ -23,6 +25,7 @@ export function SceneGrid({
         <SceneCard
           key={scene.id}
           scene={scene}
+          onViewEvents={onViewEvents}
           onViewDialogs={onViewDialogs}
           onEdit={onEdit}
           onDelete={onDelete}
