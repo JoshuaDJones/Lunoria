@@ -63,7 +63,7 @@ export function EquipmentCard({
         />
         <Stat
           label="Spell damage modifier"
-          value={signed(item.spellDamageModifier)}
+          value={signed(item.spellDamageModifier ?? 0)}
         />
       </StatGrid>
 
@@ -74,9 +74,9 @@ export function EquipmentCard({
         className="mt-4 w-full border-t border-border px-4 pt-4 pb-4 text-left transition hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-default"
       >
         <h3 className="text-sm font-semibold text-content-secondary">
-          Added spells ({item.addedSpells.length})
+          Added spells ({item.addedSpells?.length ?? 0})
         </h3>
-        {item.addedSpells.length > 0 ? (
+        {item.addedSpells?.length ? (
           <ul className="mt-2 flex flex-wrap gap-2">
             {item.addedSpells.map((spell) => (
               <li

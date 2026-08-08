@@ -16,7 +16,7 @@ export interface Spell {
   damageEffect: number | null;
   healthEffect: number | null;
   magicEffect: number | null;
-  createDate: string;
+  createdAt: string;
   spellTypeId: number;
   spellType: SpellType | null;
 }

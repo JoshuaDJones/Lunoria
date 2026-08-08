@@ -5,7 +5,7 @@ export interface Item {
   photoUrl: string;
   hpEffect: number;
   mpEffect: number;
-  createDate: string;
+  createdAt: string;
 }
 
 export interface ItemInput {

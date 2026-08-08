@@ -13,13 +13,13 @@ export interface EquippableItem {
   maxMpModifier: number;
   maxConsumableInventoryModifier: number;
   maxEquippableInventoryModifier: number;
-  addedSpells: Spell[];
+  addedSpells: Spell[] | null;
   meleeDamageReduction: number;
   bowDamageReduction: number;
   spellDamageReduction: number;
   affectedSpellTypeId: number | null;
   affectedSpellType: SpellType | null;
-  spellDamageModifier: number;
+  spellDamageModifier: number | null;
 }
 
 export interface EquippableItemInput {

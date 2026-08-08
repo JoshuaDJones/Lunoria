@@ -31,10 +31,8 @@ export interface Character {
   movement: number;
   baseMaxConsumableInventory: number;
   baseMaxEquippableInventory: number;
-  isPlayer: boolean;
-  isNPC: boolean;
-  isEnemy: boolean;
-  createDate: string;
+  characterType: CharacterType;
+  createdAt: string;
   alternateFormId: number | null;
   alternateForm: Character | null;
   characterSpells: CharacterSpell[] | null;
@@ -52,9 +50,7 @@ export interface CharacterInput {
   movement: number;
   baseMaxConsumableInventory: number;
   baseMaxEquippableInventory: number;
-  isPlayer: boolean;
-  isNPC: boolean;
-  isEnemy: boolean;
+  characterType: CharacterType;
   alternateFormId?: number | null;
 }
 

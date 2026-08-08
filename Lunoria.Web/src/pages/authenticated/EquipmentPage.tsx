@@ -134,7 +134,7 @@ export function EquipmentPage() {
     .map(
       (spellId) =>
         spells.find((spell) => spell.id === spellId) ??
-        editing?.addedSpells.find((spell) => spell.id === spellId),
+        editing?.addedSpells?.find((spell) => spell.id === spellId),
     )
     .filter((spell): spell is Spell => Boolean(spell));
 
@@ -144,7 +144,7 @@ export function EquipmentPage() {
   };
 
   const openEdit = (item: EquippableItem) => {
-    setSelectedSpellIds(item.addedSpells.map((spell) => spell.id));
+    setSelectedSpellIds(item.addedSpells?.map((spell) => spell.id) ?? []);
     setEditing(item);
   };
 
@@ -198,7 +198,7 @@ export function EquipmentPage() {
       placement: "center",
       content: (
         <SpellDetailsList
-          spells={item.addedSpells}
+          spells={item.addedSpells ?? []}
           emptyMessage="This equipment has no added spells."
         />
       ),

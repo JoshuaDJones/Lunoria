@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/apiClient";
 import { toFormData } from "@/lib/formData";
-import type {
+import {
   Character,
   CharacterInput,
   CharacterType,
@@ -16,6 +16,16 @@ export interface ListCharactersParams {
 export async function listCharacters(
   params: ListCharactersParams = {},
 ): Promise<Character[]> {
+  if (params.typeFilter === CharacterType.Any) {
+    const characterGroups = await Promise.all(
+      [CharacterType.Player, CharacterType.NPC, CharacterType.Enemy].map(
+        (typeFilter) => listCharacters({ ...params, typeFilter }),
+      ),
+    );
+
+    return characterGroups.flat();
+  }
+
   const { data } = await apiClient.get<Character[]>("/Character", { params });
   return data;
 }

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui";
 import { Card } from "@/components/ui/Card";
 import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import type { Character } from "@/features/characters/types";
+import { CharacterType } from "@/features/characters/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPen,
@@ -25,9 +26,9 @@ export function CharacterCard({
   onViewSpells,
 }: CharacterCardProps) {
   const roles = [
-    character.isPlayer && "Player",
-    character.isNPC && "NPC",
-    character.isEnemy && "Enemy",
+    character.characterType === CharacterType.Player && "Player",
+    character.characterType === CharacterType.NPC && "NPC",
+    character.characterType === CharacterType.Enemy && "Enemy",
   ].filter((role): role is string => Boolean(role));
 
   return (

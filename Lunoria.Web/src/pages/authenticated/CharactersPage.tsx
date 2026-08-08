@@ -57,9 +57,9 @@ const fields: ResourceFormField[] = [
     type: "radio",
     required: true,
     options: [
-      { label: "Playable character", value: "player" },
-      { label: "NPC", value: "npc" },
-      { label: "Enemy", value: "enemy" },
+      { label: "Playable character", value: String(CharacterType.Player) },
+      { label: "NPC", value: String(CharacterType.NPC) },
+      { label: "Enemy", value: String(CharacterType.Enemy) },
     ],
   },
 ];
@@ -243,15 +243,9 @@ export function CharactersPage() {
                 editing?.baseMaxEquippableInventory ?? 0,
               ),
               alternateFormId: String(editing?.alternateFormId ?? ""),
-              characterType: editing?.isPlayer
-                ? "player"
-                : editing?.isNPC
-                  ? "npc"
-                  : editing?.isEnemy
-                    ? "enemy"
-                    : editing
-                      ? ""
-                      : "player",
+              characterType: String(
+                editing?.characterType ?? CharacterType.Player,
+              ),
             }}
             existingPhotoUrl={editing?.photoUrl}
             requirePhoto={!editing}
@@ -276,9 +270,9 @@ export function CharactersPage() {
                   "baseMaxEquippableInventory",
                 ),
                 alternateFormId: nullableNumberValue(values, "alternateFormId"),
-                isPlayer: values.characterType === "player",
-                isNPC: values.characterType === "npc",
-                isEnemy: values.characterType === "enemy",
+                characterType: Number(
+                  values.characterType,
+                ) as CharacterType,
               };
 
               if (editing) {

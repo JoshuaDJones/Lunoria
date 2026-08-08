@@ -1,12 +1,20 @@
 import { useEffect, useState, type ReactNode } from "react";
+import clsx from "clsx";
 import AppLayout from "@/app/layouts/AppLayout";
 import { getApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
+
+interface BackNavigationProps {
+  to: string;
+  label: string;
+}
 
 interface CollectionPageProps<T> {
   title: string;
+  backNavigation?: BackNavigationProps;
   itemName: string;
   loadItems: () => Promise<T[]>;
   renderItems: (items: T[]) => ReactNode;
@@ -17,6 +25,7 @@ interface CollectionPageProps<T> {
 
 export function CollectionPage<T>({
   title,
+  backNavigation,
   itemName,
   loadItems,
   renderItems,
@@ -75,8 +84,19 @@ export function CollectionPage<T>({
       }
     >
       <main className="w-full p-6 sm:p-10">
-        <header className="mb-6 flex items-center justify-between">
-          <h1 className="text-6xl text-content">{title}</h1>
+        <header className={clsx("mb-6 flex items-center justify-between")}>
+          <div>
+            <h1 className="text-6xl text-content">{title}</h1>
+            {backNavigation && (
+                    <Link
+                          to={backNavigation.to}
+                          className="text-sm text-content-secondary hover:text-brand-hover"
+                        >
+                          ← {backNavigation.label}
+                    </Link>
+            )}
+          </div>
+          
           <Button
             onClick={onAdd}
             disabled={!onAdd}

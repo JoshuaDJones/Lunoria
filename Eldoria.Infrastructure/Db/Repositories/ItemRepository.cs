@@ -30,5 +30,21 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 item => item.Id == id && item.UserId == userId,
                 ct);
         }
+
+        public async Task<bool> IsAssignedAsync(int userId, int id, CancellationToken ct)
+        {
+            return await _dbContext.JourneyPlaythroughCharacterConsumableItems.AnyAsync(
+                       assignment => assignment.ConsumableItemId == id
+                           && assignment.ConsumableItem.UserId == userId,
+                       ct)
+                || await _dbContext.ScenePlaythroughCharacterConsumableItems.AnyAsync(
+                       assignment => assignment.ConsumableItemId == id
+                           && assignment.ConsumableItem.UserId == userId,
+                       ct)
+                || await _dbContext.SceneChestLootEntries.AnyAsync(
+                       entry => entry.ConsumableItemId == id
+                           && entry.ConsumableItem!.UserId == userId,
+                       ct);
+        }
     }
 }
