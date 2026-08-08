@@ -72,9 +72,7 @@ export function PhotoDropzone({
         <p className="font-medium text-content">
           {isDragging ? "Drop the image here" : "Drag and drop an image here"}
         </p>
-        <p className="mt-1 text-sm text-content-muted">
-          JPEG, PNG, or WebP
-        </p>
+        <p className="mt-1 text-sm text-content-muted">JPEG, PNG, or WebP</p>
         <button
           type="button"
           onClick={() => {

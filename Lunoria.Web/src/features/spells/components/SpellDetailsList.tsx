@@ -39,8 +39,14 @@ export function SpellDetailsList({
               <Stat label="MP cost" value={spell.mpCost} />
               <Stat label="Range" value={spell.range} />
               <Stat label="Area effect" value={spell.isRadius ? "Yes" : "No"} />
-              <Stat label="Damage effect" value={spell.damageEffect ?? "None"} />
-              <Stat label="Health effect" value={spell.healthEffect ?? "None"} />
+              <Stat
+                label="Damage effect"
+                value={spell.damageEffect ?? "None"}
+              />
+              <Stat
+                label="Health effect"
+                value={spell.healthEffect ?? "None"}
+              />
               <Stat label="Magic effect" value={spell.magicEffect ?? "None"} />
             </StatGrid>
           </div>

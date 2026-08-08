@@ -145,9 +145,7 @@ export function SpellTypeManager({ onChanged }: SpellTypeManagerProps) {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between gap-4">
-        <p className="text-sm text-content-secondary">
-          Spell Type Manager
-        </p>
+        <p className="text-sm text-content-secondary">Spell Type Manager</p>
         <Button
           variant="add"
           leftIcon={<FontAwesomeIcon icon={faPlus} />}

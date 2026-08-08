@@ -58,7 +58,7 @@ export interface SceneCharacter {
 }
 
 export interface SceneCharacterSpell {
-  id: number; 
+  id: number;
   sceneCharacter: SceneCharacter;
   spell: Spell;
 }

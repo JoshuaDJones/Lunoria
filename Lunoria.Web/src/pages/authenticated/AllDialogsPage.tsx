@@ -9,9 +9,7 @@ import type {
   SceneDialog,
 } from "@/features/scenes/types";
 
-function sortByOrder<T extends { orderNum: number }>(
-  items: T[] | null,
-): T[] {
+function sortByOrder<T extends { orderNum: number }>(items: T[] | null): T[] {
   return [...(items ?? [])].sort((a, b) => a.orderNum - b.orderNum);
 }
 
@@ -89,9 +87,7 @@ function DialogCard({ dialog }: { dialog: SceneDialog }) {
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-2xl font-semibold text-content">
-          {dialog.title}
-        </h2>
+        <h2 className="text-2xl font-semibold text-content">{dialog.title}</h2>
         <span className="text-xs text-content-muted">#{dialog.id}</span>
       </div>
 

@@ -1,14 +1,14 @@
 import type { Journey } from "@/features/journeys/types";
 
-export interface Series{
-    id: number;
-    name: string;
-    description: string | null;
-    photoUrl: string | null;
-    fileName: string | null;
-    createdAt: string;
-    updatedAt: string;
-    journeys: Journey[];
+export interface Series {
+  id: number;
+  name: string;
+  description: string | null;
+  photoUrl: string | null;
+  fileName: string | null;
+  createdAt: string;
+  updatedAt: string;
+  journeys: Journey[];
 }
 
 export interface CreateSeriesInput {

@@ -88,15 +88,15 @@ export function CollectionPage<T>({
           <div>
             <h1 className="text-6xl text-content">{title}</h1>
             {backNavigation && (
-                    <Link
-                          to={backNavigation.to}
-                          className="text-sm text-content-secondary hover:text-brand-hover"
-                        >
-                          ← {backNavigation.label}
-                    </Link>
+              <Link
+                to={backNavigation.to}
+                className="text-sm text-content-secondary hover:text-brand-hover"
+              >
+                ← {backNavigation.label}
+              </Link>
             )}
           </div>
-          
+
           <Button
             onClick={onAdd}
             disabled={!onAdd}

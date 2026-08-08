@@ -58,9 +58,7 @@ export function SpellsPage() {
 
   const loadFilteredSpells = useCallback(
     () =>
-      listSpells(
-        spellTypeFilter === 0 ? {} : { spellTypeId: spellTypeFilter },
-      ),
+      listSpells(spellTypeFilter === 0 ? {} : { spellTypeId: spellTypeFilter }),
     [spellTypeFilter],
   );
 
@@ -167,10 +165,7 @@ export function SpellsPage() {
                 ))}
               </Select>
             </div>
-            <Button
-              variant="magic"
-              onClick={() => setManagingSpellTypes(true)}
-            >
+            <Button variant="magic" onClick={() => setManagingSpellTypes(true)}>
               Manage spell types
             </Button>
           </div>

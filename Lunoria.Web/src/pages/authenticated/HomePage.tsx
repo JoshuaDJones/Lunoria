@@ -10,7 +10,12 @@ import { Drawer } from "@/components/ui/Drawer";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
 import { Series } from "@/features/series/types";
-import { createSeries, deleteSeries, listSeries, updateSeries } from "@/features/series/api/seriesApi";
+import {
+  createSeries,
+  deleteSeries,
+  listSeries,
+  updateSeries,
+} from "@/features/series/api/seriesApi";
 import { SeriesGrid } from "@/features/series/components/SeriesGrid";
 
 const fields: ResourceFormField[] = [
@@ -50,10 +55,7 @@ export function HomePage() {
       setReloadKey((value) => value + 1);
       toast.success(`Series "${series.name}" was deleted.`);
     } catch (requestError) {
-      toast.error(
-        getApiError(requestError).message,
-        "Unable to delete series",
-      );
+      toast.error(getApiError(requestError).message, "Unable to delete series");
     }
   };
 
@@ -66,7 +68,7 @@ export function HomePage() {
         reloadKey={reloadKey}
         onAdd={() => setEditing(null)}
         renderItems={(series) => (
-          <SeriesGrid 
+          <SeriesGrid
             series={series}
             onDelete={openConfirmDelete}
             onSelect={setEditing}
@@ -80,11 +82,13 @@ export function HomePage() {
       {editing !== undefined && (
         <Drawer
           title={editing ? `Edit series` : "Create new series"}
-          onClose={() => setEditing(undefined)}>
-            <ResourceForm fields={fields}
+          onClose={() => setEditing(undefined)}
+        >
+          <ResourceForm
+            fields={fields}
             initialValues={{
               name: editing?.name ?? "",
-              description: editing?.description ?? ""
+              description: editing?.description ?? "",
             }}
             existingPhotoUrl={editing?.photoUrl ?? undefined}
             requirePhoto={!editing}
@@ -105,8 +109,8 @@ export function HomePage() {
 
               handleSaved();
             }}
-            />
-          </Drawer>
+          />
+        </Drawer>
       )}
     </>
   );

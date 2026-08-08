@@ -3,7 +3,11 @@ import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import { Button } from "@/components/ui";
 import type { Journey } from "@/features/journeys/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen, faTrash, faFolderOpen } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPen,
+  faTrash,
+  faFolderOpen,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface JourneyCardProps {
   journey: Journey;

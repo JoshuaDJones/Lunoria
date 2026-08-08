@@ -104,4 +104,7 @@ export interface JourneyInput {
   photo?: File;
 }
 
-export type CreateJourneyInput = JourneyInput & { seriesId: number; photo: File };
+export type CreateJourneyInput = JourneyInput & {
+  seriesId: number;
+  photo: File;
+};

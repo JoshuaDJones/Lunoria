@@ -270,9 +270,7 @@ export function CharactersPage() {
                   "baseMaxEquippableInventory",
                 ),
                 alternateFormId: nullableNumberValue(values, "alternateFormId"),
-                characterType: Number(
-                  values.characterType,
-                ) as CharacterType,
+                characterType: Number(values.characterType) as CharacterType,
               };
 
               if (editing) {

@@ -216,10 +216,7 @@ export function ResourceForm({
         allowRemoveExistingPhoto &&
         !removeExistingPhoto &&
         !photoPreviewUrl && (
-          <Button
-            variant="danger"
-            onClick={() => setRemoveExistingPhoto(true)}
-          >
+          <Button variant="danger" onClick={() => setRemoveExistingPhoto(true)}>
             Remove current image
           </Button>
         )}
@@ -237,27 +234,29 @@ export function ResourceForm({
 
       {showPhoto &&
         (photoPreviewUrl || (displayedPhotoUrl && !removeExistingPhoto)) && (
-        <figure className="rounded-xl border border-border bg-surface p-3">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <figcaption className="text-sm font-semibold text-content-secondary">
-              {photoPreviewUrl ? "Selected image preview" : "Current image"}
-            </figcaption>
-            {photoPreviewUrl && (
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => handlePhotoChange(undefined)}
-              >
-                Remove
-              </Button>
-            )}
-          </div>
-          <img
-            src={photoPreviewUrl || displayedPhotoUrl}
-            alt={photoPreviewUrl ? "Selected unsaved preview" : "Current saved"}
-            className="max-h-72 max-w-full rounded-lg object-contain"
-          />
-        </figure>
+          <figure className="rounded-xl border border-border bg-surface p-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <figcaption className="text-sm font-semibold text-content-secondary">
+                {photoPreviewUrl ? "Selected image preview" : "Current image"}
+              </figcaption>
+              {photoPreviewUrl && (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handlePhotoChange(undefined)}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+            <img
+              src={photoPreviewUrl || displayedPhotoUrl}
+              alt={
+                photoPreviewUrl ? "Selected unsaved preview" : "Current saved"
+              }
+              className="max-h-72 max-w-full rounded-lg object-contain"
+            />
+          </figure>
         )}
 
       {error && (

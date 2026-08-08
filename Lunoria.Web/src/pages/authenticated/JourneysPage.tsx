@@ -72,7 +72,11 @@ export function JourneysPage() {
     <>
       <CollectionPage
         title="Journeys"
-        backNavigation={seriesId === undefined ? undefined : { to: `/series/${seriesId}`, label: "Back to series" }}
+        backNavigation={
+          seriesId === undefined
+            ? undefined
+            : { to: `/series/${seriesId}`, label: "Back to series" }
+        }
         itemName="journey"
         loadItems={listJourneys}
         reloadKey={reloadKey}
