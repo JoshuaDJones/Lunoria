@@ -33,10 +33,44 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return await _dbContext.Scenes
                 .AsNoTracking()
                 .Where(j => j.JourneyId == journeyId)
-                .OrderBy(s => s.Id)
+                .OrderBy(s => s.SortOrder)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync(ct);
+        }
+
+        public async Task<bool> ReorderAsync(
+            int journeyId,
+            IReadOnlyDictionary<int, int> sortOrders,
+            CancellationToken ct)
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable,
+                ct);
+
+            var scenes = await _dbContext.Scenes
+                .Where(scene => scene.JourneyId == journeyId)
+                .ToListAsync(ct);
+
+            if (scenes.Count != sortOrders.Count ||
+                scenes.Any(scene => !sortOrders.ContainsKey(scene.Id)))
+            {
+                return false;
+            }
+
+            var temporaryOffset = scenes.Count + scenes.Max(scene => scene.SortOrder) + 1;
+
+            foreach (var scene in scenes)
+                scene.SortOrder += temporaryOffset;
+
+            await _dbContext.SaveChangesAsync(ct);
+
+            foreach (var scene in scenes)
+                scene.SortOrder = sortOrders[scene.Id];
+
+            await _dbContext.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return true;
         }
 
         public async Task<Scene?> GetSceneDetails(int sceneId, CancellationToken ct)

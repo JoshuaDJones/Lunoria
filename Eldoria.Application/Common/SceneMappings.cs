@@ -15,6 +15,7 @@ namespace Eldoria.Application.Common
                 Description = scene.Description,
                 PhotoUrl = scene.PhotoUrl,
                 GridUrl = scene.GridUrl,
+                SortOrder = scene.SortOrder,
                 CreatedAt = scene.CreatedAt,
                 SceneDialogs = scene.SceneDialogs.Select(s => s.ToDto()).ToList(),
                 SceneCharacters = scene.SceneCharacters.Select(sc => sc.ToDto()).ToList()

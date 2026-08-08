@@ -8,6 +8,7 @@ namespace Eldoria.Application.Dtos
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;
         public string GridUrl { get; set; } = string.Empty;
+        public int SortOrder { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public List<SceneDialogDto>? SceneDialogs { get; set; } = [];

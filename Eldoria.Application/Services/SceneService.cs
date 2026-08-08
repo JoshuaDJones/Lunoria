@@ -161,5 +161,35 @@ namespace Eldoria.Application.Services
 
             return Result<SceneDto>.Ok(scene.ToDto());
         }
+
+        public async Task<Result> ReorderAsync(
+            int userId,
+            int journeyId,
+            IReadOnlyList<(int SceneId, int SortOrder)> scenes,
+            CancellationToken ct)
+        {
+            var journey = await _journeyRepository.GetByIdAsync(journeyId, ct);
+
+            if (journey is null)
+                return Result.Fail(new Error("Journey.NotFound", "The associated journey does not exist."));
+
+            if (journey.UserId != userId)
+                return Result.Fail(new Error("Auth.Forbidden", "You do not have permission to reorder this journey's scenes."));
+
+            if (scenes.Count == 0 ||
+                scenes.Select(scene => scene.SceneId).Distinct().Count() != scenes.Count ||
+                scenes.Select(scene => scene.SortOrder).OrderBy(order => order)
+                    .Where((order, index) => order != index).Any())
+            {
+                return Result.Fail(new Error("Scene.InvalidOrder", "Scene IDs must be unique and sort orders must be contiguous starting at zero."));
+            }
+
+            var sortOrders = scenes.ToDictionary(scene => scene.SceneId, scene => scene.SortOrder);
+            var reordered = await _sceneRepository.ReorderAsync(journeyId, sortOrders, ct);
+
+            return reordered
+                ? Result.Ok()
+                : Result.Fail(new Error("Scene.InvalidOrder", "The submitted scenes do not match the journey's scenes."));
+        }
     }
 }

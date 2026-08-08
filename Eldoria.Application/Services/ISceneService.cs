@@ -12,6 +12,7 @@ namespace Eldoria.Application.Services
         Task<Result> DeleteAsync(int userId, int id, int journeyId, CancellationToken ct);
         Task<Result<SceneDto>> CreateAsync(int userId, int journeyId, string name, string description, IFormFile photo, string gridUrl, CancellationToken ct);
         Task<Result<SceneDto>> UpdateAsync(int userId, int journeyId, int id, string name, string description, IFormFile? photo, string gridUrl, CancellationToken ct);
+        Task<Result> ReorderAsync(int userId, int journeyId, IReadOnlyList<(int SceneId, int SortOrder)> scenes, CancellationToken ct);
 
     }
 }

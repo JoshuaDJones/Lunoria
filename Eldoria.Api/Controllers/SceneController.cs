@@ -121,5 +121,27 @@ namespace Eldoria.Api.Controllers
                 _ => BadRequest(result.Error)
             };
         }
+
+        [HttpPut("order")]
+        public async Task<IActionResult> Reorder(
+            [FromQuery] int journeyId,
+            [FromBody] ReorderScenesRequest req,
+            CancellationToken ct)
+        {
+            var scenes = req.Scenes
+                .Select(scene => (SceneId: scene.Id, scene.SortOrder))
+                .ToList();
+            var result = await _sceneService.ReorderAsync(User.GetUserId(), journeyId, scenes, ct);
+
+            if (result.Success)
+                return NoContent();
+
+            return result.Error?.Code switch
+            {
+                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
     }
 }

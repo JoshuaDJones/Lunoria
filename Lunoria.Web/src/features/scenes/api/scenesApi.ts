@@ -28,6 +28,11 @@ export interface SceneParticipantTurnPosition {
   turnPosition: number;
 }
 
+export interface SceneOrderInput {
+  id: number;
+  sortOrder: number;
+}
+
 export interface CreateDialogPageSectionRequest {
   characterId?: number | null;
   orderNum: number;
@@ -84,6 +89,13 @@ export async function deleteScene(
   journeyId: number,
 ): Promise<void> {
   await apiClient.delete(`/Scene/${id}`, { params: { journeyId } });
+}
+
+export async function reorderScenes(
+  journeyId: number,
+  scenes: SceneOrderInput[],
+): Promise<void> {
+  await apiClient.put("/Scene/order", { scenes }, { params: { journeyId } });
 }
 
 export async function addSceneCharacter(

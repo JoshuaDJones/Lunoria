@@ -13,7 +13,9 @@ import {
   createScene,
   deleteScene,
   listScenes,
+  reorderScenes,
   SceneGrid,
+  SceneOrderEditor,
   updateScene,
   type Scene,
 } from "@/features/scenes";
@@ -46,6 +48,7 @@ export function JourneyEditorPage() {
   const [scenesError, setScenesError] = useState("");
   const [areScenesLoading, setAreScenesLoading] = useState(true);
   const [editingScene, setEditingScene] = useState<Scene | null | undefined>();
+  const [isOrderingScenes, setIsOrderingScenes] = useState(false);
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
 
   const loadJourney = async () => {
@@ -177,15 +180,27 @@ export function JourneyEditorPage() {
             <section className="min-h-[30rem] rounded-3xl bg-surface/65 p-4 backdrop-blur-[2px] sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <h2 className="text-4xl text-content">Scenes</h2>
-                <Button
-                  onClick={() => setEditingScene(null)}
-                  variant="add"
-                  inverted
-                  size="lg"
-                  className="min-w-40"
-                >
-                  Add Scene
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    onClick={() => setIsOrderingScenes(true)}
+                    disabled={scenes.length < 2}
+                    variant="secondary"
+                    inverted
+                    size="lg"
+                    className="min-w-40"
+                  >
+                    Scene Order
+                  </Button>
+                  <Button
+                    onClick={() => setEditingScene(null)}
+                    variant="add"
+                    inverted
+                    size="lg"
+                    className="min-w-40"
+                  >
+                    Add Scene
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-6">
@@ -289,6 +304,32 @@ export function JourneyEditorPage() {
               setEditingScene(undefined);
               setAreScenesLoading(true);
               setScenesReloadKey((value) => value + 1);
+            }}
+          />
+        </Drawer>
+      )}
+
+      {isOrderingScenes && (
+        <Drawer title="Scene Order" onClose={() => setIsOrderingScenes(false)}>
+          <SceneOrderEditor
+            scenes={scenes}
+            onCancel={() => setIsOrderingScenes(false)}
+            onSave={async (orderedScenes) => {
+              await reorderScenes(
+                journeyId,
+                orderedScenes.map((scene, sortOrder) => ({
+                  id: scene.id,
+                  sortOrder,
+                })),
+              );
+              setScenes(
+                orderedScenes.map((scene, sortOrder) => ({
+                  ...scene,
+                  sortOrder,
+                })),
+              );
+              setIsOrderingScenes(false);
+              toast.success("Scene order was updated.");
             }}
           />
         </Drawer>
