@@ -2,7 +2,7 @@ import { ReactNode, type ComponentPropsWithRef } from "react";
 import { twMerge } from "tailwind-merge";
 
 type ButtonVariant =
-  "primary" | "secondary" | "accent" | "add" | "magic" | "danger";
+  "primary" | "secondary" | "accent" | "add" | "magic" | "utility" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 export type ButtonProps = ComponentPropsWithRef<"button"> & {
@@ -46,6 +46,12 @@ const variantClasses: Record<
       "border-transparent bg-magic font-semibold text-on-magic hover:bg-magic-hover",
     inverted:
       "border-magic bg-magic/10 font-semibold text-magic-hover hover:bg-magic hover:text-on-magic",
+  },
+  utility: {
+    default:
+      "border-transparent bg-utility font-semibold text-on-utility hover:bg-utility-hover",
+    inverted:
+      "border-utility bg-utility/10 font-semibold text-utility-hover hover:bg-utility hover:text-on-utility",
   },
   danger: {
     default: "border-danger/50 text-danger hover:bg-danger/10",

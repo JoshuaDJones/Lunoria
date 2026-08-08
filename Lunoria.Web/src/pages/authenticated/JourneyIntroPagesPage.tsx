@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGripVertical } from "@fortawesome/free-solid-svg-icons";
 import AppLayout from "@/app/layouts";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { ApiLoadError, Button, Drawer } from "@/components/ui";
@@ -174,7 +176,7 @@ export function JourneyIntroPagesPage() {
             <Button
               onClick={openOrder}
               disabled={pages.length < 2}
-              inverted
+              variant="utility"
               size="lg"
             >
               Page Order
@@ -182,7 +184,6 @@ export function JourneyIntroPagesPage() {
             <Button
               onClick={() => setIsChoosingType(true)}
               variant="add"
-              inverted
               size="lg"
             >
               New Intro Page
@@ -319,59 +320,67 @@ export function JourneyIntroPagesPage() {
 
       {isOrdering && (
         <Drawer title="Page Order" onClose={() => setIsOrdering(false)}>
-          <p className="mb-5 text-sm text-content-secondary">
-            Drag pages into slideshow order, then save.
-          </p>
-          {orderError && (
-            <p className="mb-4 text-danger" role="alert">
-              {orderError}
+          <div className="flex min-h-full flex-col">
+            <p className="mb-5 text-sm text-content-secondary">
+              Drag pages into slideshow order, then save.
             </p>
-          )}
-          <ol className="space-y-3">
-            {orderedPages.map((page, index) => (
-              <li
-                key={page.id}
-                draggable={!isSavingOrder}
-                onDragStart={() => setDraggedPageId(page.id)}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  moveDraggedPage(page.id);
-                }}
-                onDragEnd={() => setDraggedPageId(undefined)}
-                className={`flex cursor-grab items-center gap-3 rounded-xl border bg-surface p-3 ${
-                  draggedPageId === page.id
-                    ? "border-brand opacity-50"
-                    : "border-border"
-                }`}
-              >
-                <span className="w-6 text-content-muted">{index + 1}</span>
-                {page.previewPhotoUrl && (
-                  <img
-                    src={page.previewPhotoUrl}
-                    alt=""
-                    className="size-12 rounded-lg object-cover"
+            {orderError && (
+              <p className="mb-4 text-danger" role="alert">
+                {orderError}
+              </p>
+            )}
+            <ol className="flex-1 space-y-3">
+              {orderedPages.map((page, index) => (
+                <li
+                  key={page.id}
+                  draggable={!isSavingOrder}
+                  onDragStart={() => setDraggedPageId(page.id)}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    moveDraggedPage(page.id);
+                  }}
+                  onDragEnd={() => setDraggedPageId(undefined)}
+                  className={`flex cursor-grab items-center gap-4 rounded-xl border bg-surface p-3 transition active:cursor-grabbing ${
+                    draggedPageId === page.id
+                      ? "border-brand opacity-50"
+                      : "border-border"
+                  }`}
+                >
+                  <FontAwesomeIcon
+                    icon={faGripVertical}
+                    className="shrink-0 text-content-muted"
                   />
-                )}
-                <span className="font-semibold text-content">
-                  {introPageTypeLabels[page.type]}
-                </span>
-              </li>
-            ))}
-          </ol>
-          <div className="mt-6 flex justify-end gap-3 border-t border-border pt-4">
-            <Button
-              onClick={() => setIsOrdering(false)}
-              disabled={isSavingOrder}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              disabled={isSavingOrder}
-              onClick={() => void saveOrder()}
-            >
-              {isSavingOrder ? "Saving..." : "Save Order"}
-            </Button>
+                  <span className="w-7 shrink-0 text-center text-sm text-content-muted">
+                    {index + 1}
+                  </span>
+                  {page.previewPhotoUrl && (
+                    <img
+                      src={page.previewPhotoUrl}
+                      alt=""
+                      className="size-12 shrink-0 rounded-lg object-cover"
+                    />
+                  )}
+                  <span className="min-w-0 flex-1 truncate font-semibold text-content">
+                    {introPageTypeLabels[page.type]}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-6 flex justify-end gap-3 border-t border-border pt-4">
+              <Button
+                onClick={() => setIsOrdering(false)}
+                disabled={isSavingOrder}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                disabled={isSavingOrder}
+                onClick={() => void saveOrder()}
+              >
+                {isSavingOrder ? "Saving..." : "Save Order"}
+              </Button>
+            </div>
           </div>
         </Drawer>
       )}
