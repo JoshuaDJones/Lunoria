@@ -131,7 +131,11 @@ namespace Eldoria.Api.Controllers
             var scenes = req.Scenes
                 .Select(scene => (SceneId: scene.Id, scene.SortOrder))
                 .ToList();
-            var result = await _sceneService.ReorderAsync(User.GetUserId(), journeyId, scenes, ct);
+            var result = await _sceneService.ReorderAsync(
+                User.GetUserId(),
+                journeyId,
+                scenes,
+                ct);
 
             if (result.Success)
                 return NoContent();

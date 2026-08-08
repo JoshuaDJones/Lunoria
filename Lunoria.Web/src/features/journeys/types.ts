@@ -6,17 +6,17 @@ import type { Spell } from "@/features/spells/types";
 import { JourneyPlaythrough } from "@/features/playthroughs/types";
 
 export enum IntroPageType {
-  ImageTopContentBottom = 0,
-  ImageLeftContentRight = 1,
-  ImageRightContentLeft = 2,
-  ImageCenterOverlayCenterText = 3,
-  CharacterShowcase = 4,
+  ImageTopContentBottom = 1,
+  ImageLeftContentRight = 2,
+  ImageRightContentLeft = 3,
+  ImageCenterOverlayCenterText = 4,
+  CharacterShowcase = 5,
 }
 
 export interface IntroPage {
   id: number;
   journeyId: number;
-  order: number;
+  sortOrder: number;
   type: IntroPageType;
   config: string;
   previewPhotoUrl: string | null;

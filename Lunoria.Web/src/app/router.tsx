@@ -15,6 +15,7 @@ import { SceneDialogsPage } from "@/pages/authenticated/SceneDialogsPage";
 import { ComponentDisplayPage } from "@/pages/authenticated/ComponentDisplayPage";
 import { JourneysPage } from "@/pages/authenticated/JourneysPage";
 import { JourneyEditorPage } from "@/pages/authenticated/JourneyEditorPage";
+import { JourneyIntroPagesPage } from "@/pages/authenticated/JourneyIntroPagesPage";
 
 export const router = createBrowserRouter([
   {
@@ -84,6 +85,10 @@ export const router = createBrowserRouter([
       {
         path: "/series/:seriesId/journeys/:journeyId/scenes/:sceneId/dialogs",
         element: <SceneDialogsPage />,
+      },
+      {
+        path: "/series/:seriesId/journeys/:journeyId/intro-pages",
+        element: <JourneyIntroPagesPage />,
       },
     ],
   },

@@ -9,6 +9,6 @@ namespace Eldoria.Application.Dtos
         public IntroPageType Type { get; set; }
         public string Config { get; set; } = "{}";
         public string? PreviewPhotoUrl { get; set; }
-        public JourneyDto Journey { get; set; } = null!;
+        public int JourneyId { get; set; }
     }
 }

@@ -30,6 +30,7 @@ namespace Eldoria.Application
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IAzureStorageBlob, AzureStorageBlob>();
             services.AddScoped<ISeriesService, SeriesService>();
+            services.AddScoped<IJourneyIntroPageService, JourneyIntroPageService>();
 
             return services;
         }

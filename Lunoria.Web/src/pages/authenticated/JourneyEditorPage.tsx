@@ -251,6 +251,11 @@ export function JourneyEditorPage() {
                 Play
               </Button>
               <Button
+                onClick={() =>
+                  navigate(
+                    `/series/${seriesId}/journeys/${journeyId}/intro-pages`,
+                  )
+                }
                 variant="secondary"
                 inverted
                 size="lg"

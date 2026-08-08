@@ -14,7 +14,7 @@ namespace Eldoria.Application.Common
                 Type = introPage.Type,
                 Config = introPage.Config,
                 PreviewPhotoUrl = introPage.PreviewPhotoUrl,
-                Journey = introPage.Journey.ToDto()
+                JourneyId = introPage.JourneyId
             };
         }
     }
