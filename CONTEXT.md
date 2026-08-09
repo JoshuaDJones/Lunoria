@@ -105,6 +105,8 @@ Authentication stores the JWT in local storage under `auth_token`. `apiClient` a
 
 Current authenticated routes cover home, series/journeys and journey editing, characters, spells, consumables, equipment, dialogs, intro pages, play hub, and the component showcase. The visual system uses semantic tokens such as `brand`, `surface`, `content`, `danger`, `health`, and `mana`; choose tokens by meaning rather than literal color.
 
+The public `/grid-prototype` route is an isolated, temporary SignalR board prototype. A host creates an in-memory 20×36 session and receives an eight-character code plus a host token stored in browser session storage. Anyone with the code can join and move snapped character tokens; only the host can add/remove tokens or change the background and grid color. The anonymous character feed intentionally exposes all non-deleted character names/images for this prototype. Sessions expire after eight hours, disappear on API restart, and are not part of the journey/playthrough domain. See `docs/grid-prototype.md`.
+
 ## Important current-state caveats
 
 The domain redesign is ahead of parts of the API/client integration. Verify real implementations before assuming a route or workflow exists.

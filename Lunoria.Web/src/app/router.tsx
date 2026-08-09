@@ -17,8 +17,13 @@ import { JourneysPage } from "@/pages/authenticated/JourneysPage";
 import { JourneyEditorPage } from "@/pages/authenticated/JourneyEditorPage";
 import { JourneyIntroPagesPage } from "@/pages/authenticated/JourneyIntroPagesPage";
 import { PlayHubPage } from "@/pages/authenticated/PlayHubPage";
+import { GridPrototypePage } from "@/pages/public/GridPrototypePage";
 
 export const router = createBrowserRouter([
+  {
+    path: "/grid-prototype",
+    element: <GridPrototypePage />,
+  },
   {
     element: <RequireGuest />,
     children: [

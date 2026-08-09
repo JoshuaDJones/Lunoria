@@ -1,4 +1,5 @@
 ﻿using Eldoria.Application;
+using Eldoria.Api.GridPrototype;
 using Eldoria.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,17 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins(["http://localhost:5173", "http://localhost:5174", "https://localhost:7121", "https://ambitious-mud-06f2ad40f.6.azurestaticapps.net"])
+            .WithOrigins([
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:5174",
+                "http://192.168.0.153:5173",
+                "https://localhost:7121",
+                "https://ambitious-mud-06f2ad40f.6.azurestaticapps.net"])
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -65,6 +74,11 @@ builder.Services.AddAuthorization(options =>
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddInfrastructure(conn);
 builder.Services.AddApplication();
+builder.Services.AddSingleton<GridPrototypeSessionStore>();
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 4 * 1024 * 1024;
+});
 
 builder.Services.AddControllers();
 
@@ -156,5 +170,6 @@ app.Use(async (ctx, next) =>
 });
 
 app.MapControllers();
+app.MapHub<GridPrototypeHub>("/hubs/grid-prototype").AllowAnonymous();
 
 app.Run();
