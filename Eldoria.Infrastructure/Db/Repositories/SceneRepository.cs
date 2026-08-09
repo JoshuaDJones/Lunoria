@@ -32,6 +32,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
         {
             return await _dbContext.Scenes
                 .AsNoTracking()
+                .Include(scene => scene.Grid)
                 .Where(j => j.JourneyId == journeyId)
                 .OrderBy(s => s.SortOrder)
                 .Skip(skip)
@@ -78,6 +79,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return await _dbContext.Scenes
                 .AsNoTracking()
                 .AsSplitQuery() // Prevents cartesian explosion in large include graphs
+
+                .Include(s => s.Grid)
 
                 // Scene Dialogs
                 .Include(s => s.SceneDialogs)

@@ -20,6 +20,7 @@ namespace Eldoria.Application
             services.AddScoped<IJourneyService, JourneyService>();
             services.AddScoped<ISceneService, SceneService>();
             services.AddScoped<ISceneEventService, SceneEventService>();
+            services.AddScoped<ISceneGridService, SceneGridService>();
             services.AddScoped<ISceneChestService, SceneChestService>();
             services.AddScoped<ISceneCharacterService, SceneCharacterService>();
             services.AddScoped<ISceneDialogService, SceneDialogService>();

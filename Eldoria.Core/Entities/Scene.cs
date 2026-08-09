@@ -15,6 +15,8 @@ namespace Eldoria.Core.Entities
         public int JourneyId { get; set; }
         public Journey Journey { get; set; } = null!;
 
+        public SceneGrid? Grid { get; set; }
+
         public ICollection<SceneChest> SceneChests { get; set; } = [];
         public ICollection<SceneIntroPage> SceneIntroPages { get; set; } = [];
         public ICollection<SceneEvent> SceneEvents { get; set; } = [];

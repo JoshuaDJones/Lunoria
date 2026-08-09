@@ -11,11 +11,13 @@ namespace Eldoria.Application.Services
     public class SceneService(
         IAzureStorageBlob azureStorageBlob,
         ISceneRepository sceneRepository,
+        ISceneGridRepository sceneGridRepository,
         IJourneyRepository journeyRepository,
         IJourneyCharacterRepository journeyCharacterRepository) : ISceneService
     {
         private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
         private readonly ISceneRepository _sceneRepository = sceneRepository;
+        private readonly ISceneGridRepository _sceneGridRepository = sceneGridRepository;
         private readonly IJourneyRepository _journeyRepository = journeyRepository;
         private readonly IJourneyCharacterRepository _journeyCharacterRepository = journeyCharacterRepository;
 
@@ -72,6 +74,11 @@ namespace Eldoria.Application.Services
             if(scene is null)
                 return Result.Fail(new Error("Scene.NotFound", "The scene does not exist."));
 
+            var grid = await _sceneGridRepository.GetForSceneAsync(id, ct);
+
+            if (grid?.BackgroundImageUrl is not null)
+                await _azureStorageBlob.DeletePhotoFromUrl(grid.BackgroundImageUrl);
+
             await _azureStorageBlob.DeletePhotoFromUrl(scene.PhotoUrl);
 
             _sceneRepository.Remove(scene);
@@ -86,6 +93,8 @@ namespace Eldoria.Application.Services
 
             if(scene is null)
                 return Result<SceneDto>.Fail(new Error("Scene.NotFound", "The scene does not exist."));
+
+            scene.Grid = await _sceneGridRepository.GetForSceneAsync(id, ct);
 
             return Result<SceneDto>.Ok(scene.ToDto());
         }
@@ -145,6 +154,17 @@ namespace Eldoria.Application.Services
             scene.GridUrl = gridUrl;
             scene.UpdatedAt = DateTime.UtcNow;
 
+            var existingGrid = await _sceneGridRepository.GetForSceneAsync(id, ct);
+            SceneGrid? removedGrid = null;
+            if (!string.IsNullOrWhiteSpace(gridUrl))
+            {
+                removedGrid = existingGrid;
+                if (removedGrid is not null)
+                    _sceneGridRepository.Remove(removedGrid);
+            }
+
+            scene.Grid = removedGrid is null ? existingGrid : null;
+
             if (photo is not null)
             {
                 if (!string.IsNullOrEmpty(journey.FileName))
@@ -158,6 +178,9 @@ namespace Eldoria.Application.Services
 
             _sceneRepository.Update(scene);
             await _sceneRepository.SaveChangesAsync(ct);
+
+            if (removedGrid?.BackgroundImageUrl is not null)
+                await _azureStorageBlob.DeletePhotoFromUrl(removedGrid.BackgroundImageUrl);
 
             return Result<SceneDto>.Ok(scene.ToDto());
         }

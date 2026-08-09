@@ -10,6 +10,7 @@ namespace Eldoria.Application.Dtos
         public string GridUrl { get; set; } = string.Empty;
         public int SortOrder { get; set; }
         public DateTime CreatedAt { get; set; }
+        public SceneGridDto? Grid { get; set; }
 
         public List<SceneDialogDto>? SceneDialogs { get; set; } = [];
         public List<SceneCharacterDto>? SceneCharacters { get; set; } = [];

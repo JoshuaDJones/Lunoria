@@ -34,6 +34,7 @@ namespace Eldoria.Infrastructure.Db
         public DbSet<SceneDialog> SceneDialogs { get; set; }
         public DbSet<SceneEvent> SceneEvents { get; set; }
         public DbSet<SceneEventAction> SceneEventActions { get; set; }
+        public DbSet<SceneGrid> SceneGrids { get; set; }
         public DbSet<SceneIntroPage> SceneIntroPages { get; set; }
         public DbSet<ScenePlaythrough> ScenePlaythroughs { get; set; }
         public DbSet<ScenePlaythroughCharacter> ScenePlaythroughCharacters { get; set; }
