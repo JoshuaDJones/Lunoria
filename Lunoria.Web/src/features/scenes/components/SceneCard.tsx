@@ -9,12 +9,14 @@ import {
   faComments,
   faPen,
   faTrash,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface SceneCardProps {
   scene: Scene;
   onViewEvents: (scene: Scene) => void;
   onViewChests: (scene: Scene) => void;
+  onViewCharacters: (scene: Scene) => void;
   onViewDialogs: (scene: Scene) => void;
   onEdit: (scene: Scene) => void;
   onDelete: (scene: Scene) => void;
@@ -24,6 +26,7 @@ export function SceneCard({
   scene,
   onViewEvents,
   onViewChests,
+  onViewCharacters,
   onViewDialogs,
   onEdit,
   onDelete,
@@ -70,6 +73,18 @@ export function SceneCard({
         <Stat label="Created" value={formattedCreatedAt} />
       </StatGrid>
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
+        <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewCharacters(scene);
+          }}
+          variant="secondary"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faUsers} />}
+        >
+          Characters
+        </Button>
         <Button
           onClick={(event) => {
             event.stopPropagation();

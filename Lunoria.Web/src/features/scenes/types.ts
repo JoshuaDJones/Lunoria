@@ -153,15 +153,27 @@ export interface SceneCharacter {
   alternateFormId: number | null;
   isAlternateForm: boolean;
   alternateForm: Character | null;
-  characterId: number | null;
-  character: Character | null;
+  characterId: number;
+  character: Character;
   sceneCharacterSpells: SceneCharacterSpell[];
 }
 
 export interface SceneCharacterSpell {
   id: number;
-  sceneCharacter: SceneCharacter;
+  sceneCharacterId: number;
   spell: Spell;
+}
+
+export interface SceneCharacterInput {
+  meleeAttackDamage: number | null;
+  bowAttackDamage: number | null;
+  movement: number;
+  maxConsumableInventory: number;
+  maxEquippableInventory: number;
+  maxHp: number;
+  maxMp: number;
+  isInitiallyActive: boolean;
+  alternateFormId: number | null;
 }
 
 export interface Scene {

@@ -14,6 +14,8 @@ import type {
   SceneDashboard,
   SceneDialog,
   SceneInput,
+  SceneCharacterInput,
+  SceneCharacter,
   SceneParticipant,
   SceneParticipantTurn,
   SceneProgress,
@@ -239,25 +241,44 @@ export async function reorderScenes(
   await apiClient.put("/Scene/order", { scenes }, { params: { journeyId } });
 }
 
+export async function listSceneCharacters(sceneId: number): Promise<SceneCharacter[]> {
+  const { data } = await apiClient.get<SceneCharacter[]>("/SceneCharacter", { params: { sceneId } });
+  return data;
+}
+
+export async function getSceneCharacter(sceneCharacterId: number): Promise<SceneCharacter> {
+  const { data } = await apiClient.get<SceneCharacter>(`/SceneCharacter/${sceneCharacterId}`);
+  return data;
+}
+
 export async function addSceneCharacter(
   sceneId: number,
   characterId: number,
-): Promise<void> {
-  await apiClient.post("/SceneCharacter", { sceneId, characterId });
+): Promise<SceneCharacter> {
+  const { data } = await apiClient.post<SceneCharacter>("/SceneCharacter", { sceneId, characterId });
+  return data;
 }
 
 export async function updateSceneCharacter(
   sceneCharacterId: number,
-  hp: number,
-  mp: number,
-): Promise<void> {
-  await apiClient.patch(`/SceneCharacter/${sceneCharacterId}`, { hp, mp });
+  input: SceneCharacterInput,
+): Promise<SceneCharacter> {
+  const { data } = await apiClient.put<SceneCharacter>(`/SceneCharacter/${sceneCharacterId}`, input);
+  return data;
 }
 
 export async function deleteSceneCharacter(
   sceneCharacterId: number,
 ): Promise<void> {
   await apiClient.delete(`/SceneCharacter/${sceneCharacterId}`);
+}
+
+export async function replaceSceneCharacterSpells(
+  sceneCharacterId: number,
+  spellIds: number[],
+): Promise<SceneCharacter> {
+  const { data } = await apiClient.put<SceneCharacter>(`/SceneCharacter/${sceneCharacterId}/spells`, { spellIds });
+  return data;
 }
 
 export async function addSceneCharacterItem(

@@ -22,6 +22,7 @@ import {
   SceneGrid,
   SceneEventManager,
   SceneChestManager,
+  SceneCharacterManager,
   SceneOrderEditor,
   updateScene,
   type Scene,
@@ -59,6 +60,7 @@ export function JourneyEditorPage() {
   const [isManagingCharacters, setIsManagingCharacters] = useState(false);
   const [eventsScene, setEventsScene] = useState<Scene>();
   const [chestsScene, setChestsScene] = useState<Scene>();
+  const [charactersScene, setCharactersScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
 
   const loadJourney = async () => {
@@ -241,6 +243,7 @@ export function JourneyEditorPage() {
                     className="sm:grid-cols-1 xl:grid-cols-2"
                     onViewEvents={setEventsScene}
                     onViewChests={setChestsScene}
+                    onViewCharacters={setCharactersScene}
                     onEdit={setEditingScene}
                     onDelete={(scene) => void openConfirmDeleteScene(scene)}
                     onViewDialogs={(scene) =>
@@ -350,6 +353,15 @@ export function JourneyEditorPage() {
           onClose={() => setChestsScene(undefined)}
         >
           <SceneChestManager key={chestsScene.id} scene={chestsScene} />
+        </Drawer>
+      )}
+
+      {charactersScene && (
+        <Drawer
+          title={`${charactersScene.name} Characters`}
+          onClose={() => setCharactersScene(undefined)}
+        >
+          <SceneCharacterManager key={charactersScene.id} scene={charactersScene} />
         </Drawer>
       )}
 
