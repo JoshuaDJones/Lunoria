@@ -54,10 +54,6 @@ namespace Eldoria.Application.Services
                     "SceneCharacter.InvalidCharacterType",
                     "Playable characters cannot be attached directly to scenes."));
 
-            var existing = await _sceneCharacterRepository.ListForSceneAsync(userId, sceneId, ct);
-            if (existing.Any(item => item.CharacterId == characterId))
-                return Result<SceneCharacterDto>.Fail(new Error("SceneCharacter.Duplicate", "The character is already attached to this scene."));
-
             var sceneCharacter = new SceneCharacter
             {
                 MaxHp = character.BaseMaxHp,

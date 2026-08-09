@@ -10,8 +10,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(c => c.Id);
 
-            builder.HasIndex(c => new { c.SceneId, c.CharacterId })
-                .IsUnique();
+            builder.HasIndex(c => new { c.SceneId, c.CharacterId });
 
             builder.Property(c => c.Movement).IsRequired();
             builder.Property(c => c.MaxConsumableInventory).IsRequired();

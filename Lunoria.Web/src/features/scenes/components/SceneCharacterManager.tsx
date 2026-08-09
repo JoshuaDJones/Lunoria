@@ -78,10 +78,8 @@ export function SceneCharacterManager({ scene }: Props) {
   if (error) return <div className="space-y-4"><p className="rounded-lg border border-danger/40 p-3 text-danger" role="alert">{error}</p><Button onClick={() => void load()} variant="primary">Try again</Button></div>;
 
   if (view === "attach") {
-    const assignedIds = new Set(assignments.map((item) => item.characterId));
     const available = catalog.filter((character) =>
-      character.characterType !== CharacterType.Player &&
-      !assignedIds.has(character.id),
+      character.characterType !== CharacterType.Player,
     );
     return <AttachForm characters={available} onCancel={() => setView("characters")} onSave={async (characterId) => {
       const saved = await addSceneCharacter(scene.id, characterId);
@@ -130,7 +128,7 @@ export function SceneCharacterManager({ scene }: Props) {
 function AttachForm({ characters, onSave, onCancel }: { characters: Character[]; onSave: (id: number) => Promise<void>; onCancel: () => void }) {
   const [id, setId] = useState(""); const [saving, setSaving] = useState(false); const [error, setError] = useState("");
   const submit = async (event: FormEvent) => { event.preventDefault(); setSaving(true); setError(""); try { await onSave(Number(id)); } catch (requestError) { setError(getApiError(requestError).message); setSaving(false); } };
-  return <form onSubmit={(event) => void submit(event)} className="space-y-5"><h3 className="text-2xl font-semibold text-content">Attach character</h3>{characters.length === 0 ? <p className="text-content-secondary">Every available NPC and enemy is already attached.</p> : <FormField htmlFor="scene-character" label="NPC or enemy"><Select id="scene-character" value={id} onChange={(e) => setId(e.target.value)} required><option value="" disabled>Select an NPC or enemy</option>{characters.map((character) => <option key={character.id} value={character.id}>{character.name}</option>)}</Select></FormField>}<FormActions saving={saving} error={error} onCancel={onCancel} disableSave={characters.length === 0} /></form>;
+  return <form onSubmit={(event) => void submit(event)} className="space-y-5"><h3 className="text-2xl font-semibold text-content">Attach character</h3>{characters.length === 0 ? <p className="text-content-secondary">No NPCs or enemies are available.</p> : <FormField htmlFor="scene-character" label="NPC or enemy"><Select id="scene-character" value={id} onChange={(e) => setId(e.target.value)} required><option value="" disabled>Select an NPC or enemy</option>{characters.map((character) => <option key={character.id} value={character.id}>{character.name}</option>)}</Select></FormField>}<FormActions saving={saving} error={error} onCancel={onCancel} disableSave={characters.length === 0} /></form>;
 }
 
 function EditForm({ assignment, characters, onSave, onCancel }: { assignment: SceneCharacter; characters: Character[]; onSave: (input: SceneCharacterInput) => Promise<void>; onCancel: () => void }) {

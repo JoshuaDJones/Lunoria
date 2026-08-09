@@ -862,8 +862,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("CharacterId");
 
-                    b.HasIndex("SceneId", "CharacterId")
-                        .IsUnique();
+                    b.HasIndex("SceneId", "CharacterId");
 
                     b.ToTable("SceneCharacters");
                 });
