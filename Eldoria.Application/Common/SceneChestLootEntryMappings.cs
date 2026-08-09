@@ -13,6 +13,6 @@ public static class SceneChestLootEntryMappings
         Quantity = entry.Quantity,
         EquippableItem = entry.EquippableItem?.ToDto(),
         ConsumableItem = entry.ConsumableItem?.ToDto(),
-        SceneChest = entry.SceneChest.ToDto()
+        SceneChestId = entry.SceneChestId
     };
 }

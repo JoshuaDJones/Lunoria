@@ -30,6 +30,7 @@ namespace Eldoria.Infrastructure
             services.AddScoped<IScenePlaythroughRepository, ScenePlaythroughRepository>();
             services.AddScoped<ISceneCharacterRepository, SceneCharacterRepository>();
             services.AddScoped<ISceneChestRepository, SceneChestRepository>();
+            services.AddScoped<ISceneChestLootEntryRepository, SceneChestLootEntryRepository>();
             services.AddScoped<ISceneEventRepository, SceneEventRepository>();
             services.AddScoped<ISeriesRepository, SeriesRepository>();
             services.AddScoped<ISpellTypeRepository, SpellTypeRepository>();

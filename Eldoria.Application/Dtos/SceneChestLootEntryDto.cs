@@ -10,6 +10,6 @@ namespace Eldoria.Application.Dtos
         public int Quantity { get; set; }
         public EquippableItemDto? EquippableItem { get; set; }
         public ConsumableItemDto? ConsumableItem { get; set; }
-        public SceneChestDto SceneChest { get; set; } = null!;
+        public int SceneChestId { get; set; }
     }
 }

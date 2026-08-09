@@ -10,7 +10,7 @@ public static class SceneChestMappings
         Id = chest.Id,
         Name = chest.Name,
         DieSides = chest.DieSides,
-        Scene = chest.Scene.ToDto(),
+        SceneId = chest.SceneId,
         LootEntries = [.. chest.LootEntries.Select(entry => entry.ToDto())]
     };
 }
