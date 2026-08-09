@@ -20,6 +20,7 @@ import {
   listScenes,
   reorderScenes,
   SceneGrid,
+  SceneEventManager,
   SceneOrderEditor,
   updateScene,
   type Scene,
@@ -251,8 +252,12 @@ export function JourneyEditorPage() {
 
             <aside className="flex min-h-72 flex-col gap-4 rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px]">
               <Button
-                variant="secondary"
-                inverted
+                onClick={() =>
+                  navigate(
+                    `/series/${seriesId}/journeys/${journeyId}/play`,
+                  )
+                }
+                variant="add"                
                 size="lg"
                 className="w-full py-4"
               >
@@ -328,7 +333,11 @@ export function JourneyEditorPage() {
           title={`${eventsScene.name} Events`}
           onClose={() => setEventsScene(undefined)}
         >
-          <div />
+          <SceneEventManager
+            key={eventsScene.id}
+            scene={eventsScene}
+            journeyCharacters={journey?.journeyCharacters ?? []}
+          />
         </Drawer>
       )}
 

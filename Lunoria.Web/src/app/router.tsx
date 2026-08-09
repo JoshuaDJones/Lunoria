@@ -16,6 +16,7 @@ import { ComponentDisplayPage } from "@/pages/authenticated/ComponentDisplayPage
 import { JourneysPage } from "@/pages/authenticated/JourneysPage";
 import { JourneyEditorPage } from "@/pages/authenticated/JourneyEditorPage";
 import { JourneyIntroPagesPage } from "@/pages/authenticated/JourneyIntroPagesPage";
+import { PlayHubPage } from "@/pages/authenticated/PlayHubPage";
 
 export const router = createBrowserRouter([
   {
@@ -89,6 +90,10 @@ export const router = createBrowserRouter([
       {
         path: "/series/:seriesId/journeys/:journeyId/intro-pages",
         element: <JourneyIntroPagesPage />,
+      },
+      {
+        path: "/series/:seriesId/journeys/:journeyId/play",
+        element: <PlayHubPage />,
       },
     ],
   },

@@ -9,6 +9,75 @@ export enum SceneProgressStatus {
   Completed = 2,
 }
 
+export enum ActionTargetType {
+  AllJourneyCharacters = 1,
+  SingleJourneyCharacter = 2,
+}
+
+export enum EventActionType {
+  CharacterStatAdjustment = 1,
+}
+
+export enum CharacterStatType {
+  CurrentHp = 1,
+  CurrentMp = 2,
+  MaxHp = 3,
+  MaxMp = 4,
+  Movement = 5,
+  MeleeAttackDamage = 6,
+  BowAttackDamage = 7,
+}
+
+export enum AdjustmentOperation {
+  Add = 1,
+  Subtract = 2,
+  Set = 3,
+  Multiply = 4,
+}
+
+export interface CharacterStatAdjustmentAction {
+  id: number;
+  characterStatType: CharacterStatType;
+  adjustmentOperation: AdjustmentOperation;
+  value: number;
+  characterId: number | null;
+  character: Character | null;
+}
+
+export interface SceneEventAction {
+  id: number;
+  name: string;
+  sortOrder: number;
+  actionTargetType: ActionTargetType;
+  eventActionType: EventActionType;
+  sceneEventId: number;
+  characterStatAdjustmentAction: CharacterStatAdjustmentAction | null;
+}
+
+export interface SceneEvent {
+  id: number;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  sceneId: number;
+  sceneEventActions: SceneEventAction[];
+}
+
+export interface SceneEventInput {
+  name: string;
+  description?: string | null;
+}
+
+export interface SceneEventActionInput {
+  name: string;
+  actionTargetType: ActionTargetType;
+  eventActionType: EventActionType;
+  characterStatType: CharacterStatType;
+  adjustmentOperation: AdjustmentOperation;
+  value: number;
+  characterId?: number | null;
+}
+
 export interface DialogPageSection {
   id: number;
   orderNum: number;

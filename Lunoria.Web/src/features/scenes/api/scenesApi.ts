@@ -3,6 +3,10 @@ import { toFormData } from "@/lib/formData";
 import type {
   CreateSceneInput,
   Scene,
+  SceneEvent,
+  SceneEventAction,
+  SceneEventActionInput,
+  SceneEventInput,
   SceneDashboard,
   SceneDialog,
   SceneInput,
@@ -31,6 +35,101 @@ export interface SceneParticipantTurnPosition {
 export interface SceneOrderInput {
   id: number;
   sortOrder: number;
+}
+
+export interface SortOrderInput {
+  id: number;
+  sortOrder: number;
+}
+
+export async function listSceneEvents(sceneId: number): Promise<SceneEvent[]> {
+  const { data } = await apiClient.get<SceneEvent[]>(
+    `/scenes/${sceneId}/events`,
+  );
+  return data;
+}
+
+export async function createSceneEvent(
+  sceneId: number,
+  input: SceneEventInput,
+): Promise<SceneEvent> {
+  const { data } = await apiClient.post<SceneEvent>(
+    `/scenes/${sceneId}/events`,
+    input,
+  );
+  return data;
+}
+
+export async function updateSceneEvent(
+  sceneId: number,
+  eventId: number,
+  input: SceneEventInput,
+): Promise<SceneEvent> {
+  const { data } = await apiClient.put<SceneEvent>(
+    `/scenes/${sceneId}/events/${eventId}`,
+    input,
+  );
+  return data;
+}
+
+export async function deleteSceneEvent(
+  sceneId: number,
+  eventId: number,
+): Promise<void> {
+  await apiClient.delete(`/scenes/${sceneId}/events/${eventId}`);
+}
+
+export async function reorderSceneEvents(
+  sceneId: number,
+  events: SortOrderInput[],
+): Promise<void> {
+  await apiClient.put(`/scenes/${sceneId}/events/order`, { events });
+}
+
+export async function createSceneEventAction(
+  sceneId: number,
+  eventId: number,
+  input: SceneEventActionInput,
+): Promise<SceneEventAction> {
+  const { data } = await apiClient.post<SceneEventAction>(
+    `/scenes/${sceneId}/events/${eventId}/actions`,
+    input,
+  );
+  return data;
+}
+
+export async function updateSceneEventAction(
+  sceneId: number,
+  eventId: number,
+  actionId: number,
+  input: SceneEventActionInput,
+): Promise<SceneEventAction> {
+  const { data } = await apiClient.put<SceneEventAction>(
+    `/scenes/${sceneId}/events/${eventId}/actions/${actionId}`,
+    input,
+  );
+  return data;
+}
+
+export async function deleteSceneEventAction(
+  sceneId: number,
+  eventId: number,
+  actionId: number,
+): Promise<void> {
+  await apiClient.delete(
+    `/scenes/${sceneId}/events/${eventId}/actions/${actionId}`,
+  );
+}
+
+export async function reorderSceneEventActions(
+  sceneId: number,
+  eventId: number,
+  actions: SortOrderInput[],
+): Promise<void> {
+  await apiClient.put(
+    `/scenes/${sceneId}/events/${eventId}/actions/order`,
+    { actions },
+  );
 }
 
 export interface CreateDialogPageSectionRequest {
