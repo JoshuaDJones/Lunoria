@@ -58,3 +58,13 @@ export async function deactivatePlaythrough(
   );
   return data;
 }
+
+export async function resumePlaythrough(
+  journeyId: number,
+  playthroughId: number,
+): Promise<JourneyPlaythrough> {
+  const { data } = await apiClient.post<JourneyPlaythrough>(
+    `${playthroughUrl(journeyId)}/${playthroughId}/resume`,
+  );
+  return data;
+}

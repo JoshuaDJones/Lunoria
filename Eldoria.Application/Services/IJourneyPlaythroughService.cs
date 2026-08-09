@@ -33,5 +33,11 @@ namespace Eldoria.Application.Services
             int journeyId,
             int playthroughId,
             CancellationToken ct);
+
+        Task<Result<JourneyPlaythroughDto>> ResumeAsync(
+            int userId,
+            int journeyId,
+            int playthroughId,
+            CancellationToken ct);
     }
 }

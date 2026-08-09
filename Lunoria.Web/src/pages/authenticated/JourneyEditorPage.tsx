@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlay } from "@fortawesome/free-solid-svg-icons";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useConfirmDialog, useToast } from "@/app/providers";
@@ -28,6 +30,12 @@ import {
   type Scene,
 } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
+import {
+  listPreviousPlaythroughs,
+  resumePlaythrough,
+  startPlaythrough,
+  type JourneyPlaythrough,
+} from "@/features/playthroughs";
 
 const sceneFields: ResourceFormField[] = [
   { name: "name", label: "Name", required: true },
@@ -62,6 +70,11 @@ export function JourneyEditorPage() {
   const [chestsScene, setChestsScene] = useState<Scene>();
   const [charactersScene, setCharactersScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
+  const [playthroughs, setPlaythroughs] = useState<JourneyPlaythrough[]>([]);
+  const [arePlaythroughsLoading, setArePlaythroughsLoading] = useState(true);
+  const [playthroughsError, setPlaythroughsError] = useState("");
+  const [startingPlaythrough, setStartingPlaythrough] = useState(false);
+  const [resumingPlaythroughId, setResumingPlaythroughId] = useState<number>();
 
   const loadJourney = async () => {
     setIsLoading(true);
@@ -136,6 +149,27 @@ export function JourneyEditorPage() {
       isCurrent = false;
     };
   }, [journeyId, scenesReloadKey]);
+
+  useEffect(() => {
+    if (!Number.isInteger(journeyId) || journeyId <= 0) return;
+    let isCurrent = true;
+
+    void listPreviousPlaythroughs(journeyId)
+      .then((loaded) => {
+        if (isCurrent) {
+          setPlaythroughs(loaded);
+          setPlaythroughsError("");
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (isCurrent) setPlaythroughsError(getApiError(requestError).message);
+      })
+      .finally(() => {
+        if (isCurrent) setArePlaythroughsLoading(false);
+      });
+
+    return () => { isCurrent = false; };
+  }, [journeyId]);
 
   if (!Number.isInteger(journeyId) || journeyId <= 0) {
     return <Navigate to="/home" replace />;
@@ -258,17 +292,77 @@ export function JourneyEditorPage() {
 
             <aside className="flex min-h-72 flex-col gap-4 rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px]">
               <Button
-                onClick={() =>
-                  navigate(
-                    `/series/${seriesId}/journeys/${journeyId}/play`,
-                  )
-                }
+                onClick={() => void (async () => {
+                  setStartingPlaythrough(true);
+                  try {
+                    const playthrough = await startPlaythrough(journeyId);
+                    setPlaythroughs((current) => [playthrough, ...current]);
+                    navigate(`/series/${seriesId}/journeys/${journeyId}/play?playthroughId=${playthrough.id}`);
+                  } catch (requestError) {
+                    toast.error(getApiError(requestError).message, "Unable to start playthrough");
+                    setStartingPlaythrough(false);
+                  }
+                })()}
+                disabled={startingPlaythrough}
                 variant="add"                
                 size="lg"
                 className="w-full py-4"
+                leftIcon={<FontAwesomeIcon icon={faPlay} />}
               >
-                Play
+                {startingPlaythrough ? "Starting..." : "Start"}
               </Button>
+
+              <section className="mt-1">
+                <h2 className="text-2xl font-semibold text-content">Playthroughs</h2>
+                <div className="mt-2 h-px w-full bg-border" />
+
+                {arePlaythroughsLoading && <p className="mt-4 text-sm text-content-secondary">Loading playthroughs...</p>}
+                {!arePlaythroughsLoading && playthroughsError && <p className="mt-4 text-sm text-danger" role="alert">{playthroughsError}</p>}
+                {!arePlaythroughsLoading && !playthroughsError && playthroughs.length === 0 && <p className="mt-4 text-sm text-content-muted">No previous playthroughs.</p>}
+
+                {!arePlaythroughsLoading && !playthroughsError && playthroughs.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {playthroughs.map((playthrough) => (
+                      <article key={playthrough.id} className="rounded-xl border border-border bg-surface/75 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-semibold text-content">Playthrough #{playthrough.id}</p>
+                            <p className="mt-0.5 text-xs text-content-secondary">Started {formatPlaythroughDate(playthrough.startedAt)}</p>
+                          </div>
+                          <span className={`rounded-full px-2 py-1 text-[0.7rem] font-semibold ${playthrough.completedAt ? "bg-surface-raised text-content-muted" : playthrough.isActive ? "bg-add/15 text-add" : "bg-utility/15 text-utility-hover"}`}>
+                            {playthrough.completedAt ? "Complete" : playthrough.isActive ? "Active" : "Paused"}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex flex-wrap justify-end gap-2">
+                          <Button onClick={() => navigate(`/series/${seriesId}/journeys/${journeyId}/play?playthroughId=${playthrough.id}&view=logs`)} size="sm" variant="secondary">View Logs</Button>
+                          {!playthrough.completedAt && (
+                            <Button
+                              onClick={() => void (async () => {
+                                setResumingPlaythroughId(playthrough.id);
+                                try {
+                                  await resumePlaythrough(journeyId, playthrough.id);
+                                  navigate(`/series/${seriesId}/journeys/${journeyId}/play?playthroughId=${playthrough.id}`);
+                                } catch (requestError) {
+                                  toast.error(getApiError(requestError).message, "Unable to resume playthrough");
+                                  setResumingPlaythroughId(undefined);
+                                }
+                              })()}
+                              disabled={resumingPlaythroughId !== undefined}
+                              size="sm"
+                              variant="primary"
+                              leftIcon={<FontAwesomeIcon icon={faPlay} />}
+                            >
+                              {resumingPlaythroughId === playthrough.id ? "Resuming..." : "Resume"}
+                            </Button>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <div className="mt-auto space-y-4 pt-2">
               <Button
                 onClick={() =>
                   navigate(
@@ -291,6 +385,7 @@ export function JourneyEditorPage() {
               >
                 Characters
               </Button>
+              </div>
             </aside>
           </div>
         )}
@@ -423,4 +518,9 @@ export function JourneyEditorPage() {
       )}
     </AppLayout>
   );
+}
+
+function formatPlaythroughDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Unknown" : new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }

@@ -89,6 +89,18 @@ namespace Eldoria.Api.Controllers
             return result.Success ? Ok(result.Value) : ToActionResult(result.Error);
         }
 
+        [HttpPost("{playthroughId:int}/resume")]
+        public async Task<ActionResult<JourneyPlaythroughDto>> Resume(
+            int journeyId,
+            int playthroughId,
+            CancellationToken ct)
+        {
+            var result = await _playthroughService.ResumeAsync(
+                User.GetUserId(), journeyId, playthroughId, ct);
+
+            return result.Success ? Ok(result.Value) : ToActionResult(result.Error);
+        }
+
         private ActionResult ToActionResult(Eldoria.Application.Common.Error error)
         {
             return error.Code switch
@@ -98,6 +110,7 @@ namespace Eldoria.Api.Controllers
                 "JourneyPlaythrough.ActiveNotFound" => NotFound(error),
                 "JourneyPlaythrough.ActiveExists" => Conflict(error),
                 "JourneyPlaythrough.NotActive" => Conflict(error),
+                "JourneyPlaythrough.Completed" => Conflict(error),
                 _ => BadRequest(error),
             };
         }

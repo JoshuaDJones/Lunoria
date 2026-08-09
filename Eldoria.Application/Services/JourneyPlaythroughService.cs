@@ -108,6 +108,33 @@ namespace Eldoria.Application.Services
             return EndAsync(userId, journeyId, playthroughId, false, ct);
         }
 
+        public async Task<Result<JourneyPlaythroughDto>> ResumeAsync(
+            int userId,
+            int journeyId,
+            int playthroughId,
+            CancellationToken ct)
+        {
+            var playthrough = await _playthroughRepository.GetForUserAsync(
+                userId, journeyId, playthroughId, ct);
+
+            if (playthrough is null)
+                return NotFound<JourneyPlaythroughDto>("JourneyPlaythrough.NotFound", "Journey playthrough was not found.");
+
+            if (playthrough.CompletedAt is not null)
+                return Result<JourneyPlaythroughDto>.Fail(new Error("JourneyPlaythrough.Completed", "A completed playthrough cannot be resumed."));
+
+            if (playthrough.IsActive)
+                return Result<JourneyPlaythroughDto>.Ok(playthrough.ToDto());
+
+            var active = await _playthroughRepository.GetActiveForJourneyAsync(userId, journeyId, ct);
+            if (active is not null)
+                return Result<JourneyPlaythroughDto>.Fail(new Error("JourneyPlaythrough.ActiveExists", "The journey already has an active playthrough."));
+
+            playthrough.IsActive = true;
+            await _playthroughRepository.SaveChangesAsync(ct);
+            return Result<JourneyPlaythroughDto>.Ok(playthrough.ToDto());
+        }
+
         private async Task<Result<JourneyPlaythroughDto>> EndAsync(
             int userId,
             int journeyId,
