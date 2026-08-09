@@ -397,12 +397,21 @@ export function JourneyEditorPage() {
           onClose={() => setIsManagingCharacters(false)}
         >
           <JourneyCharacterPicker
+            journeyCharacters={journey.journeyCharacters ?? []}
             selectedCharacterIds={
               journey.journeyCharacters?.map(
                 (journeyCharacter) => journeyCharacter.character.id,
               ) ?? []
             }
             onCancel={() => setIsManagingCharacters(false)}
+            onCharacterUpdated={(updatedCharacter) => {
+              setJourney((current) => current ? {
+                ...current,
+                journeyCharacters: current.journeyCharacters?.map((character) =>
+                  character.id === updatedCharacter.id ? updatedCharacter : character,
+                ) ?? [],
+              } : current);
+            }}
             onSave={async (characterIds) => {
               await replaceJourneyCharacters(journeyId, characterIds);
               setJourney(await getJourney(journeyId));

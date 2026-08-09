@@ -4,6 +4,7 @@ import type {
   CreateJourneyInput,
   Journey,
   JourneyCharacterSpell,
+  JourneyCharacter,
   JourneyInput,
 } from "@/features/journeys/types";
 import { SceneDialog } from "@/features/scenes/types";
@@ -14,9 +15,15 @@ export interface ListJourneysParams {
 }
 
 export interface UpdateJourneyCharacterRequest {
-  hp: number;
-  mp: number;
-  isAlternateForm: boolean;
+  meleeAttackDamage: number | null;
+  bowAttackDamage: number | null;
+  movement: number;
+  maxConsumableInventory: number;
+  maxEquippableInventory: number;
+  maxHp: number;
+  maxMp: number;
+  isInitiallyActive: boolean;
+  alternateFormId: number | null;
 }
 
 export async function listJourneys(
@@ -63,8 +70,9 @@ export async function replaceJourneyCharacters(
 export async function updateJourneyCharacter(
   journeyCharacterId: number,
   request: UpdateJourneyCharacterRequest,
-): Promise<void> {
-  await apiClient.patch(`/JourneyCharacter/${journeyCharacterId}`, request);
+): Promise<JourneyCharacter> {
+  const { data } = await apiClient.put<JourneyCharacter>(`/JourneyCharacter/assignment/${journeyCharacterId}`, request);
+  return data;
 }
 
 export async function deleteJourneyCharacter(

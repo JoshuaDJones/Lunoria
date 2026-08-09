@@ -42,5 +42,26 @@ namespace Eldoria.Api.Controllers
                 _ => BadRequest(result?.Error)
             };
         }
+
+        [HttpPut("assignment/{journeyCharacterId:int}")]
+        public async Task<IActionResult> Update(
+            int journeyCharacterId,
+            [FromBody] UpdateJourneyCharacterStatsRequest req,
+            CancellationToken ct)
+        {
+            var result = await _journeyCharacterService.UpdateAsync(
+                User.GetUserId(), journeyCharacterId,
+                req.MeleeAttackDamage, req.BowAttackDamage,
+                req.Movement!.Value, req.MaxConsumableInventory!.Value,
+                req.MaxEquippableInventory!.Value, req.MaxHp!.Value,
+                req.MaxMp!.Value, req.IsInitiallyActive!.Value,
+                req.AlternateFormId, ct);
+
+            return result.Success ? Ok(result.Value) : result.Error?.Code switch
+            {
+                "JourneyCharacter.NotFound" => NotFound(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
     }
 }

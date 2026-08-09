@@ -48,5 +48,18 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 character => journeyCharacterIds.Contains(character.JourneyCharacterId),
                 ct);
         }
+
+        public Task<JourneyCharacter?> GetForUserAsync(int userId, int journeyCharacterId, CancellationToken ct) =>
+            _dbContext.JourneyCharacters
+                .Include(character => character.Character)
+                    .ThenInclude(character => character.CharacterDialogSettings)
+                .Include(character => character.AlternateForm)
+                    .ThenInclude(character => character.CharacterDialogSettings)
+                .Include(character => character.JourneyCharacterSpells)
+                    .ThenInclude(assignment => assignment.Spell)
+                        .ThenInclude(spell => spell.SpellType)
+                .SingleOrDefaultAsync(
+                    character => character.Id == journeyCharacterId && character.Journey.UserId == userId,
+                    ct);
     }
 }

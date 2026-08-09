@@ -18,8 +18,9 @@ namespace Eldoria.Application.Common
                MaxHp = journeyCharacter.MaxHp,
                MaxMp = journeyCharacter.MaxMp,
                IsInitiallyActive = journeyCharacter.IsInitiallyActive,
-               Journey = journeyCharacter.Journey.ToDto(),
+               JourneyId = journeyCharacter.JourneyId,
                AlternateForm = journeyCharacter.AlternateForm?.ToDto(),
+               CharacterId = journeyCharacter.CharacterId,
                Character = journeyCharacter.Character.ToDto(),
                JourneyCharacterSpells = [.. journeyCharacter.JourneyCharacterSpells.Select(jcs => jcs.ToDto())]
             };

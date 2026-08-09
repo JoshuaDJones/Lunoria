@@ -1,4 +1,5 @@
 using Eldoria.Application.Common;
+using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 
@@ -38,6 +39,43 @@ namespace Eldoria.Application.Services
             _journeyCharacterRepository.Remove(character);
             await _journeyCharacterRepository.SaveChangesAsync(ct);
             return Result.Ok();
+        }
+
+        public async Task<Result<JourneyCharacterDto>> UpdateAsync(
+            int userId, int journeyCharacterId,
+            int? meleeAttackDamage, int? bowAttackDamage, int movement,
+            int maxConsumableInventory, int maxEquippableInventory,
+            int maxHp, int maxMp, bool isInitiallyActive,
+            int? alternateFormId, CancellationToken ct)
+        {
+            var journeyCharacter = await _journeyCharacterRepository.GetForUserAsync(userId, journeyCharacterId, ct);
+            if (journeyCharacter is null)
+                return Result<JourneyCharacterDto>.Fail(new Error("JourneyCharacter.NotFound", "Journey character was not found."));
+
+            if (meleeAttackDamage < 0 || bowAttackDamage < 0 || movement < 0 || maxConsumableInventory < 0 || maxEquippableInventory < 0 || maxHp < 1 || maxMp < 0)
+                return Result<JourneyCharacterDto>.Fail(new Error("JourneyCharacter.InvalidStats", "Journey character statistics contain an invalid value."));
+
+            Character? alternateForm = null;
+            if (alternateFormId is not null)
+            {
+                alternateForm = await _characterRepository.GetByIdForUserAsync(userId, alternateFormId.Value, ct);
+                if (alternateForm is null || alternateForm.Id == journeyCharacter.CharacterId)
+                    return Result<JourneyCharacterDto>.Fail(new Error("JourneyCharacter.InvalidAlternateForm", "The alternate form is invalid."));
+            }
+
+            journeyCharacter.MeleeAttackDamage = meleeAttackDamage;
+            journeyCharacter.BowAttackDamage = bowAttackDamage;
+            journeyCharacter.Movement = movement;
+            journeyCharacter.MaxConsumableInventory = maxConsumableInventory;
+            journeyCharacter.MaxEquippableInventory = maxEquippableInventory;
+            journeyCharacter.MaxHp = maxHp;
+            journeyCharacter.MaxMp = maxMp;
+            journeyCharacter.IsInitiallyActive = isInitiallyActive;
+            journeyCharacter.AlternateFormId = alternateFormId;
+            journeyCharacter.AlternateForm = alternateForm;
+
+            await _journeyCharacterRepository.SaveChangesAsync(ct);
+            return Result<JourneyCharacterDto>.Ok(journeyCharacter.ToDto());
         }
 
         public async Task<Result> ReplaceJourneyCharacters(

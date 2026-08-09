@@ -64,6 +64,7 @@ export interface JourneyCharacter {
   movement: number;
   maxConsumableInventory: number;
   maxEquippableInventory: number;
+  isInitiallyActive: boolean;
   isDown: boolean;
   alternateFormId: number | null;
   isAlternateForm: boolean;

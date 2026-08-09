@@ -5,6 +5,7 @@ namespace Eldoria.Core.Interfaces
     public interface IJourneyCharacterRepository: IRepository<JourneyCharacter>
     {
         Task<List<JourneyCharacter>> GetJourneyCharacters(int journeyId, CancellationToken ct);
+        Task<JourneyCharacter?> GetForUserAsync(int userId, int journeyCharacterId, CancellationToken ct);
         Task<bool> HasSceneParticipantReferencesAsync(
             IReadOnlyCollection<int> journeyCharacterIds,
             CancellationToken ct);

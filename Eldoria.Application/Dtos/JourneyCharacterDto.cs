@@ -11,8 +11,9 @@
         public int MaxHp { get; set; }
         public int MaxMp { get; set; }
         public bool IsInitiallyActive { get; set; }
-        public JourneyDto Journey { get; set; } = null!;
+        public int JourneyId { get; set; }
         public CharacterDto? AlternateForm { get; set; } = null!;
+        public int CharacterId { get; set; }
         public CharacterDto Character { get; set; } = null!;
         public List<JourneyCharacterSpellDto> JourneyCharacterSpells { get; set; } = [];
     }
