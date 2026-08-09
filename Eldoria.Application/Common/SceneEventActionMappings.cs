@@ -12,7 +12,7 @@ public static class SceneEventActionMappings
         SortOrder = action.SortOrder,
         ActionTargetType = action.ActionTargetType,
         EventActionType = action.EventActionType,
-        SceneEvent = action.SceneEvent.ToDto(),
+        SceneEventId = action.SceneEventId,
         CharacterStatAdjustmentAction = action.CharacterStatAdjustmentAction?.ToDto()
     };
 }

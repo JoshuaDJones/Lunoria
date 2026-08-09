@@ -19,6 +19,7 @@ namespace Eldoria.Application
             services.AddScoped<IConsumableItemService, ConsumableItemService>();
             services.AddScoped<IJourneyService, JourneyService>();
             services.AddScoped<ISceneService, SceneService>();
+            services.AddScoped<ISceneEventService, SceneEventService>();
             services.AddScoped<ISceneCharacterService, SceneCharacterService>();
             services.AddScoped<ISceneDialogService, SceneDialogService>();
             services.AddScoped<IDialogPageService, DialogPageService>();

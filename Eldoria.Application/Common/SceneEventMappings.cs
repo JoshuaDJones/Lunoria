@@ -11,7 +11,7 @@ public static class SceneEventMappings
         Name = sceneEvent.Name,
         Description = sceneEvent.Description,
         SortOrder = sceneEvent.SortOrder,
-        Scene = sceneEvent.Scene.ToDto(),
+        SceneId = sceneEvent.SceneId,
         SceneEventActions = [.. sceneEvent.SceneEventActions.Select(action => action.ToDto())]
     };
 }

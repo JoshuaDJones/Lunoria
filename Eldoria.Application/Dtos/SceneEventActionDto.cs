@@ -9,7 +9,7 @@ namespace Eldoria.Application.Dtos
         public int SortOrder { get; set; }
         public ActionTargetType ActionTargetType { get; set; }
         public EventActionType EventActionType { get; set; }
-        public SceneEventDto SceneEvent { get; set; } = null!;
+        public int SceneEventId { get; set; }
         public CharacterStatAdjustmentActionDto? CharacterStatAdjustmentAction { get; set; }
     }
 }
