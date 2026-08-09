@@ -1,4 +1,5 @@
 import type { Character } from "@/features/characters/types";
+import type { EquippableItem } from "@/features/equipment/types";
 import type { Item } from "@/features/items/types";
 import type { JourneyCharacter } from "@/features/journeys/types";
 import type { Spell } from "@/features/spells/types";
@@ -66,6 +67,37 @@ export interface SceneEvent {
 export interface SceneEventInput {
   name: string;
   description?: string | null;
+}
+
+export interface SceneChestLootEntry {
+  id: number;
+  rollMinimum: number;
+  rollMaximum: number;
+  quantity: number;
+  equippableItem: EquippableItem | null;
+  consumableItem: Item | null;
+  sceneChestId: number;
+}
+
+export interface SceneChest {
+  id: number;
+  name: string;
+  dieSides: number;
+  sceneId: number;
+  lootEntries: SceneChestLootEntry[];
+}
+
+export interface SceneChestInput {
+  name: string;
+  dieSides: number;
+}
+
+export interface SceneChestLootEntryInput {
+  rollMinimum: number;
+  rollMaximum: number;
+  quantity: number;
+  equippableItemId: number | null;
+  consumableItemId: number | null;
 }
 
 export interface SceneEventActionInput {

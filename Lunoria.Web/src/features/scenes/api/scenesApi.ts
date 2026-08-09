@@ -7,6 +7,10 @@ import type {
   SceneEventAction,
   SceneEventActionInput,
   SceneEventInput,
+  SceneChest,
+  SceneChestInput,
+  SceneChestLootEntry,
+  SceneChestLootEntryInput,
   SceneDashboard,
   SceneDialog,
   SceneInput,
@@ -15,6 +19,44 @@ import type {
   SceneProgress,
   SceneProgressStatus,
 } from "@/features/scenes/types";
+
+export async function listSceneChests(sceneId: number): Promise<SceneChest[]> {
+  const { data } = await apiClient.get<SceneChest[]>(`/scenes/${sceneId}/chests`);
+  return data;
+}
+
+export async function createSceneChest(sceneId: number, input: SceneChestInput): Promise<SceneChest> {
+  const { data } = await apiClient.post<SceneChest>(`/scenes/${sceneId}/chests`, input);
+  return data;
+}
+
+export async function updateSceneChest(sceneId: number, chestId: number, input: SceneChestInput): Promise<SceneChest> {
+  const { data } = await apiClient.put<SceneChest>(`/scenes/${sceneId}/chests/${chestId}`, input);
+  return data;
+}
+
+export async function deleteSceneChest(sceneId: number, chestId: number): Promise<void> {
+  await apiClient.delete(`/scenes/${sceneId}/chests/${chestId}`);
+}
+
+export async function listSceneChestLootEntries(sceneId: number, chestId: number): Promise<SceneChestLootEntry[]> {
+  const { data } = await apiClient.get<SceneChestLootEntry[]>(`/scenes/${sceneId}/chests/${chestId}/loot-entries`);
+  return data;
+}
+
+export async function createSceneChestLootEntry(sceneId: number, chestId: number, input: SceneChestLootEntryInput): Promise<SceneChestLootEntry> {
+  const { data } = await apiClient.post<SceneChestLootEntry>(`/scenes/${sceneId}/chests/${chestId}/loot-entries`, input);
+  return data;
+}
+
+export async function updateSceneChestLootEntry(sceneId: number, chestId: number, entryId: number, input: SceneChestLootEntryInput): Promise<SceneChestLootEntry> {
+  const { data } = await apiClient.put<SceneChestLootEntry>(`/scenes/${sceneId}/chests/${chestId}/loot-entries/${entryId}`, input);
+  return data;
+}
+
+export async function deleteSceneChestLootEntry(sceneId: number, chestId: number, entryId: number): Promise<void> {
+  await apiClient.delete(`/scenes/${sceneId}/chests/${chestId}/loot-entries/${entryId}`);
+}
 
 export interface ListScenesParams {
   journeyId: number;

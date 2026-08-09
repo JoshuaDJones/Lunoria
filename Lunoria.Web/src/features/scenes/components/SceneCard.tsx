@@ -5,6 +5,7 @@ import type { Scene } from "@/features/scenes/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBolt,
+  faBoxOpen,
   faComments,
   faPen,
   faTrash,
@@ -13,6 +14,7 @@ import {
 interface SceneCardProps {
   scene: Scene;
   onViewEvents: (scene: Scene) => void;
+  onViewChests: (scene: Scene) => void;
   onViewDialogs: (scene: Scene) => void;
   onEdit: (scene: Scene) => void;
   onDelete: (scene: Scene) => void;
@@ -21,6 +23,7 @@ interface SceneCardProps {
 export function SceneCard({
   scene,
   onViewEvents,
+  onViewChests,
   onViewDialogs,
   onEdit,
   onDelete,
@@ -67,6 +70,18 @@ export function SceneCard({
         <Stat label="Created" value={formattedCreatedAt} />
       </StatGrid>
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
+        <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewChests(scene);
+          }}
+          variant="add"
+          inverted
+          size="md"
+          leftIcon={<FontAwesomeIcon icon={faBoxOpen} />}
+        >
+          Chests
+        </Button>
         <Button
           onClick={(event) => {
             event.stopPropagation();
