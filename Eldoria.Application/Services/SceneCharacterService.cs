@@ -1,6 +1,7 @@
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Enums;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
@@ -47,6 +48,11 @@ namespace Eldoria.Application.Services
             var character = await _characterRepository.GetByIdForUserAsync(userId, characterId, ct);
             if (character is null)
                 return Result<SceneCharacterDto>.Fail(CharacterNotFound);
+
+            if (character.CharacterType == CharacterType.Player)
+                return Result<SceneCharacterDto>.Fail(new Error(
+                    "SceneCharacter.InvalidCharacterType",
+                    "Playable characters cannot be attached directly to scenes."));
 
             var existing = await _sceneCharacterRepository.ListForSceneAsync(userId, sceneId, ct);
             if (existing.Any(item => item.CharacterId == characterId))
