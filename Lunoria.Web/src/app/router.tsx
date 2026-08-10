@@ -18,6 +18,7 @@ import { JourneyEditorPage } from "@/pages/authenticated/JourneyEditorPage";
 import { JourneyIntroPagesPage } from "@/pages/authenticated/JourneyIntroPagesPage";
 import { PlayHubPage } from "@/pages/authenticated/PlayHubPage";
 import { GridPrototypePage } from "@/pages/public/GridPrototypePage";
+import { SceneGridPage } from "@/pages/authenticated/SceneGridPage";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
       {
         path: "/home",
         element: <HomePage />,
+      },
+      {
+        path: "/scene-grids/:sceneId",
+        element: <SceneGridPage />,
       },
       {
         path: "/journeys",

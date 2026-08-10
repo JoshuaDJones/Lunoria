@@ -18,6 +18,7 @@ import type {
   GridPrototypeCharacter,
   GridPrototypeSession,
 } from "@/features/gridPrototype/types";
+import type { SceneGridConfiguration } from "@/features/scenes";
 
 const hostTokenKey = (code: string) => `grid-prototype-host:${code}`;
 
@@ -34,7 +35,11 @@ function readAsDataUrl(file: Blob): Promise<string> {
   });
 }
 
-export function GridPrototypePage() {
+interface GridPrototypePageProps {
+  initialGrid?: SceneGridConfiguration;
+}
+
+export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) {
   const connectionRef = useRef<HubConnection | null>(null);
   const activeCodeRef = useRef<string | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
@@ -92,8 +97,26 @@ export function GridPrototypePage() {
 
     void connection
       .start()
-      .then(() => {
-        if (active) setConnectionState("Connected");
+      .then(async () => {
+        if (!active) return;
+        setConnectionState("Connected");
+
+        if (initialGrid) {
+          const result = await connection.invoke<CreateGridPrototypeSessionResult>(
+            "CreateConfiguredSession",
+            initialGrid.rows,
+            initialGrid.columns,
+            initialGrid.gridColor,
+            initialGrid.backgroundImageUrl,
+          );
+          if (!active) return;
+          sessionStorage.setItem(
+            hostTokenKey(result.session.code),
+            result.hostToken,
+          );
+          setHostToken(result.hostToken);
+          applySession(result.session);
+        }
       })
       .catch((startError: unknown) => {
         if (!active) return;
@@ -108,7 +131,7 @@ export function GridPrototypePage() {
       void connection.stop();
       connectionRef.current = null;
     };
-  }, [applySession]);
+  }, [applySession, initialGrid]);
 
   const connected = connectionState === "Connected";
 
@@ -257,6 +280,14 @@ export function GridPrototypePage() {
   };
 
   if (!session) {
+    if (initialGrid) {
+      return (
+        <main className="flex min-h-screen items-center justify-center bg-canvas text-content-muted">
+          {error ?? "Opening live grid…"}
+        </main>
+      );
+    }
+
     return (
       <main className="stone-image flex min-h-screen items-center justify-center p-6">
         <section className="w-full max-w-lg rounded-2xl border border-border bg-surface/95 p-8 shadow-2xl backdrop-blur-sm">
@@ -325,8 +356,20 @@ export function GridPrototypePage() {
   const isHost = hostToken !== null;
 
   return (
-    <main className="flex min-h-screen flex-col bg-canvas p-3 lg:p-5">
-      <header className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-raised px-4 py-3">
+    <main
+      className={
+        initialGrid
+          ? "relative flex h-screen w-screen overflow-hidden bg-canvas"
+          : "flex min-h-screen flex-col bg-canvas p-3 lg:p-5"
+      }
+    >
+      <header
+        className={`flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-raised px-4 py-3 ${
+          initialGrid
+            ? "absolute top-3 right-3 left-3 z-30 shadow-2xl"
+            : "mb-4"
+        }`}
+      >
         <div className="mr-auto">
           <p className="text-xs text-content-muted">Session code</p>
           <button
@@ -407,8 +450,8 @@ export function GridPrototypePage() {
         </button>
       )}
 
-      <section className="flex min-h-0 flex-1 items-start justify-center">
-        <div className="w-full max-w-[1800px]">
+      <section className="flex min-h-0 flex-1 items-stretch justify-center">
+        <div className={initialGrid ? "h-full w-full" : "w-full max-w-[1800px]"}>
           <PrototypeGridBoard
             session={session}
             selectedTokenId={selectedTokenId}
@@ -416,11 +459,14 @@ export function GridPrototypePage() {
             onBeginMove={handleBeginMove}
             onMoveToken={handleMoveToken}
             onEndMove={handleEndMove}
+            fillViewport={Boolean(initialGrid)}
           />
-          <div className="mt-2 flex justify-between text-xs text-content-muted">
-            <span>20 rows × 36 columns</span>
-            <span>{session.tokens.length} pieces · {connectionState}</span>
-          </div>
+          {!initialGrid && (
+            <div className="mt-2 flex justify-between text-xs text-content-muted">
+              <span>{session.rows} rows × {session.columns} columns</span>
+              <span>{session.tokens.length} pieces · {connectionState}</span>
+            </div>
+          )}
         </div>
       </section>
 

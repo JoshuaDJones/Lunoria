@@ -1,6 +1,7 @@
 export * from "./api/scenesApi";
 export * from "./components/SceneCard";
 export * from "./components/SceneGrid";
+export * from "./components/SceneEditorForm";
 export * from "./components/SceneOrderEditor";
 export * from "./components/SceneEventManager";
 export * from "./components/SceneChestManager";

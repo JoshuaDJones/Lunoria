@@ -23,6 +23,7 @@ interface PrototypeGridBoardProps {
   onBeginMove: (tokenId: string) => Promise<boolean>;
   onMoveToken: (tokenId: string, row: number, column: number) => Promise<void>;
   onEndMove: (tokenId: string) => Promise<void>;
+  fillViewport?: boolean;
 }
 
 export function PrototypeGridBoard({
@@ -32,6 +33,7 @@ export function PrototypeGridBoard({
   onBeginMove,
   onMoveToken,
   onEndMove,
+  fillViewport = false,
 }: PrototypeGridBoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -114,7 +116,11 @@ export function PrototypeGridBoard({
   return (
     <div
       ref={boardRef}
-      className="relative aspect-[36/20] w-full touch-none overflow-hidden rounded-xl border border-border bg-black shadow-2xl select-none"
+      className={`relative w-full touch-none overflow-hidden bg-black shadow-2xl select-none ${
+        fillViewport
+          ? "h-full border-0"
+          : "aspect-[36/20] rounded-xl border border-border"
+      }`}
       onPointerMove={handlePointerMove}
       onPointerUp={(event) => void finishDrag(event, true)}
       onPointerCancel={(event) => void finishDrag(event, false)}

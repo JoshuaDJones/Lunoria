@@ -12,6 +12,23 @@ public sealed class GridPrototypeHub(GridPrototypeSessionStore sessions) : Hub
         return result;
     }
 
+    public async Task<CreateGridPrototypeSessionResult> CreateConfiguredSession(
+        int rows,
+        int columns,
+        string gridColor,
+        string? backgroundImage)
+    {
+        await LeavePreviousGroup();
+        var result = await Invoke(() => sessions.Create(
+            Context.ConnectionId,
+            rows,
+            columns,
+            gridColor,
+            backgroundImage));
+        await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(result.Session.Code));
+        return result;
+    }
+
     public async Task<GridPrototypeSessionSnapshot> JoinSession(string code)
     {
         await LeavePreviousGroup();

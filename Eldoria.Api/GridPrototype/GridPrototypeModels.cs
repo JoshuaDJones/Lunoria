@@ -24,6 +24,8 @@ internal sealed class GridPrototypeSession
     public object SyncRoot { get; } = new();
     public required string Code { get; init; }
     public required string HostToken { get; init; }
+    public int Rows { get; init; } = GridPrototypeSessionStore.DefaultRows;
+    public int Columns { get; init; } = GridPrototypeSessionStore.DefaultColumns;
     public string GridColor { get; set; } = "#ffffff";
     public string? BackgroundImage { get; set; }
     public DateTime ExpiresAt { get; set; }

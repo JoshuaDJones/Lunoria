@@ -15,9 +15,10 @@ export type FormValues = Record<string, FormValue>;
 export interface ResourceFormField {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "checkbox" | "radio" | "select";
+  type?: "text" | "textarea" | "number" | "color" | "checkbox" | "radio" | "select";
   required?: boolean;
   options?: { label: string; value: string }[];
+  visibleWhen?: { field: string; value: FormValue };
 }
 
 interface ResourceFormProps {
@@ -28,6 +29,8 @@ interface ResourceFormProps {
   requirePhoto?: boolean;
   allowRemoveExistingPhoto?: boolean;
   showPhoto?: boolean;
+  initialPhoto?: File;
+  submitLabel?: string | ((values: FormValues) => string);
   onSubmit: (
     values: FormValues,
     photo?: File,
@@ -44,16 +47,18 @@ export function ResourceForm({
   requirePhoto,
   allowRemoveExistingPhoto = false,
   showPhoto = true,
+  initialPhoto,
+  submitLabel = "Save",
   onSubmit,
   children,
 }: ResourceFormProps) {
   const [values, setValues] = useState(initialValues);
-  const [photo, setPhoto] = useState<File>();
+  const objectUrlRef = useRef("");
+  const [photo, setPhoto] = useState<File | undefined>(initialPhoto);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
   const [removeExistingPhoto, setRemoveExistingPhoto] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const objectUrlRef = useRef("");
   const displayedPhotoUrl = existingPhotoUrl || fallbackPhotoUrl;
 
   useEffect(() => {
@@ -105,6 +110,13 @@ export function ResourceForm({
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5">
       {fields.map((field) => {
+        if (
+          field.visibleWhen &&
+          values[field.visibleWhen.field] !== field.visibleWhen.value
+        ) {
+          return null;
+        }
+
         const value = values[field.name];
 
         if (field.type === "checkbox") {
@@ -272,7 +284,11 @@ export function ResourceForm({
         size="lg"
         className="w-full"
       >
-        {isSubmitting ? "Saving..." : "Save"}
+        {isSubmitting
+          ? "Saving..."
+          : typeof submitLabel === "function"
+            ? submitLabel(values)
+            : submitLabel}
       </Button>
     </form>
   );

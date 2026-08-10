@@ -8,6 +8,7 @@ import {
   faBoxOpen,
   faComments,
   faPen,
+  faTableCells,
   faTrash,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
@@ -40,6 +41,18 @@ export function SceneCard({
       ? scene.gridUrl
       : `https://${scene.gridUrl}`
     : "";
+  const openGrid = () => {
+    const url = scene.grid
+      ? `${window.location.origin}/scene-grids/${scene.id}`
+      : gridUrl;
+    if (!url) return;
+
+    window.open(
+      url,
+      "_blank",
+      `popup=yes,width=${window.screen.availWidth},height=${window.screen.availHeight},left=0,top=0,noopener,noreferrer`,
+    );
+  };
 
   return (
     <MediaCard
@@ -49,30 +62,32 @@ export function SceneCard({
     >
       <StatGrid className="mt-4 px-4">
         <Stat
-          label="Grid URL"
+          label="Grid"
           value={
-            gridUrl ? (
-              <button
-                type="button"
-                onClick={() =>
-                  window.open(
-                    gridUrl,
-                    "_blank",
-                    "popup=yes,width=1200,height=800,noopener,noreferrer",
-                  )
-                }
-                className="cursor-pointer break-all text-left text-brand-hover underline decoration-brand-subtle/60 underline-offset-2 hover:text-brand"
-              >
-                {scene.gridUrl}
-              </button>
-            ) : (
-              "None"
-            )
+            scene.grid
+              ? `${scene.grid.rows} × ${scene.grid.columns} Lunoria grid`
+              : gridUrl
+                ? scene.gridUrl
+                : "None"
           }
         />
         <Stat label="Created" value={formattedCreatedAt} />
       </StatGrid>
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
+        {(scene.grid || gridUrl) && (
+          <Button
+            onClick={(event) => {
+              event.stopPropagation();
+              openGrid();
+            }}
+            variant="primary"
+            inverted
+            size="md"
+            leftIcon={<FontAwesomeIcon icon={faTableCells} />}
+          >
+            Show grid
+          </Button>
+        )}
         <Button
           onClick={(event) => {
             event.stopPropagation();

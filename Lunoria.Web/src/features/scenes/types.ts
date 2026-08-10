@@ -183,10 +183,30 @@ export interface Scene {
   description: string;
   photoUrl: string;
   gridUrl: string;
+  grid: SceneGridConfiguration | null;
   sortOrder: number;
   createdAt: string;
   sceneDialogs: SceneDialog[] | null;
   sceneCharacters: SceneCharacter[] | null;
+}
+
+export interface SceneGridConfiguration {
+  id: number;
+  sceneId: number;
+  rows: number;
+  columns: number;
+  gridColor: string;
+  backgroundImageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SceneGridInput {
+  rows: number;
+  columns: number;
+  gridColor: string;
+  background?: File;
+  removeBackground?: boolean;
 }
 
 export interface SceneDashboard {

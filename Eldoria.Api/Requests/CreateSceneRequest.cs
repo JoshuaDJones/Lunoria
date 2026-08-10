@@ -16,7 +16,6 @@ namespace Eldoria.Api.Requests
         [Required]
         public IFormFile Photo { get; set; } = default!;
 
-        [Required]
-        public string GridUrl { get; set; } = default!;
+        public string? GridUrl { get; set; }
     }
 }

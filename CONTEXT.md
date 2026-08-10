@@ -12,6 +12,10 @@ There are three client projects in the repository, but only one is active:
 
 Everything outside those two legacy client folders is considered active unless the code or current task says otherwise.
 
+## User verification preference
+
+The repository owner will perform verification manually. **Do not run builds, tests, linters, browser/UI automation, local development servers, or database updates unless the user explicitly asks for that specific verification action.** This includes `dotnet build`, `dotnet test`, `npm run build`, `npm run lint`, browser testing, starting the API/Vite processes, and applying EF migrations. Implement requested changes and report what should be verified, but leave execution to the user to conserve their token usage.
+
 ## Product model
 
 The main authoring hierarchy is:
@@ -34,7 +38,8 @@ User
 
 - A `Series` groups journeys.
 - A `Journey` is a campaign/mission containing ordered scenes, selected journey characters, intro pages, and multiple runs.
-- A `Scene` is an encounter or narrative unit with a display image/grid URL, characters, dialogue, events, chests, and playthrough records.
+- A `Scene` is an encounter or narrative unit with a display image, optional internal grid or external grid URL, characters, dialogue, events, chests, and playthrough records.
+- `SceneGrid` is an optional one-to-one scene-owned grid definition containing rows, columns, grid color, and an optional Azure Blob background. It is intentionally not copied into playthrough records yet.
 - `Character`, `Spell`, `SpellType`, `ConsumableItem`, and `EquippableItem` are user-owned reusable catalog templates.
 - `JourneyCharacter` is the journey-level mutable version of a character template. It preserves journey configuration/state and journey-specific spells.
 - `JourneyPlaythrough` represents one run of a journey. Only one active playthrough per journey is intended.
@@ -107,6 +112,10 @@ Current authenticated routes cover home, series/journeys and journey editing, ch
 
 The public `/grid-prototype` route is an isolated, temporary SignalR board prototype. A host creates an in-memory 20×36 session and receives an eight-character code plus a host token stored in browser session storage. Anyone with the code can join and move snapped character tokens; only the host can add/remove tokens or change the background and grid color. The anonymous character feed intentionally exposes all non-deleted character names/images for this prototype. Sessions expire after eight hours, disappear on API restart, and are not part of the journey/playthrough domain. See `docs/grid-prototype.md`.
 
+Scenes can now own one persisted `SceneGrid`. The scene create/edit drawer offers internal grid, external grid URL, or no grid. Internal grid setup appears as a second drawer page where dimensions, color, and background are configured. Scene cards show a **Show grid** button. External grids open their URL; internal grids open the authenticated `/scene-grids/:sceneId` route. That internal viewer is intentionally display-only: it renders only the saved background and grid across the full browser viewport with no toolbar, controls, session information, or character UI.
+
+The journey editor is for authoring only and must not list, start, resume, or display playthroughs. Its **Play** button navigates to the journey Play Hub. The Play Hub owns the **Start** action and the previous-playthrough list/resume/log controls.
+
 ## Important current-state caveats
 
 The domain redesign is ahead of parts of the API/client integration. Verify real implementations before assuming a route or workflow exists.
@@ -115,7 +124,7 @@ The domain redesign is ahead of parts of the API/client integration. Verify real
 - The frontend API layer also contains calls for journey-character consumable/equipment assignment and scene-character item/state mutation whose corresponding controllers are not present in the current API controller set.
 - `getLegacySceneDashboard` is explicitly legacy-shaped even though it remains in the new client API layer.
 - `docs/entity-redesign-application-gaps.md` is useful historical context, but parts of its checklist refer to `Eldoria.Web` or pre-redesign names and are not authoritative for `Lunoria.Web`.
-- `docs/realtime-player-session-implementation.md` is a design proposal, not proof that SignalR/player phone sessions exist. There is no active SignalR hub in the current application startup.
+- `docs/realtime-player-session-implementation.md` describes a broader proposed player-session architecture. A narrower grid-prototype SignalR hub is active at `/hubs/grid-prototype`, but it should not be mistaken for the full proposed playthrough/player-session design.
 - Some repository tests refer to pre-rename types/members such as `ISceneProgressRepository`, `SceneProgressService`, `SceneParticipantTurn`, and `SceneProgressStatus`; check build status before relying on those tests.
 - Scene-chest/loot-entry DTO and repository work is currently in progress in the working tree. Always inspect `git status` and preserve pre-existing edits.
 - The solution file still includes the unused Blazor client and does not include `Lunoria.Web`; this is historical solution structure, not frontend ownership.
@@ -123,6 +132,8 @@ The domain redesign is ahead of parts of the API/client integration. Verify real
 When resolving drift, prefer the current Core entity model and confirmed API behavior, then update Application, API, tests, and `Lunoria.Web` contracts together.
 
 ## Development commands
+
+These commands are reference-only. Do not run them unless the user explicitly requests verification, as described in **User verification preference** above.
 
 From the repository root:
 

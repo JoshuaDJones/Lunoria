@@ -87,7 +87,7 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.Description,
                 req.Photo,
-                req.GridUrl,
+                req.GridUrl ?? string.Empty,
                 ct);
 
             if (result.Success)
@@ -107,7 +107,7 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.Description,
                 req.Photo,
-                req.GridUrl,
+                req.GridUrl ?? string.Empty,
                 ct);
 
             if (result.Success)

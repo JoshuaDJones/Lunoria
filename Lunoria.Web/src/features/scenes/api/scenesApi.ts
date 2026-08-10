@@ -14,6 +14,8 @@ import type {
   SceneDashboard,
   SceneDialog,
   SceneInput,
+  SceneGridConfiguration,
+  SceneGridInput,
   SceneCharacterInput,
   SceneCharacter,
   SceneParticipant,
@@ -239,6 +241,37 @@ export async function reorderScenes(
   scenes: SceneOrderInput[],
 ): Promise<void> {
   await apiClient.put("/Scene/order", { scenes }, { params: { journeyId } });
+}
+
+export async function getSceneGrid(sceneId: number): Promise<SceneGridConfiguration> {
+  const { data } = await apiClient.get<SceneGridConfiguration>(`/scenes/${sceneId}/grid`);
+  return data;
+}
+
+export async function createSceneGrid(
+  sceneId: number,
+  input: SceneGridInput,
+): Promise<SceneGridConfiguration> {
+  const { data } = await apiClient.post<SceneGridConfiguration>(
+    `/scenes/${sceneId}/grid`,
+    toFormData(input),
+  );
+  return data;
+}
+
+export async function updateSceneGrid(
+  sceneId: number,
+  input: SceneGridInput,
+): Promise<SceneGridConfiguration> {
+  const { data } = await apiClient.put<SceneGridConfiguration>(
+    `/scenes/${sceneId}/grid`,
+    toFormData(input),
+  );
+  return data;
+}
+
+export async function deleteSceneGrid(sceneId: number): Promise<void> {
+  await apiClient.delete(`/scenes/${sceneId}/grid`);
 }
 
 export async function listSceneCharacters(sceneId: number): Promise<SceneCharacter[]> {

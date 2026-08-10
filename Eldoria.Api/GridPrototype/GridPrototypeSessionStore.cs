@@ -6,8 +6,9 @@ namespace Eldoria.Api.GridPrototype;
 
 public sealed partial class GridPrototypeSessionStore
 {
-    public const int Rows = 20;
-    public const int Columns = 36;
+    public const int DefaultRows = 20;
+    public const int DefaultColumns = 36;
+    public const int MaximumDimension = 100;
 
     private const int MaximumBackgroundLength = 3_500_000;
     private const int MaximumTextLength = 250;
@@ -19,9 +20,31 @@ public sealed partial class GridPrototypeSessionStore
         new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, string> _connectionSessions = [];
 
-    public CreateGridPrototypeSessionResult Create(string connectionId)
+    public CreateGridPrototypeSessionResult Create(string connectionId) =>
+        Create(connectionId, DefaultRows, DefaultColumns, "#ffffff", null);
+
+    public CreateGridPrototypeSessionResult Create(
+        string connectionId,
+        int rows,
+        int columns,
+        string gridColor,
+        string? backgroundImage)
     {
         RemoveExpiredSessions();
+
+        if (rows is < 1 or > MaximumDimension || columns is < 1 or > MaximumDimension)
+            throw new GridPrototypeException("Grid rows and columns must each be between 1 and 100.");
+        if (!HexColorRegex().IsMatch(gridColor))
+            throw new GridPrototypeException("The grid color must be a hexadecimal color.");
+
+        var normalizedBackground = string.IsNullOrWhiteSpace(backgroundImage)
+            ? null
+            : backgroundImage.Trim();
+        if (normalizedBackground?.Length > MaximumBackgroundLength ||
+            normalizedBackground is not null &&
+            !normalizedBackground.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase) &&
+            !Uri.TryCreate(normalizedBackground, UriKind.Absolute, out _))
+            throw new GridPrototypeException("The background image is invalid or too large.");
 
         GridPrototypeSession session;
         do
@@ -30,6 +53,10 @@ public sealed partial class GridPrototypeSessionStore
             {
                 Code = GenerateCode(),
                 HostToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)),
+                Rows = rows,
+                Columns = columns,
+                GridColor = gridColor.ToLowerInvariant(),
+                BackgroundImage = normalizedBackground,
                 ExpiresAt = DateTime.UtcNow.Add(SessionLifetime),
             };
         }
@@ -91,8 +118,8 @@ public sealed partial class GridPrototypeSessionStore
 
             session.Tokens[tokenId] = token with
             {
-                Row = Math.Clamp(row, 0, Rows - 1),
-                Column = Math.Clamp(column, 0, Columns - 1),
+                Row = Math.Clamp(row, 0, session.Rows - 1),
+                Column = Math.Clamp(column, 0, session.Columns - 1),
             };
             session.TokenLocks.Remove(tokenId);
             Touch(session);
@@ -125,7 +152,7 @@ public sealed partial class GridPrototypeSessionStore
             var id = Guid.NewGuid().ToString("N");
             session.Tokens[id] = new GridPrototypeTokenDto(
                 id, character.Id, character.Name.Trim(), character.ImageUrl,
-                (Rows - 1) / 2, (Columns - 1) / 2);
+                (session.Rows - 1) / 2, (session.Columns - 1) / 2);
             Touch(session);
             return SnapshotUnsafe(session);
         }
@@ -239,7 +266,7 @@ public sealed partial class GridPrototypeSessionStore
     }
 
     private static GridPrototypeSessionSnapshot SnapshotUnsafe(GridPrototypeSession session) =>
-        new(session.Code, Rows, Columns, session.GridColor, session.BackgroundImage,
+        new(session.Code, session.Rows, session.Columns, session.GridColor, session.BackgroundImage,
             session.Tokens.Values.OrderBy(token => token.Name).ThenBy(token => token.Id).ToList());
 
     private static void Touch(GridPrototypeSession session) =>
