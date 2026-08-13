@@ -70,7 +70,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasMany(s => s.ScenePlaythroughs)
                    .WithOne(p => p.Scene)
                    .HasForeignKey(p => p.SceneId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

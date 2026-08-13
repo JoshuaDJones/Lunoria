@@ -17,15 +17,15 @@
 
         public bool IsDown { get; set; }
 
-        public JourneyPlaythroughDto JourneyPlaythrough { get; set; } = null!;
-        public JourneyPlaythroughCharacterDto? AlternateForm { get; set; }
+        public int JourneyPlaythroughId { get; set; }
+        public int? AlternateFormId { get; set; }
         public bool IsInAlternateForm { get; set; }
 
-        public int JourneyCharacterId { get; set; }
-        public JourneyCharacterDto JourneyCharacter { get; set; } = null!;
+        public int? SourceJourneyCharacterId { get; set; }
+        public string SnapshotCharacterKey { get; set; } = string.Empty;
+        public string SnapshotAssignmentKey { get; set; } = string.Empty;
 
         public List<JourneyPlaythroughCharacterSpellDto> CharacterSpells { get; set; } = [];
-        public List<ScenePlaythroughParticipantDto> SceneParticipants { get; set; } = [];
         public List<JourneyPlaythroughCharacterConsumableItemDto> ConsumableItems { get; set; } = [];
         public List<JourneyPlaythroughCharacterEquippableItemDto> EquippableItems { get; set; } = [];
     }

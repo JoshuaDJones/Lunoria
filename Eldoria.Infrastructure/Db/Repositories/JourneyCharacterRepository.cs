@@ -45,7 +45,9 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 return Task.FromResult(false);
 
             return _dbContext.JourneyPlaythroughCharacters.AnyAsync(
-                character => journeyCharacterIds.Contains(character.JourneyCharacterId),
+                character =>
+                    character.JourneyCharacterId.HasValue &&
+                    journeyCharacterIds.Contains(character.JourneyCharacterId.Value),
                 ct);
         }
 

@@ -10,8 +10,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(s => s.Id);
 
-            builder.HasIndex(s => new { s.ScenePlaythroughCharacterId, s.SceneCharacterSpellId })
+            builder.HasIndex(s => new { s.ScenePlaythroughCharacterId, s.SnapshotSpellKey })
                 .IsUnique();
+            builder.Property(s => s.SnapshotSpellKey).IsRequired().HasMaxLength(100);
 
             builder.HasOne(s => s.ScenePlaythroughCharacter)
                 .WithMany(c => c.CharacterSpells)
@@ -21,7 +22,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(s => s.SceneCharacterSpell)
                 .WithMany()
                 .HasForeignKey(s => s.SceneCharacterSpellId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

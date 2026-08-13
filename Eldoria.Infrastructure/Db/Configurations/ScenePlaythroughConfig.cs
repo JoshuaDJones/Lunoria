@@ -22,8 +22,16 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(p => p.RoundNumber)
                 .IsRequired();
 
-            builder.HasIndex(p => new { p.JourneyPlaythroughId, p.SceneId })
+            builder.HasIndex(p => new { p.JourneyPlaythroughId, p.SnapshotSceneKey })
                    .IsUnique();
+            builder.Property(p => p.SnapshotSceneKey).IsRequired().HasMaxLength(100);
+            builder.Property(p => p.SnapshotSortOrder).IsRequired();
+            builder.Property(p => p.SourceSceneId).IsRequired();
+
+            builder.HasOne(p => p.Scene)
+                .WithMany(s => s.ScenePlaythroughs)
+                .HasForeignKey(p => p.SceneId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasOne(p => p.JourneyPlaythrough)
                    .WithMany(jp => jp.ScenePlaythroughs)

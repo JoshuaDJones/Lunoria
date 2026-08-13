@@ -12,8 +12,9 @@ namespace Eldoria.Application.Common
             {
                 Id = item.Id,
                 IsUsed = item.IsUsed,
-                ConsumableItem = item.ConsumableItem.ToDto(),
-                JourneyPlaythroughCharacter = item.JourneyPlaythroughCharacter.ToDto(),
+                JourneyPlaythroughCharacterId = item.JourneyPlaythroughCharacterId,
+                SourceConsumableItemId = item.ConsumableItemId,
+                SnapshotConsumableKey = item.SnapshotConsumableKey,
             };
         }
     }

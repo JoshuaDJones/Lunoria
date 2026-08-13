@@ -4,7 +4,8 @@
     {
         public int Id { get; set; }
         public bool IsUsed { get; set; }
-        public ConsumableItemDto ConsumableItem { get; set; } = null!;
-        public JourneyPlaythroughCharacterDto JourneyPlaythroughCharacter { get; set; } = null!;
+        public int JourneyPlaythroughCharacterId { get; set; }
+        public int? SourceConsumableItemId { get; set; }
+        public string SnapshotConsumableKey { get; set; } = string.Empty;
     }
 }

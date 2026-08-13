@@ -8,6 +8,8 @@ namespace Eldoria.Core.Entities
         public ChestStatus Status { get; set; } = ChestStatus.Unopened;
         public int? RolledValue { get; set; }
         public DateTime? OpenedAt { get; set; }
+        public string SnapshotChestKey { get; set; } = string.Empty;
+        public string? SelectedLootEntrySnapshotKey { get; set; }
 
         public int? SelectedLootEntryId { get; set; }
         public SceneChestLootEntry? SelectedLootEntry { get; set; }
@@ -15,7 +17,7 @@ namespace Eldoria.Core.Entities
         public int ScenePlaythroughId { get; set; }
         public ScenePlaythrough ScenePlaythrough { get; set; } = null!;
 
-        public int SceneChestId { get; set; }
-        public SceneChest SceneChest { get; set; } = null!;
+        public int? SceneChestId { get; set; }
+        public SceneChest? SceneChest { get; set; }
     }
 }

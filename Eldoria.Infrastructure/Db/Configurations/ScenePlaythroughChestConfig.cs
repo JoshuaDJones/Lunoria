@@ -10,8 +10,10 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(c => c.Id);
 
-            builder.HasIndex(c => new { c.ScenePlaythroughId, c.SceneChestId })
+            builder.HasIndex(c => new { c.ScenePlaythroughId, c.SnapshotChestKey })
                 .IsUnique();
+            builder.Property(c => c.SnapshotChestKey).IsRequired().HasMaxLength(100);
+            builder.Property(c => c.SelectedLootEntrySnapshotKey).IsRequired(false).HasMaxLength(100);
 
             builder.Property(c => c.Status).IsRequired();
             builder.Property(c => c.RolledValue).IsRequired(false);
@@ -20,7 +22,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(c => c.SceneChest)
                 .WithMany()
                 .HasForeignKey(c => c.SceneChestId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasOne(c => c.SelectedLootEntry)
                 .WithMany()

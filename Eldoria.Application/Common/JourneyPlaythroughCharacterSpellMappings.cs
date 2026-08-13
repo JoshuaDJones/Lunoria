@@ -11,8 +11,9 @@ namespace Eldoria.Application.Common
             return new JourneyPlaythroughCharacterSpellDto
             {
                 Id = Spell.Id,
-                JourneyPlaythroughCharacter = Spell.JourneyPlaythroughCharacter.ToDto(),
-                JourneyCharacterSpell = Spell.JourneyCharacterSpell.ToDto()
+                JourneyPlaythroughCharacterId = Spell.JourneyPlaythroughCharacterId,
+                SourceJourneyCharacterSpellId = Spell.JourneyCharacterSpellId,
+                SnapshotSpellKey = Spell.SnapshotSpellKey
             };
         }
     }

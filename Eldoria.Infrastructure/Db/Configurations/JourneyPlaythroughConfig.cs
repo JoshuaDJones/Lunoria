@@ -19,9 +19,21 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(p => p.IsActive)
                    .IsRequired();
 
-            builder.HasIndex(p => p.JourneyId)
+            builder.Property(p => p.SourceJourneyId).IsRequired();
+
+            builder.HasIndex(p => p.SourceJourneyId)
                    .IsUnique()
                    .HasFilter("[IsActive] = 1");
+
+            builder.HasOne(p => p.Journey)
+                .WithMany(j => j.Playthroughs)
+                .HasForeignKey(p => p.JourneyId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(p => p.JourneyRevision)
+                .WithMany(r => r.Playthroughs)
+                .HasForeignKey(p => p.JourneyRevisionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(p => p.JourneyCharacters)
                 .WithOne(c => c.JourneyPlaythrough)

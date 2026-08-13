@@ -8,8 +8,9 @@ namespace Eldoria.Application.Dtos
         public ChestStatus Status { get; set; } = ChestStatus.Unopened;
         public int? RolledValue { get; set; }
         public DateTime? OpenedAt { get; set; }
-        public SceneChestLootEntryDto? SelectedLootEntry { get; set; }
-        public ScenePlaythroughDto ScenePlaythrough { get; set; } = null!;
-        public SceneChestDto SceneChest { get; set; } = null!;
+        public string? SelectedLootEntrySnapshotKey { get; set; }
+        public int ScenePlaythroughId { get; set; }
+        public int? SourceSceneChestId { get; set; }
+        public string SnapshotChestKey { get; set; } = string.Empty;
     }
 }

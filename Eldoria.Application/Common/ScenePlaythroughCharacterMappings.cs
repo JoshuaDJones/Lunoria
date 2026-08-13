@@ -18,14 +18,13 @@ public static class ScenePlaythroughCharacterMappings
         MaxHp = character.MaxHp,
         MaxMp = character.MaxMp,
         IsDead = character.IsDead,
-        ScenePlaythrough = character.ScenePlaythrough.ToDto(),
+        ScenePlaythroughId = character.ScenePlaythroughId,
         AlternateFormId = character.AlternateFormId,
-        AlternateForm = character.AlternateForm?.ToDto(),
         IsInAlternateForm = character.IsInAlternateForm,
-        SceneCharacterId = character.SceneCharacterId,
-        SceneCharacter = character.SceneCharacter.ToDto(),
+        SourceSceneCharacterId = character.SceneCharacterId,
+        SnapshotCharacterKey = character.SnapshotCharacterKey,
+        SnapshotAssignmentKey = character.SnapshotAssignmentKey,
         CharacterSpells = [.. character.CharacterSpells.Select(spell => spell.ToDto())],
-        SceneParticipants = [.. character.SceneParticipants.Select(participant => participant.ToDto())],
         ConsumableItems = [.. character.ConsumableItems.Select(item => item.ToDto())],
         EquippableItems = [.. character.EquippableItems.Select(item => item.ToDto())]
     };

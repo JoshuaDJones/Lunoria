@@ -8,7 +8,8 @@ public static class ScenePlaythroughCharacterSpellMappings
     public static ScenePlaythroughCharacterSpellDto ToDto(this ScenePlaythroughCharacterSpell spell) => new()
     {
         Id = spell.Id,
-        ScenePlaythroughCharacter = spell.ScenePlaythroughCharacter.ToDto(),
-        SceneCharacterSpell = spell.SceneCharacterSpell.ToDto()
+        ScenePlaythroughCharacterId = spell.ScenePlaythroughCharacterId,
+        SourceSceneCharacterSpellId = spell.SceneCharacterSpellId,
+        SnapshotSpellKey = spell.SnapshotSpellKey
     };
 }

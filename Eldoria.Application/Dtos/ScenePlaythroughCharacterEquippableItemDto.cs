@@ -3,7 +3,9 @@
     public class ScenePlaythroughCharacterEquippableItemDto
     {
         public int Id { get; set; }
-        public EquippableItemDto EquippableItem { get; set; } = null!;
-        public ScenePlaythroughCharacterDto ScenePlaythroughCharacter { get; set; } = null!;
+        public bool IsEquipped { get; set; }
+        public int ScenePlaythroughCharacterId { get; set; }
+        public int? SourceEquippableItemId { get; set; }
+        public string SnapshotEquipmentKey { get; set; } = string.Empty;
     }
 }

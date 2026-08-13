@@ -4,6 +4,13 @@ namespace Eldoria.Core.Interfaces
 {
     public interface IJourneyPlaythroughRepository : IRepository<JourneyPlaythrough>
     {
+        Task<JourneyPlaythrough> StartAsync(
+            int userId,
+            int journeyId,
+            JourneyRevision revision,
+            JourneyPlaythrough playthrough,
+            CancellationToken ct);
+
         Task<JourneyPlaythrough?> GetActiveForJourneyAsync(
             int userId,
             int journeyId,

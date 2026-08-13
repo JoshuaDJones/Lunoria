@@ -9,6 +9,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
         public void Configure(EntityTypeBuilder<ScenePlaythroughCharacterEquippableItem> builder)
         {
             builder.HasKey(i => i.Id);
+            builder.Property(i => i.SnapshotEquipmentKey).IsRequired().HasMaxLength(100);
+            builder.Property(i => i.IsEquipped).IsRequired();
 
             builder.HasOne(i => i.ScenePlaythroughCharacter)
                 .WithMany(c => c.EquippableItems)
@@ -18,7 +20,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(i => i.EquippableItem)
                 .WithMany()
                 .HasForeignKey(i => i.EquippableItemId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

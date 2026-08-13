@@ -574,6 +574,24 @@ namespace Eldoria.Infrastructure.Migrations
                     b.ToTable("JourneyIntroPages");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.JourneyRevision", b =>
+                {
+                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("ContentHash").IsRequired().HasMaxLength(64).HasColumnType("nvarchar(64)");
+                    b.Property<DateTime>("CreatedAt").HasColumnType("datetime2");
+                    b.Property<int>("CreatedByUserId").HasColumnType("int");
+                    b.Property<int>("RevisionNumber").HasColumnType("int");
+                    b.Property<int>("SchemaVersion").HasColumnType("int");
+                    b.Property<int?>("SourceJourneyId").HasColumnType("int");
+                    b.Property<string>("SnapshotJson").IsRequired().HasColumnType("nvarchar(max)");
+                    b.HasKey("Id");
+                    b.HasIndex("SourceJourneyId");
+                    b.HasIndex("CreatedByUserId", "SourceJourneyId", "ContentHash").IsUnique().HasFilter("[SourceJourneyId] IS NOT NULL");
+                    b.HasIndex("CreatedByUserId", "SourceJourneyId", "RevisionNumber").IsUnique().HasFilter("[SourceJourneyId] IS NOT NULL");
+                    b.ToTable("JourneyRevisions");
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.JourneyPlaythrough", b =>
                 {
                     b.Property<int>("Id")
@@ -588,7 +606,13 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int>("JourneyId")
+                    b.Property<int?>("JourneyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JourneyRevisionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SourceJourneyId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartedAt")
@@ -596,7 +620,11 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("JourneyId")
+                    b.HasIndex("JourneyRevisionId");
+
+                    b.HasIndex("JourneyId");
+
+                    b.HasIndex("SourceJourneyId")
                         .IsUnique()
                         .HasFilter("[IsActive] = 1");
 
@@ -629,7 +657,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<bool>("IsInAlternateForm")
                         .HasColumnType("bit");
 
-                    b.Property<int>("JourneyCharacterId")
+                    b.Property<int?>("JourneyCharacterId")
                         .HasColumnType("int");
 
                     b.Property<int>("JourneyPlaythroughId")
@@ -653,6 +681,12 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<int>("Movement")
                         .HasColumnType("int");
 
+                    b.Property<string>("SnapshotCharacterKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SnapshotAssignmentKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AlternateFormId")
@@ -661,7 +695,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("JourneyCharacterId");
 
-                    b.HasIndex("JourneyPlaythroughId", "JourneyCharacterId")
+                    b.HasIndex("JourneyPlaythroughId", "SnapshotAssignmentKey")
                         .IsUnique();
 
                     b.ToTable("JourneyPlaythroughCharacters");
@@ -675,7 +709,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ConsumableItemId")
+                    b.Property<int?>("ConsumableItemId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsUsed")
@@ -683,6 +717,9 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.Property<int>("JourneyPlaythroughCharacterId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotConsumableKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -701,11 +738,16 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("EquippableItemId")
+                    b.Property<int?>("EquippableItemId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsEquipped").HasColumnType("bit");
 
                     b.Property<int>("JourneyPlaythroughCharacterId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotEquipmentKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -724,17 +766,20 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("JourneyCharacterSpellId")
+                    b.Property<int?>("JourneyCharacterSpellId")
                         .HasColumnType("int");
 
                     b.Property<int>("JourneyPlaythroughCharacterId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SnapshotSpellKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("JourneyCharacterSpellId");
 
-                    b.HasIndex("JourneyPlaythroughCharacterId", "JourneyCharacterSpellId")
+                    b.HasIndex("JourneyPlaythroughCharacterId", "SnapshotSpellKey")
                         .IsUnique();
 
                     b.ToTable("JourneyPlaythroughCharacterSpells");
@@ -1162,8 +1207,15 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<int>("RoundNumber")
                         .HasColumnType("int");
 
-                    b.Property<int>("SceneId")
+                    b.Property<int?>("SceneId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotSceneKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SnapshotSortOrder").HasColumnType("int");
+
+                    b.Property<int>("SourceSceneId").HasColumnType("int");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
@@ -1177,7 +1229,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("SceneId");
 
-                    b.HasIndex("JourneyPlaythroughId", "SceneId")
+                    b.HasIndex("JourneyPlaythroughId", "SnapshotSceneKey")
                         .IsUnique();
 
                     b.ToTable("ScenePlaythroughs");
@@ -1227,11 +1279,17 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<int>("Movement")
                         .HasColumnType("int");
 
-                    b.Property<int>("SceneCharacterId")
+                    b.Property<int?>("SceneCharacterId")
                         .HasColumnType("int");
 
                     b.Property<int>("ScenePlaythroughId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotCharacterKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SnapshotAssignmentKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -1241,7 +1299,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("SceneCharacterId");
 
-                    b.HasIndex("ScenePlaythroughId", "SceneCharacterId")
+                    b.HasIndex("ScenePlaythroughId", "SnapshotAssignmentKey")
                         .IsUnique();
 
                     b.ToTable("ScenePlaythroughCharacters");
@@ -1255,7 +1313,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ConsumableItemId")
+                    b.Property<int?>("ConsumableItemId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsUsed")
@@ -1263,6 +1321,9 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.Property<int>("ScenePlaythroughCharacterId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotConsumableKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -1281,11 +1342,16 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("EquippableItemId")
+                    b.Property<int?>("EquippableItemId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsEquipped").HasColumnType("bit");
 
                     b.Property<int>("ScenePlaythroughCharacterId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotEquipmentKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -1304,17 +1370,20 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("SceneCharacterSpellId")
+                    b.Property<int?>("SceneCharacterSpellId")
                         .HasColumnType("int");
 
                     b.Property<int>("ScenePlaythroughCharacterId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SnapshotSpellKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SceneCharacterSpellId");
 
-                    b.HasIndex("ScenePlaythroughCharacterId", "SceneCharacterSpellId")
+                    b.HasIndex("ScenePlaythroughCharacterId", "SnapshotSpellKey")
                         .IsUnique();
 
                     b.ToTable("ScenePlaythroughCharacterSpells");
@@ -1334,7 +1403,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<int?>("RolledValue")
                         .HasColumnType("int");
 
-                    b.Property<int>("SceneChestId")
+                    b.Property<int?>("SceneChestId")
                         .HasColumnType("int");
 
                     b.Property<int>("ScenePlaythroughId")
@@ -1342,6 +1411,12 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.Property<int?>("SelectedLootEntryId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SelectedLootEntrySnapshotKey")
+                        .HasMaxLength(100).HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SnapshotChestKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -1352,7 +1427,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("SelectedLootEntryId");
 
-                    b.HasIndex("ScenePlaythroughId", "SceneChestId")
+                    b.HasIndex("ScenePlaythroughId", "SnapshotChestKey")
                         .IsUnique();
 
                     b.ToTable("ScenePlaythroughChests");
@@ -1376,11 +1451,14 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<int>("ExecutionStatus")
                         .HasColumnType("int");
 
-                    b.Property<int>("SceneEventId")
+                    b.Property<int?>("SceneEventId")
                         .HasColumnType("int");
 
                     b.Property<int>("ScenePlaythroughId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SnapshotEventKey")
+                        .IsRequired().HasMaxLength(100).HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
@@ -1389,7 +1467,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("SceneEventId");
 
-                    b.HasIndex("ScenePlaythroughId", "SceneEventId")
+                    b.HasIndex("ScenePlaythroughId", "SnapshotEventKey")
                         .IsUnique();
 
                     b.ToTable("ScenePlaythroughEvents");
@@ -1860,15 +1938,38 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("Journey");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.JourneyRevision", b =>
+                {
+                    b.HasOne("Eldoria.Core.Entities.User", "CreatedByUser")
+                        .WithMany("JourneyRevisions")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Eldoria.Core.Entities.Journey", "SourceJourney")
+                        .WithMany("Revisions")
+                        .HasForeignKey("SourceJourneyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUser");
+                    b.Navigation("SourceJourney");
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.JourneyPlaythrough", b =>
                 {
                     b.HasOne("Eldoria.Core.Entities.Journey", "Journey")
                         .WithMany("Playthroughs")
                         .HasForeignKey("JourneyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Eldoria.Core.Entities.JourneyRevision", "JourneyRevision")
+                        .WithMany("Playthroughs")
+                        .HasForeignKey("JourneyRevisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Journey");
+                    b.Navigation("JourneyRevision");
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.JourneyPlaythroughCharacter", b =>
@@ -1881,8 +1982,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.JourneyCharacter", "JourneyCharacter")
                         .WithMany()
                         .HasForeignKey("JourneyCharacterId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.JourneyPlaythrough", "JourneyPlaythrough")
                         .WithMany("JourneyCharacters")
@@ -1902,8 +2002,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.ConsumableItem", "ConsumableItem")
                         .WithMany()
                         .HasForeignKey("ConsumableItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.JourneyPlaythroughCharacter", "JourneyPlaythroughCharacter")
                         .WithMany("ConsumableItems")
@@ -1921,8 +2020,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.EquippableItem", "EquippableItem")
                         .WithMany()
                         .HasForeignKey("EquippableItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.JourneyPlaythroughCharacter", "JourneyPlaythroughCharacter")
                         .WithMany("EquippableItems")
@@ -1940,8 +2038,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.JourneyCharacterSpell", "JourneyCharacterSpell")
                         .WithMany()
                         .HasForeignKey("JourneyCharacterSpellId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.JourneyPlaythroughCharacter", "JourneyPlaythroughCharacter")
                         .WithMany("CharacterSpells")
@@ -2128,8 +2225,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.Scene", "Scene")
                         .WithMany("ScenePlaythroughs")
                         .HasForeignKey("SceneId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CurrentParticipant");
 
@@ -2148,8 +2244,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.SceneCharacter", "SceneCharacter")
                         .WithMany()
                         .HasForeignKey("SceneCharacterId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.ScenePlaythrough", "ScenePlaythrough")
                         .WithMany("SceneCharacters")
@@ -2169,8 +2264,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.ConsumableItem", "ConsumableItem")
                         .WithMany()
                         .HasForeignKey("ConsumableItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.ScenePlaythroughCharacter", "ScenePlaythroughCharacter")
                         .WithMany("ConsumableItems")
@@ -2188,8 +2282,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.EquippableItem", "EquippableItem")
                         .WithMany()
                         .HasForeignKey("EquippableItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.ScenePlaythroughCharacter", "ScenePlaythroughCharacter")
                         .WithMany("EquippableItems")
@@ -2207,8 +2300,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.SceneCharacterSpell", "SceneCharacterSpell")
                         .WithMany()
                         .HasForeignKey("SceneCharacterSpellId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.ScenePlaythroughCharacter", "ScenePlaythroughCharacter")
                         .WithMany("CharacterSpells")
@@ -2226,8 +2318,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.SceneChest", "SceneChest")
                         .WithMany()
                         .HasForeignKey("SceneChestId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.ScenePlaythrough", "ScenePlaythrough")
                         .WithMany("PlaythroughChests")
@@ -2252,8 +2343,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.HasOne("Eldoria.Core.Entities.SceneEvent", "SceneEvent")
                         .WithMany()
                         .HasForeignKey("SceneEventId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Eldoria.Core.Entities.ScenePlaythrough", "ScenePlaythrough")
                         .WithMany("PlaythroughEvents")
@@ -2370,12 +2460,19 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.Navigation("Playthroughs");
 
+                    b.Navigation("Revisions");
+
                     b.Navigation("Scenes");
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.JourneyCharacter", b =>
                 {
                     b.Navigation("JourneyCharacterSpells");
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.JourneyRevision", b =>
+                {
+                    b.Navigation("Playthroughs");
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.JourneyPlaythrough", b =>
@@ -2490,6 +2587,8 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("Journeys");
+
+                    b.Navigation("JourneyRevisions");
 
                     b.Navigation("Series");
 

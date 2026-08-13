@@ -4,10 +4,13 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class AzureStorageBlob(IConfiguration config) : IAzureStorageBlob
+    public class AzureStorageBlob(
+        IConfiguration config,
+        IPlaythroughAssetRepository playthroughAssetRepository) : IAzureStorageBlob
     {
         private readonly string _containerName = config["AzureStorage:ContainerName"] ?? "";
         private readonly BlobServiceClient _blobServiceClient = CreateClient(config);
@@ -70,6 +73,11 @@ namespace Eldoria.Application.Services
         {
             try
             {
+                if (await playthroughAssetRepository.IsReferencedByRevisionAsync(
+                        blobUrl,
+                        CancellationToken.None))
+                    return true;
+
                 var uri = new Uri(blobUrl);
                 var blobName = uri.AbsolutePath.Substring(uri.AbsolutePath.LastIndexOf('/') + 1);
                 var containerName = uri.Segments[1].TrimEnd('/');

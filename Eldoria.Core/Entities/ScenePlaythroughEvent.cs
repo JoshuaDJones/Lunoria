@@ -9,11 +9,12 @@ namespace Eldoria.Core.Entities
         public string? ErrorMessage { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public string SnapshotEventKey { get; set; } = string.Empty;
 
         public int ScenePlaythroughId { get; set; }
         public ScenePlaythrough ScenePlaythrough { get; set; } = null!;
 
-        public int SceneEventId { get; set; }
-        public SceneEvent SceneEvent { get; set; } = null!;
+        public int? SceneEventId { get; set; }
+        public SceneEvent? SceneEvent { get; set; }
     }
 }

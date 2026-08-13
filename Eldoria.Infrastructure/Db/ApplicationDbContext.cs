@@ -25,6 +25,7 @@ namespace Eldoria.Infrastructure.Db
         public DbSet<JourneyPlaythroughCharacterEquippableItem> JourneyPlaythroughCharacterEquippableItems { get; set; }
         public DbSet<JourneyPlaythroughCharacterSpell> JourneyPlaythroughCharacterSpells { get; set; }
         public DbSet<JourneyPlaythroughEventLog> JourneyPlaythroughEventLogs { get; set; }
+        public DbSet<JourneyRevision> JourneyRevisions { get; set; }
 
         public DbSet<Scene> Scenes { get; set; }
         public DbSet<SceneCharacter> SceneCharacters { get; set; }

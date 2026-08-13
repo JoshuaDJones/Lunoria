@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed design for protecting active and completed playthroughs from later edits or deletions to journey-authoring and catalog data.
+The immutable revision boundary was implemented for newly started playthroughs on 2026-08-10. Revisions are created on start, identical content hashes are reused, and all scene runtime rows are seeded immediately. Runtime records use snapshot-local keys; source foreign keys are optional audit links. Archive-oriented catalog UX and an explicit playthrough-patch workflow remain future work.
 
 ## Problem
 
@@ -388,14 +388,13 @@ An especially valuable integration test is:
 5. Load the playthrough again.
 6. Assert that the playable definition and calculations are unchanged.
 
-## Decisions to make before implementation
+## Remaining policy decisions
 
-1. Should revisions be created only when play starts, or also through an explicit Publish action?
-2. Should identical content hashes reuse a revision?
-3. Should all scene runtime rows be seeded immediately or lazily?
-4. How long must completed playthroughs and their assets be retained?
-5. Is permanent user-facing deletion required, or is archive plus administrative purge sufficient?
-6. Will active playthrough patching be supported, or will corrections always require a new run?
+The implementation creates revisions when play starts, reuses identical content hashes, and seeds all scene runtime rows immediately. The remaining product-policy decisions are:
+
+1. How long must completed playthroughs and their assets be retained?
+2. Is permanent user-facing deletion required, or is archive plus administrative purge sufficient?
+3. Will active playthrough patching be supported, or will corrections always require a new run?
 
 ## Recommendation
 

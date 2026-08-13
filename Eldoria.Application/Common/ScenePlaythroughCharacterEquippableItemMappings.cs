@@ -9,7 +9,9 @@ public static class ScenePlaythroughCharacterEquippableItemMappings
         this ScenePlaythroughCharacterEquippableItem item) => new()
     {
         Id = item.Id,
-        EquippableItem = item.EquippableItem.ToDto(),
-        ScenePlaythroughCharacter = item.ScenePlaythroughCharacter.ToDto()
+        IsEquipped = item.IsEquipped,
+        ScenePlaythroughCharacterId = item.ScenePlaythroughCharacterId,
+        SourceEquippableItemId = item.EquippableItemId,
+        SnapshotEquipmentKey = item.SnapshotEquipmentKey
     };
 }

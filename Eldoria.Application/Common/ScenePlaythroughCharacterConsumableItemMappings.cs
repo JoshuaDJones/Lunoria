@@ -10,7 +10,8 @@ public static class ScenePlaythroughCharacterConsumableItemMappings
     {
         Id = item.Id,
         IsUsed = item.IsUsed,
-        ConsumableItem = item.ConsumableItem.ToDto(),
-        ScenePlaythroughCharacter = item.ScenePlaythroughCharacter.ToDto()
+        ScenePlaythroughCharacterId = item.ScenePlaythroughCharacterId,
+        SourceConsumableItemId = item.ConsumableItemId,
+        SnapshotConsumableKey = item.SnapshotConsumableKey
     };
 }

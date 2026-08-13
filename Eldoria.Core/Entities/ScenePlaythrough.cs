@@ -11,9 +11,12 @@ namespace Eldoria.Core.Entities
         public int? CurrentParticipantId { get; set; }
         public ScenePlaythroughParticipant? CurrentParticipant { get; set; }
         public int RoundNumber { get; set; }
+        public string SnapshotSceneKey { get; set; } = string.Empty;
+        public int SnapshotSortOrder { get; set; }
+        public int SourceSceneId { get; set; }
 
-        public int SceneId { get; set; }
-        public Scene Scene { get; set; } = null!;
+        public int? SceneId { get; set; }
+        public Scene? Scene { get; set; }
 
         public int JourneyPlaythroughId { get; set; }
         public JourneyPlaythrough JourneyPlaythrough { get; set; } = null!;

@@ -142,7 +142,7 @@ export function PlayHubPage() {
               {playthroughs.map((playthrough) => (
                 <article key={playthrough.id} className="rounded-xl border border-border bg-surface/75 p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div><p className="font-semibold text-content">Playthrough #{playthrough.id}</p><p className="mt-0.5 text-xs text-content-secondary">{formatDate(playthrough.startedAt)}</p></div>
+                    <div><p className="font-semibold text-content">Playthrough #{playthrough.id}</p><p className="mt-0.5 text-xs text-content-secondary">{formatDate(playthrough.startedAt)} · Revision {playthrough.revisionNumber}</p></div>
                     <span className="text-xs font-semibold text-content-muted">{playthrough.completedAt ? "Complete" : playthrough.isActive ? "Active" : "Paused"}</span>
                   </div>
                   <div className="mt-3 flex flex-wrap justify-end gap-2">

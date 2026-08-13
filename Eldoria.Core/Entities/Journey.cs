@@ -20,6 +20,7 @@ namespace Eldoria.Core.Entities
         public ICollection<Scene> Scenes { get; set; } = [];
         public ICollection<JourneyCharacter> JourneyCharacters { get; set; } = [];
         public ICollection<JourneyPlaythrough> Playthroughs { get; set; } = [];
+        public ICollection<JourneyRevision> Revisions { get; set; } = [];
         public ICollection<JourneyIntroPage> IntroPages { get; set; } = [];
     }
 }

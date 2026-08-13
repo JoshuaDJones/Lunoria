@@ -10,8 +10,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(e => e.Id);
 
-            builder.HasIndex(e => new { e.ScenePlaythroughId, e.SceneEventId })
+            builder.HasIndex(e => new { e.ScenePlaythroughId, e.SnapshotEventKey })
                 .IsUnique();
+            builder.Property(e => e.SnapshotEventKey).IsRequired().HasMaxLength(100);
 
             builder.Property(e => e.ExecutionStatus).IsRequired();
             builder.Property(e => e.ErrorMessage)
@@ -23,7 +24,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(e => e.SceneEvent)
                 .WithMany()
                 .HasForeignKey(e => e.SceneEventId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

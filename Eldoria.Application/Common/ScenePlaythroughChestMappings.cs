@@ -11,8 +11,9 @@ public static class ScenePlaythroughChestMappings
         Status = chest.Status,
         RolledValue = chest.RolledValue,
         OpenedAt = chest.OpenedAt,
-        SelectedLootEntry = chest.SelectedLootEntry?.ToDto(),
-        ScenePlaythrough = chest.ScenePlaythrough.ToDto(),
-        SceneChest = chest.SceneChest.ToDto()
+        SelectedLootEntrySnapshotKey = chest.SelectedLootEntrySnapshotKey,
+        ScenePlaythroughId = chest.ScenePlaythroughId,
+        SourceSceneChestId = chest.SceneChestId,
+        SnapshotChestKey = chest.SnapshotChestKey
     };
 }

@@ -9,7 +9,8 @@ namespace Eldoria.Application.Dtos
         public string? ErrorMessage { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
-        public ScenePlaythroughDto ScenePlaythrough { get; set; } = null!;
-        public SceneEventDto SceneEvent { get; set; } = null!;
+        public int ScenePlaythroughId { get; set; }
+        public int? SourceSceneEventId { get; set; }
+        public string SnapshotEventKey { get; set; } = string.Empty;
     }
 }

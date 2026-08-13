@@ -19,17 +19,16 @@ namespace Eldoria.Application.Dtos
 
         public bool IsDead { get; set; }
 
-        public ScenePlaythroughDto ScenePlaythrough { get; set; } = null!;
+        public int ScenePlaythroughId { get; set; }
 
         public int? AlternateFormId { get; set; }
-        public ScenePlaythroughCharacterDto? AlternateForm { get; set; }
         public bool IsInAlternateForm { get; set; }
 
-        public int SceneCharacterId { get; set; }
-        public SceneCharacterDto SceneCharacter { get; set; } = null!;
+        public int? SourceSceneCharacterId { get; set; }
+        public string SnapshotCharacterKey { get; set; } = string.Empty;
+        public string SnapshotAssignmentKey { get; set; } = string.Empty;
 
         public List<ScenePlaythroughCharacterSpellDto> CharacterSpells { get; set; } = [];
-        public List<ScenePlaythroughParticipantDto> SceneParticipants { get; set; } = [];
         public List<ScenePlaythroughCharacterConsumableItemDto> ConsumableItems { get; set; } = [];
         public List<ScenePlaythroughCharacterEquippableItemDto> EquippableItems { get; set; } = [];
     }

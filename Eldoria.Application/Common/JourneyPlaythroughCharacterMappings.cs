@@ -21,13 +21,13 @@ namespace Eldoria.Application.Common
                 MaxHp = character.MaxHp,
                 MaxMp = character.MaxMp,
                 IsDown = character.IsDown,
-                JourneyPlaythrough = character.JourneyPlaythrough.ToDto(),
-                AlternateForm = character.AlternateForm?.ToDto(),
+                JourneyPlaythroughId = character.JourneyPlaythroughId,
+                AlternateFormId = character.AlternateFormId,
                 IsInAlternateForm = character.IsInAlternateForm,
-                JourneyCharacterId = character.JourneyCharacterId,
-                JourneyCharacter = character.JourneyCharacter.ToDto(),
+                SourceJourneyCharacterId = character.JourneyCharacterId,
+                SnapshotCharacterKey = character.SnapshotCharacterKey,
+                SnapshotAssignmentKey = character.SnapshotAssignmentKey,
                 CharacterSpells = [.. character.CharacterSpells.Select(spell => spell.ToDto())],
-                SceneParticipants = [.. character.SceneParticipants.Select(participant => participant.ToDto())],
                 ConsumableItems = [.. character.ConsumableItems.Select(item => item.ToDto())],
                 EquippableItems = [.. character.EquippableItems.Select(item => item.ToDto())]
             };

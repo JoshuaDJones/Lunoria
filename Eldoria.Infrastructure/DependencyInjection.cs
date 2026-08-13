@@ -1,6 +1,7 @@
 ﻿using Eldoria.Core.Interfaces;
 using Eldoria.Infrastructure.Db;
 using Eldoria.Infrastructure.Db.Repositories;
+using Eldoria.Infrastructure.Db.Snapshots;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +21,8 @@ namespace Eldoria.Infrastructure
             services.AddScoped<ISceneRepository, SceneRepository>();
             services.AddScoped<ISceneDialogRepository, SceneDialogRepository>();
             services.AddScoped<IJourneyRepository, JourneyRepository>();
+            services.AddScoped<IJourneySnapshotBuilder, JourneySnapshotBuilder>();
+            services.AddScoped<IPlaythroughAssetRepository, PlaythroughAssetRepository>();
             services.AddScoped<IJourneyCharacterRepository, JourneyCharacterRepository>();
             services.AddScoped<ICharacterSpellRepository, CharacterSpellRepository>();
             services.AddScoped<ICharacterRepository, CharacterRepository>();

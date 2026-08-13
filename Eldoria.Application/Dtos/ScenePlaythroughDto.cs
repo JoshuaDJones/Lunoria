@@ -11,8 +11,10 @@ namespace Eldoria.Application.Dtos
         public int? CurrentParticipantId { get; set; }
         public ScenePlaythroughParticipantDto? CurrentParticipant { get; set; }
         public int RoundNumber { get; set; }
-        public SceneDto Scene { get; set; } = null!;
-        public JourneyPlaythroughDto JourneyPlaythrough { get; set; } = null!;
+        public int SourceSceneId { get; set; }
+        public string SnapshotSceneKey { get; set; } = string.Empty;
+        public int SnapshotSortOrder { get; set; }
+        public int JourneyPlaythroughId { get; set; }
         public List<ScenePlaythroughCharacterDto> SceneCharacters { get; set; } = [];
         public List<ScenePlaythroughParticipantDto> Participants { get; set; } = [];
         public List<ScenePlaythroughEventDto> PlaythroughEvents { get; set; } = [];

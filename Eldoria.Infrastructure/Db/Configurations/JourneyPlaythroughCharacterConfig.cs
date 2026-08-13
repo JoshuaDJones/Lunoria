@@ -10,8 +10,10 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(c => c.Id);
 
-            builder.HasIndex(c => new { c.JourneyPlaythroughId, c.JourneyCharacterId })
+            builder.HasIndex(c => new { c.JourneyPlaythroughId, c.SnapshotAssignmentKey })
                 .IsUnique();
+            builder.Property(c => c.SnapshotCharacterKey).IsRequired().HasMaxLength(100);
+            builder.Property(c => c.SnapshotAssignmentKey).IsRequired().HasMaxLength(100);
 
             builder.Property(c => c.Movement).IsRequired();
             builder.Property(c => c.MaxConsumableInventory).IsRequired();
@@ -26,7 +28,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(c => c.JourneyCharacter)
                 .WithMany()
                 .HasForeignKey(c => c.JourneyCharacterId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasOne(c => c.AlternateForm)
                 .WithOne()

@@ -3,7 +3,9 @@
     public class JourneyPlaythroughCharacterEquippableItemDto
     {
         public int Id { get; set; }
-        public EquippableItemDto EquippableItem { get; set; } = null!;
-        public JourneyPlaythroughCharacterDto JourneyPlaythroughCharacter { get; set; } = null!;
+        public bool IsEquipped { get; set; }
+        public int JourneyPlaythroughCharacterId { get; set; }
+        public int? SourceEquippableItemId { get; set; }
+        public string SnapshotEquipmentKey { get; set; } = string.Empty;
     }
 }

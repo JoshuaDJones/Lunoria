@@ -10,6 +10,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
         {
             builder.HasKey(i => i.Id);
             builder.Property(i => i.IsUsed).IsRequired();
+            builder.Property(i => i.SnapshotConsumableKey).IsRequired().HasMaxLength(100);
 
             builder.HasOne(i => i.ScenePlaythroughCharacter)
                 .WithMany(c => c.ConsumableItems)
@@ -19,7 +20,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasOne(i => i.ConsumableItem)
                 .WithMany()
                 .HasForeignKey(i => i.ConsumableItemId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

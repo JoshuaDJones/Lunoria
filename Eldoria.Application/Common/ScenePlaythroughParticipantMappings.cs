@@ -14,9 +14,9 @@ namespace Eldoria.Application.Common
                 IsActive = participant.IsActive,
                 SortOrderWithinType = participant.SortOrderWithinType,
                 ParticipantType = participant.ParticipantType,
-                ScenePlaythrough = participant.ScenePlaythrough.ToDto(),
-                JourneyPlaythroughCharacter = participant.JourneyPlaythroughCharacter?.ToDto(),
-                ScenePlaythroughCharacter = participant.ScenePlaythroughCharacter?.ToDto()
+                ScenePlaythroughId = participant.ScenePlaythroughId,
+                JourneyPlaythroughCharacterId = participant.JourneyPlaythroughCharacterId,
+                ScenePlaythroughCharacterId = participant.ScenePlaythroughCharacterId
             };
         }
     }

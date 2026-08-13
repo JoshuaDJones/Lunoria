@@ -16,6 +16,8 @@
         public int MaxMp { get; set; }
 
         public bool IsDown { get; set; }
+        public string SnapshotCharacterKey { get; set; } = string.Empty;
+        public string SnapshotAssignmentKey { get; set; } = string.Empty;
 
         public int JourneyPlaythroughId { get; set; }
         public JourneyPlaythrough JourneyPlaythrough { get; set; } = null!;
@@ -24,8 +26,8 @@
         public JourneyPlaythroughCharacter? AlternateForm { get; set; }
         public bool IsInAlternateForm { get; set; }
 
-        public int JourneyCharacterId { get; set; }
-        public JourneyCharacter JourneyCharacter { get; set; } = null!;
+        public int? JourneyCharacterId { get; set; }
+        public JourneyCharacter? JourneyCharacter { get; set; }
 
         public ICollection<JourneyPlaythroughCharacterSpell> CharacterSpells { get; set; } = [];
         public ICollection<ScenePlaythroughParticipant> SceneParticipants { get; set; } = [];

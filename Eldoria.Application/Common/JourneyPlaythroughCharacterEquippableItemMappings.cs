@@ -11,8 +11,10 @@ namespace Eldoria.Application.Common
             return new JourneyPlaythroughCharacterEquippableItemDto
             {
                 Id = item.Id,
-                EquippableItem = item.EquippableItem.ToDto(),
-                JourneyPlaythroughCharacter = item.JourneyPlaythroughCharacter.ToDto(),
+                IsEquipped = item.IsEquipped,
+                JourneyPlaythroughCharacterId = item.JourneyPlaythroughCharacterId,
+                SourceEquippableItemId = item.EquippableItemId,
+                SnapshotEquipmentKey = item.SnapshotEquipmentKey,
             };
         }
     }

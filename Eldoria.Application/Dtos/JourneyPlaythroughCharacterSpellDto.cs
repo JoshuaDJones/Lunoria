@@ -3,7 +3,8 @@
     public class JourneyPlaythroughCharacterSpellDto
     {
         public int Id { get; set; }
-        public JourneyPlaythroughCharacterDto JourneyPlaythroughCharacter { get; set; } = null!;
-        public JourneyCharacterSpellDto JourneyCharacterSpell { get; set; } = null!;
+        public int JourneyPlaythroughCharacterId { get; set; }
+        public int? SourceJourneyCharacterSpellId { get; set; }
+        public string SnapshotSpellKey { get; set; } = string.Empty;
     }
 }

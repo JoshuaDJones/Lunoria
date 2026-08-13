@@ -12,7 +12,8 @@ public static class ScenePlaythroughEventMappings
         ErrorMessage = playthroughEvent.ErrorMessage,
         StartedAt = playthroughEvent.StartedAt,
         CompletedAt = playthroughEvent.CompletedAt,
-        ScenePlaythrough = playthroughEvent.ScenePlaythrough.ToDto(),
-        SceneEvent = playthroughEvent.SceneEvent.ToDto()
+        ScenePlaythroughId = playthroughEvent.ScenePlaythroughId,
+        SourceSceneEventId = playthroughEvent.SceneEventId,
+        SnapshotEventKey = playthroughEvent.SnapshotEventKey
     };
 }

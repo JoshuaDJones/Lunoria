@@ -16,6 +16,8 @@
         public int MaxMp { get; set; }
 
         public bool IsDead { get; set; }
+        public string SnapshotCharacterKey { get; set; } = string.Empty;
+        public string SnapshotAssignmentKey { get; set; } = string.Empty;
 
         public int ScenePlaythroughId { get; set; }
         public ScenePlaythrough ScenePlaythrough { get; set; } = null!;
@@ -24,8 +26,8 @@
         public ScenePlaythroughCharacter? AlternateForm { get; set; }
         public bool IsInAlternateForm { get; set; }
 
-        public int SceneCharacterId { get; set; }
-        public SceneCharacter SceneCharacter { get; set; } = null!;
+        public int? SceneCharacterId { get; set; }
+        public SceneCharacter? SceneCharacter { get; set; }
 
         public ICollection<ScenePlaythroughCharacterSpell> CharacterSpells { get; set; } = [];
         public ICollection<ScenePlaythroughParticipant> SceneParticipants { get; set; } = [];
