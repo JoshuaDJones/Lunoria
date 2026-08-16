@@ -10,6 +10,5 @@ namespace Eldoria.Application.Dtos
         public List<SceneDto>? Scenes { get; set; } = [];
         public List<JourneyCharacterDto>? JourneyCharacters { get; set; } = [];
         public List<JourneyIntroPageDto>? IntroPages { get; set; } = [];
-        public List<JourneyPlaythroughDto>? Playthroughs { get; set; } = [];
     }
 }

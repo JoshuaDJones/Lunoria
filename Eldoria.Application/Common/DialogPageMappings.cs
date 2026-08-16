@@ -1,6 +1,5 @@
 ﻿using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
-using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Application.Common
 {

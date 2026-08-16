@@ -4,13 +4,10 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
-    public class AzureStorageBlob(
-        IConfiguration config,
-        IPlaythroughAssetRepository playthroughAssetRepository) : IAzureStorageBlob
+    public class AzureStorageBlob(IConfiguration config) : IAzureStorageBlob
     {
         private readonly string _containerName = config["AzureStorage:ContainerName"] ?? "";
         private readonly BlobServiceClient _blobServiceClient = CreateClient(config);
@@ -69,30 +66,11 @@ namespace Eldoria.Application.Services
                 credential);
         }
 
-        public async Task<bool> DeletePhotoFromUrl(string blobUrl)
+        public Task<bool> DeletePhotoFromUrl(string? blobUrl)
         {
-            try
-            {
-                if (await playthroughAssetRepository.IsReferencedByRevisionAsync(
-                        blobUrl,
-                        CancellationToken.None))
-                    return true;
-
-                var uri = new Uri(blobUrl);
-                var blobName = uri.AbsolutePath.Substring(uri.AbsolutePath.LastIndexOf('/') + 1);
-                var containerName = uri.Segments[1].TrimEnd('/');
-
-                var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-                var blobClient = containerClient.GetBlobClient(blobName);
-
-                var result = await blobClient.DeleteIfExistsAsync();
-                return result.Value;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting blob from URL: {ex.Message}");
-                return false;
-            }
+            // Playthroughs retain copied asset URLs after their source records change.
+            // Blob deletion is intentionally disabled so those URLs remain valid.
+            return Task.FromResult(true);
         }
     }
 }

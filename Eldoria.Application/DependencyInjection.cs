@@ -1,4 +1,4 @@
-﻿using Eldoria.Application.Services;
+using Eldoria.Application.Services;
 using Eldoria.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +18,7 @@ namespace Eldoria.Application
             services.AddScoped<IEquippableItemService, EquippableItemService>();
             services.AddScoped<IConsumableItemService, ConsumableItemService>();
             services.AddScoped<IJourneyService, JourneyService>();
+            services.AddScoped<IPlaythroughService, PlaythroughService>();
             services.AddScoped<ISceneService, SceneService>();
             services.AddScoped<ISceneEventService, SceneEventService>();
             services.AddScoped<ISceneGridService, SceneGridService>();
@@ -28,7 +29,6 @@ namespace Eldoria.Application
             services.AddScoped<IDialogPageSectionService, DialogPageSectionService>();
             services.AddScoped<IJourneyCharacterService, JourneyCharacterService>();
             services.AddScoped<IJourneyCharacterSpellService, JourneyCharacterSpellService>();
-            services.AddScoped<IJourneyPlaythroughService, JourneyPlaythroughService>();
             services.AddScoped<IImagesService, ImagesService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IAzureStorageBlob, AzureStorageBlob>();

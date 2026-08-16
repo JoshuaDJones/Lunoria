@@ -1,6 +1,5 @@
 ﻿using Eldoria.Core.Enums;
 
-using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Core.Entities.Playthrough.Base
 {
@@ -34,6 +33,6 @@ namespace Eldoria.Core.Entities.Playthrough.Base
         public Playthrough Playthrough { get; set; } = null!;
 
         public ICollection<PlaythroughCharacterSpell> Spells { get; set; } = [];
-        public ICollection<ScenePTDialogSection> DialogSections { get; set; } = [];
+        public ICollection<Eldoria.Core.Entities.Playthrough.Scene.ScenePTDialogSection> DialogSections { get; set; } = [];
     }
 }

@@ -1,6 +1,5 @@
 using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
-using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 
