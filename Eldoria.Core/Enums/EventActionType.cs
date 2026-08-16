@@ -2,6 +2,7 @@
 {
     public enum EventActionType
     {
-        CharacterStatAdjustment = 1
+        CharacterStatAdjustment = 1,
+        CharacterAddSpell = 2
     }
 }

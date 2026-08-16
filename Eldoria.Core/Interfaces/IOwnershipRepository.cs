@@ -8,7 +8,5 @@ namespace Eldoria.Core.Interfaces
         Task<JourneyCharacter?> GetJourneyCharacterAsync(int userId, int journeyCharacterId, CancellationToken ct);
         Task<Scene?> GetSceneAsync(int userId, int sceneId, CancellationToken ct);
         Task<SceneCharacter?> GetSceneCharacterAsync(int userId, int sceneCharacterId, CancellationToken ct);
-        Task<JourneyPlaythrough?> GetJourneyPlaythroughAsync(int userId, int journeyPlaythroughId, CancellationToken ct);
-        Task<ScenePlaythrough?> GetScenePlaythroughAsync(int userId, int scenePlaythroughId, CancellationToken ct);
     }
 }

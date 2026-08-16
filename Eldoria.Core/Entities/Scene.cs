@@ -1,3 +1,5 @@
+using Eldoria.Core.Entities.Playthrough.Scene;
+
 namespace Eldoria.Core.Entities
 {
     public class Scene
@@ -20,7 +22,6 @@ namespace Eldoria.Core.Entities
         public ICollection<SceneChest> SceneChests { get; set; } = [];
         public ICollection<SceneIntroPage> SceneIntroPages { get; set; } = [];
         public ICollection<SceneEvent> SceneEvents { get; set; } = [];
-        public ICollection<ScenePlaythrough> ScenePlaythroughs { get; set; } = [];
         public ICollection<SceneDialog> SceneDialogs { get; set; } = [];
         public ICollection<SceneCharacter> SceneCharacters { get; set; } = [];
     }

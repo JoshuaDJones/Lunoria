@@ -1,6 +1,6 @@
 namespace Eldoria.Core.Entities
 {
-    public class DialogPageSection
+    public class ScenePTDialogSection
     {
         public int Id { get; set; }
         public int OrderNum { get; set; }
@@ -13,6 +13,6 @@ namespace Eldoria.Core.Entities
         public Character? Character { get; set; }
 
         public int DialogPageId { get; set; }
-        public DialogPage DialogPage { get; set; } = null!;
+        public ScenePTDialogPage DialogPage { get; set; } = null!;
     }
 }

@@ -1,12 +1,12 @@
 ﻿using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Base;
 
 namespace Eldoria.Application.Common
 {
     public static class JourneyPlaythroughCharacterMappings
     {
         public static JourneyPlaythroughCharacterDto ToDto(
-            this JourneyPlaythroughCharacter character)
+            this PlaythroughCharacter character)
         {
             return new JourneyPlaythroughCharacterDto
             {

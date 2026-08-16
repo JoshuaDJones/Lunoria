@@ -37,7 +37,7 @@ namespace Eldoria.Core.Entities
         public CharacterDialogSettings CharacterDialogSettings { get; set; } = null!;
 
         public ICollection<CharacterSpell> CharacterSpells { get; set; } = [];
-        public ICollection<DialogPageSection> DialogPageSections { get; set; } = [];
+        public ICollection<ScenePTDialogSection> DialogPageSections { get; set; } = [];
 
     }
 }

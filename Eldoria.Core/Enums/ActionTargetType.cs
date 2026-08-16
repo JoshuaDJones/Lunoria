@@ -3,6 +3,8 @@
     public enum ActionTargetType
     {
         AllJourneyCharacters = 1,
-        SingleJourneyCharacter = 2
+        SingleJourneyCharacter = 2,
+        AllSceneCharacters = 3,
+        SingleSceneCharacter = 4,
     }
 }

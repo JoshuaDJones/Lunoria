@@ -10,6 +10,6 @@ namespace Eldoria.Core.Entities
         public int SceneId { get; set; }
         public Scene Scene { get; set; } = null!;
 
-        public ICollection<DialogPage> DialogPages { get; set; } = [];
+        public ICollection<ScenePTDialogPage> DialogPages { get; set; } = [];
     }
 }

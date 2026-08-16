@@ -22,15 +22,11 @@ namespace Eldoria.Infrastructure
             services.AddScoped<ISceneDialogRepository, SceneDialogRepository>();
             services.AddScoped<IJourneyRepository, JourneyRepository>();
             services.AddScoped<IJourneySnapshotBuilder, JourneySnapshotBuilder>();
-            services.AddScoped<IPlaythroughAssetRepository, PlaythroughAssetRepository>();
             services.AddScoped<IJourneyCharacterRepository, JourneyCharacterRepository>();
             services.AddScoped<ICharacterSpellRepository, CharacterSpellRepository>();
             services.AddScoped<ICharacterRepository, CharacterRepository>();
             services.AddScoped<ISpellRepository, SpellRepository>();
             services.AddScoped<IJourneyCharacterSpellRepository, JourneyCharacterSpellRepository>();
-            services.AddScoped<IJourneyPlaythroughRepository, JourneyPlaythroughRepository>();
-            services.AddScoped<IJourneyPlaythroughCharacterRepository, JourneyPlaythroughCharacterRepository>();
-            services.AddScoped<IScenePlaythroughRepository, ScenePlaythroughRepository>();
             services.AddScoped<ISceneCharacterRepository, SceneCharacterRepository>();
             services.AddScoped<ISceneChestRepository, SceneChestRepository>();
             services.AddScoped<ISceneChestLootEntryRepository, SceneChestLootEntryRepository>();

@@ -1,12 +1,12 @@
 ﻿using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Application.Common
 {
     public static class ScenePlaythroughParticipantMappings
     {
         public static ScenePlaythroughParticipantDto ToDto(
-    this ScenePlaythroughParticipant participant)
+    this ScenePTParticipant participant)
         {
             return new ScenePlaythroughParticipantDto
             {

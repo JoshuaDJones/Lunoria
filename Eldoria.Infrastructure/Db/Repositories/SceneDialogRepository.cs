@@ -1,4 +1,5 @@
 ﻿using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

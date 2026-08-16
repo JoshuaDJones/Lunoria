@@ -1,5 +1,6 @@
 ﻿using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 using System;
 using System.Collections.Generic;
 using System.Linq;

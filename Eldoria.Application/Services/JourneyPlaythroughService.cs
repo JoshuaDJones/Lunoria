@@ -8,6 +8,8 @@ using Eldoria.Core.Snapshots;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Eldoria.Core.Entities.Playthrough;
+using Eldoria.Core.Entities.Playthrough.Base;
 
 namespace Eldoria.Application.Services
 {
@@ -195,12 +197,12 @@ namespace Eldoria.Application.Services
         private static Result<T> NotFound<T>(string code, string message) =>
             Result<T>.Fail(new Error(code, message));
 
-        private static JourneyPlaythrough CreateRuntimeState(
+        private static Playthrough CreateRuntimeState(
             int journeyId,
             JourneySnapshotV1 snapshot,
             JourneyRevision revision)
         {
-            var playthrough = new JourneyPlaythrough
+            var playthrough = new Playthrough
             {
                 JourneyId = journeyId,
                 SourceJourneyId = journeyId,
@@ -212,7 +214,7 @@ namespace Eldoria.Application.Services
             var characterDefinitions = snapshot.Characters.ToDictionary(character => character.Key);
             var journeyRuntimeCharacters = snapshot.Journey.Characters.ToDictionary(
                 definition => definition.Key,
-                definition => new JourneyPlaythroughCharacter
+                definition => new PlaythroughCharacter
                 {
                     JourneyCharacterId = definition.SourceJourneyCharacterId,
                     SnapshotAssignmentKey = definition.Key,
@@ -240,7 +242,7 @@ namespace Eldoria.Application.Services
                     continue;
                 var alternateDefinition = characterDefinitions[definition.AlternateFormCharacterKey];
                 var alternateAssignmentKey = $"{definition.Key}:alternate";
-                var alternate = new JourneyPlaythroughCharacter
+                var alternate = new PlaythroughCharacter
                 {
                     SnapshotAssignmentKey = alternateAssignmentKey,
                     SnapshotCharacterKey = alternateDefinition.Key,

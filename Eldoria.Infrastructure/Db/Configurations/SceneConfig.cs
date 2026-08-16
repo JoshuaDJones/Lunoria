@@ -67,10 +67,6 @@ namespace Eldoria.Infrastructure.Db.Configurations
                    .HasForeignKey(e => e.SceneId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(s => s.ScenePlaythroughs)
-                   .WithOne(p => p.Scene)
-                   .HasForeignKey(p => p.SceneId)
-                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

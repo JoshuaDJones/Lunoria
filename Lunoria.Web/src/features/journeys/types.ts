@@ -3,7 +3,6 @@ import type { EquippableItem } from "@/features/equipment/types";
 import type { Item } from "@/features/items/types";
 import type { Scene } from "@/features/scenes/types";
 import type { Spell } from "@/features/spells/types";
-import { JourneyPlaythrough } from "@/features/playthroughs/types";
 
 export enum IntroPageType {
   ImageTopContentBottom = 1,
@@ -96,7 +95,6 @@ export interface Journey {
   scenes: Scene[] | null;
   journeyCharacters: JourneyCharacter[] | null;
   introPages: IntroPage[] | null;
-  playthroughs: JourneyPlaythrough[] | null;
 }
 
 export interface JourneyInput {

@@ -1,11 +1,11 @@
 using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Application.Common
 {
     public static class ScenePlaythroughMappings
     {
-        public static ScenePlaythroughDto ToDto(this ScenePlaythrough playthrough)
+        public static ScenePlaythroughDto ToDto(this ScenePT playthrough)
         {
             return new ScenePlaythroughDto
             {

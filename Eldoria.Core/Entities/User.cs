@@ -19,6 +19,6 @@ namespace Eldoria.Core.Entities
         public ICollection<EquippableItem> EquippableItems { get; set; } = [];
         public ICollection<Spell> Spells { get; set; } = [];
         public ICollection<SpellType> SpellTypes { get; set; } = [];
-        public ICollection<JourneyRevision> JourneyRevisions { get; set; } = [];
+        public ICollection<Playthrough.Base.Playthrough> Playthroughs { get; set; } = [];
     }
 }

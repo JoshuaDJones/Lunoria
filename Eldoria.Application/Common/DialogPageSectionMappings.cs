@@ -1,11 +1,12 @@
 ﻿using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Application.Common
 {
     public static class DialogPageSectionMappings
     {
-        public static DialogPageSectionDto ToDto(this DialogPageSection dialogPageSection)
+        public static DialogPageSectionDto ToDto(this ScenePTDialogSection dialogPageSection)
         {
             return new DialogPageSectionDto
             {

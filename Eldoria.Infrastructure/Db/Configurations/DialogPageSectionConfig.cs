@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Eldoria.Infrastructure.Db.Configurations
 {
-    public class DialogPageSectionConfig : IEntityTypeConfiguration<DialogPageSection>
+    public class DialogPageSectionConfig : IEntityTypeConfiguration<ScenePTDialogSection>
     {
-        public void Configure(EntityTypeBuilder<DialogPageSection> builder)
+        public void Configure(EntityTypeBuilder<ScenePTDialogSection> builder)
         {
             builder.HasKey(s => s.Id);
 

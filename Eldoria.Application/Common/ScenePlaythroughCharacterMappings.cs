@@ -1,11 +1,11 @@
 using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Application.Common;
 
 public static class ScenePlaythroughCharacterMappings
 {
-    public static ScenePlaythroughCharacterDto ToDto(this ScenePlaythroughCharacter character) => new()
+    public static ScenePlaythroughCharacterDto ToDto(this ScenePTCharacter character) => new()
     {
         Id = character.Id,
         MeleeAttackDamage = character.MeleeAttackDamage,

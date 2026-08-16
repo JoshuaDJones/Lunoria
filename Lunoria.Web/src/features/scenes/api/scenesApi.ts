@@ -18,10 +18,6 @@ import type {
   SceneGridInput,
   SceneCharacterInput,
   SceneCharacter,
-  SceneParticipant,
-  SceneParticipantTurn,
-  SceneProgress,
-  SceneProgressStatus,
 } from "@/features/scenes/types";
 
 export async function listSceneChests(sceneId: number): Promise<SceneChest[]> {
@@ -66,16 +62,6 @@ export interface ListScenesParams {
   journeyId: number;
   skip?: number;
   take?: number;
-}
-
-export interface AddSceneParticipantRequest {
-  journeyCharacterId?: number | null;
-  sceneCharacterId?: number | null;
-}
-
-export interface SceneParticipantTurnPosition {
-  turnId: number;
-  turnPosition: number;
 }
 
 export interface SceneOrderInput {
@@ -394,95 +380,4 @@ export async function deleteDialogPageSection(
   dialogPageSectionId: number,
 ): Promise<void> {
   await apiClient.delete(`/DialogPageSection/${dialogPageSectionId}`);
-}
-
-export async function createOrGetSceneProgress(
-  journeyId: number,
-  sceneId: number,
-): Promise<SceneProgress> {
-  const { data } = await apiClient.post<SceneProgress>(
-    `/journeys/${journeyId}/scenes/${sceneId}/progress`,
-  );
-  return data;
-}
-
-export async function getActiveSceneProgress(
-  journeyId: number,
-  sceneId: number,
-): Promise<SceneProgress> {
-  const { data } = await apiClient.get<SceneProgress>(
-    `/journeys/${journeyId}/scenes/${sceneId}/progress`,
-  );
-  return data;
-}
-
-export async function listSceneProgress(
-  journeyId: number,
-  playthroughId: number,
-): Promise<SceneProgress[]> {
-  const { data } = await apiClient.get<SceneProgress[]>(
-    `/journeys/${journeyId}/playthroughs/${playthroughId}/scene-progress`,
-  );
-  return data;
-}
-
-export async function updateSceneProgressStatus(
-  sceneProgressId: number,
-  status: SceneProgressStatus,
-): Promise<SceneProgress> {
-  const { data } = await apiClient.patch<SceneProgress>(
-    `/scene-progress/${sceneProgressId}/status`,
-    { status },
-  );
-  return data;
-}
-
-export async function addSceneParticipant(
-  sceneProgressId: number,
-  request: AddSceneParticipantRequest,
-): Promise<SceneParticipant> {
-  const { data } = await apiClient.post<SceneParticipant>(
-    `/scene-progress/${sceneProgressId}/participants`,
-    request,
-  );
-  return data;
-}
-
-export async function removeSceneParticipant(
-  sceneProgressId: number,
-  participantId: number,
-): Promise<void> {
-  await apiClient.delete(
-    `/scene-progress/${sceneProgressId}/participants/${participantId}`,
-  );
-}
-
-export async function addSceneParticipantTurn(
-  sceneProgressId: number,
-  sceneParticipantId: number,
-  turnPosition: number,
-): Promise<SceneParticipantTurn> {
-  const { data } = await apiClient.post<SceneParticipantTurn>(
-    `/scene-progress/${sceneProgressId}/turns`,
-    { sceneParticipantId, turnPosition },
-  );
-  return data;
-}
-
-export async function reorderSceneParticipantTurns(
-  sceneProgressId: number,
-  turns: SceneParticipantTurnPosition[],
-): Promise<SceneParticipantTurn[]> {
-  const { data } = await apiClient.put<SceneParticipantTurn[]>(
-    `/scene-progress/${sceneProgressId}/turns/reorder`,
-    { turns },
-  );
-  return data;
-}
-
-export async function removeSceneParticipantTurn(
-  sceneProgressId: number,
-  turnId: number,
-): Promise<void> {
-  await apiClient.delete(`/scene-progress/${sceneProgressId}/turns/${turnId}`);
 }

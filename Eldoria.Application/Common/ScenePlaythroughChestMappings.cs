@@ -1,11 +1,11 @@
 using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 
 namespace Eldoria.Application.Common;
 
 public static class ScenePlaythroughChestMappings
 {
-    public static ScenePlaythroughChestDto ToDto(this ScenePlaythroughChest chest) => new()
+    public static ScenePlaythroughChestDto ToDto(this ScenePTChest chest) => new()
     {
         Id = chest.Id,
         Status = chest.Status,

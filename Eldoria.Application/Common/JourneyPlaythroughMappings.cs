@@ -1,5 +1,5 @@
 using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Base;
 using Eldoria.Core.Snapshots;
 using System.Text.Json;
 
@@ -7,7 +7,7 @@ namespace Eldoria.Application.Common
 {
     public static class JourneyPlaythroughMappings
     {
-        public static JourneyPlaythroughDto ToDto(this JourneyPlaythrough playthrough)
+        public static JourneyPlaythroughDto ToDto(this Playthrough playthrough)
         {
             return new JourneyPlaythroughDto
             {

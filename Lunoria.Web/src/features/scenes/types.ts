@@ -4,12 +4,6 @@ import type { Item } from "@/features/items/types";
 import type { JourneyCharacter } from "@/features/journeys/types";
 import type { Spell } from "@/features/spells/types";
 
-export enum SceneProgressStatus {
-  NotStarted = 0,
-  InProgress = 1,
-  Completed = 2,
-}
-
 export enum ActionTargetType {
   AllJourneyCharacters = 1,
   SingleJourneyCharacter = 2,
@@ -223,27 +217,3 @@ export interface SceneInput {
 }
 
 export type CreateSceneInput = SceneInput & { photo: File };
-
-export interface SceneParticipantTurn {
-  id: number;
-  sceneProgressId: number;
-  sceneParticipantId: number;
-  turnPosition: number;
-}
-
-export interface SceneParticipant {
-  id: number;
-  sceneProgressId: number;
-  journeyCharacterId: number | null;
-  sceneCharacterId: number | null;
-  turns: SceneParticipantTurn[];
-}
-
-export interface SceneProgress {
-  id: number;
-  sceneId: number;
-  journeyPlaythroughId: number;
-  status: SceneProgressStatus;
-  participants: SceneParticipant[];
-  turns: SceneParticipantTurn[];
-}

@@ -24,12 +24,5 @@ namespace Eldoria.Infrastructure.Db.Repositories
             _dbContext.SceneCharacters.SingleOrDefaultAsync(
                 character => character.Id == id && character.Scene.Journey.UserId == userId, ct);
 
-        public Task<JourneyPlaythrough?> GetJourneyPlaythroughAsync(int userId, int id, CancellationToken ct) =>
-            _dbContext.JourneyPlaythroughs.SingleOrDefaultAsync(
-                playthrough => playthrough.Id == id && playthrough.JourneyRevision.CreatedByUserId == userId, ct);
-
-        public Task<ScenePlaythrough?> GetScenePlaythroughAsync(int userId, int id, CancellationToken ct) =>
-            _dbContext.ScenePlaythroughs.SingleOrDefaultAsync(
-                playthrough => playthrough.Id == id && playthrough.JourneyPlaythrough.JourneyRevision.CreatedByUserId == userId, ct);
     }
 }

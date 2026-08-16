@@ -1,17 +1,18 @@
 using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace Eldoria.Application.Services
 {
     public class DialogPageService(
-        IRepository<DialogPage> dialogRepository,
+        IRepository<ScenePTDialogPage> dialogRepository,
         IRepository<SceneDialog> sceneDialogRepository,
         IAzureStorageBlob azureStorageBlob) : IDialogPageService
     {
         private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
-        private readonly IRepository<DialogPage> _dialogPageRepository = dialogRepository;
+        private readonly IRepository<ScenePTDialogPage> _dialogPageRepository = dialogRepository;
         private readonly IRepository<SceneDialog> _sceneDialogRepository = sceneDialogRepository;
 
         public async Task<Result> CreateDialogPageAsync(int sceneDialogId, int orderNum, IFormFile photo, CancellationToken ct)
@@ -23,7 +24,7 @@ namespace Eldoria.Application.Services
 
             var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
 
-            var dialogPage = new DialogPage
+            var dialogPage = new ScenePTDialogPage
             {
                 SceneDialogId = sceneDialogId,
                 OrderNum = orderNum,

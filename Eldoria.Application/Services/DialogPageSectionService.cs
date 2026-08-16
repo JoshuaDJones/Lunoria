@@ -1,16 +1,17 @@
 using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
 {
     public class DialogPageSectionService(
-        IRepository<DialogPage> dialogPageRepository,
-        IRepository<DialogPageSection> dialogPageSectionRepository,
+        IRepository<ScenePTDialogPage> dialogPageRepository,
+        IRepository<ScenePTDialogSection> dialogPageSectionRepository,
         ICharacterRepository characterRepository) : IDialogPageSectionService
     {
-        private readonly IRepository<DialogPage> _dialogPageRepository = dialogPageRepository;
-        private readonly IRepository<DialogPageSection> _dialogPageSectionRepository = dialogPageSectionRepository;
+        private readonly IRepository<ScenePTDialogPage> _dialogPageRepository = dialogPageRepository;
+        private readonly IRepository<ScenePTDialogSection> _dialogPageSectionRepository = dialogPageSectionRepository;
         private readonly ICharacterRepository _characterRepository = characterRepository;
 
         public async Task<Result> CreateDialogPageSectionAsync(int userId, int dialogPageId, int? characterId, int orderNum, string readingText, bool isNarrator, CancellationToken ct)
@@ -32,7 +33,7 @@ namespace Eldoria.Application.Services
             if (!characterId.HasValue && isNarrator is false)
                 return Result.Fail(new Error("Character.NotFound", "A character is required for non-narrator sections."));
 
-            var dialogPageSection = new DialogPageSection
+            var dialogPageSection = new ScenePTDialogSection
             {
                 DialogPageId = dialogPageId,
                 CharacterId = characterId,
