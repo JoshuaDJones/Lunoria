@@ -1,22 +1,39 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { Button, Card } from "@/components/ui";
 import {
   getPlaythrough,
+  IntroPageViewer,
   ScenePlaythroughStatus,
   type PlaythroughDetails,
 } from "@/features/journeys";
 import { getApiError } from "@/lib/apiClient";
 
 export function PlaythroughPage() {
-  const { playthroughId: playthroughIdParam } = useParams<{
+  const location = useLocation();
+  const navigate = useNavigate();
+  const {
+    seriesId,
+    journeyId,
+    playthroughId: playthroughIdParam,
+  } = useParams<{
+    seriesId: string;
+    journeyId: string;
     playthroughId: string;
   }>();
   const playthroughId = Number(playthroughIdParam);
   const [playthrough, setPlaythrough] = useState<PlaythroughDetails>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewingIntroPageId, setViewingIntroPageId] = useState<number>();
+  const hasHandledAutomaticIntro = useRef(false);
+
+  const navigateToScene = (sceneId: number) => {
+    navigate(
+      `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}/scenes/${sceneId}`,
+    );
+  };
 
   useEffect(() => {
     if (!Number.isInteger(playthroughId) || playthroughId <= 0) {
@@ -45,6 +62,28 @@ export function PlaythroughPage() {
     };
   }, [playthroughId]);
 
+  useEffect(() => {
+    const shouldShowIntroPages = Boolean(
+      (location.state as { showIntroPages?: boolean } | null)?.showIntroPages,
+    );
+
+    if (
+      !playthrough ||
+      !shouldShowIntroPages ||
+      hasHandledAutomaticIntro.current
+    ) {
+      return;
+    }
+
+    hasHandledAutomaticIntro.current = true;
+
+    if (playthrough.introPages.length > 0) {
+      setViewingIntroPageId(playthrough.introPages[0].id);
+    }
+
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate, playthrough]);
+
   return (
     <AppLayout
       sidebar={<></>}
@@ -63,6 +102,16 @@ export function PlaythroughPage() {
                 : ""}
             </h1>
           </div>
+          {playthrough && playthrough.introPages.length > 0 && (
+            <Button
+              variant="primary"
+              onClick={() =>
+                setViewingIntroPageId(playthrough.introPages[0].id)
+              }
+            >
+              Play Intro
+            </Button>
+          )}
         </header>
         {isLoading && (
           <p className="px-10 text-content">Loading playthrough...</p>
@@ -136,6 +185,7 @@ export function PlaythroughPage() {
                           <Button
                             variant="primary"
                             className="mt-5 self-end px-10"
+                            onClick={() => navigateToScene(scene.id)}
                           >
                             Start
                           </Button>
@@ -177,6 +227,15 @@ export function PlaythroughPage() {
           </div>
         )}
       </main>
+
+      {playthrough && viewingIntroPageId !== undefined && (
+        <IntroPageViewer
+          pages={playthrough.introPages}
+          initialPageId={viewingIntroPageId}
+          title={`${playthrough.playthrough.name} Intro Pages`}
+          onClose={() => setViewingIntroPageId(undefined)}
+        />
+      )}
     </AppLayout>
   );
 }

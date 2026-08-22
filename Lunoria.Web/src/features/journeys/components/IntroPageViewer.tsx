@@ -1,15 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui";
-import type { IntroPage } from "@/features/journeys/types";
+import type { IntroPageType } from "@/features/journeys/types";
 import { parseIntroPageConfig } from "@/features/journeys/introPageConfig";
 import { IntroPagePreview } from "./IntroPagePreview";
 
 interface IntroPageViewerProps {
-  pages: IntroPage[];
+  pages: ViewableIntroPage[];
   initialPageId: number;
   title: string;
   onClose: () => void;
+}
+
+interface ViewableIntroPage {
+  id: number;
+  sortOrder: number;
+  type: IntroPageType;
+  config: string;
+  previewPhotoUrl: string | null;
 }
 
 export function IntroPageViewer({

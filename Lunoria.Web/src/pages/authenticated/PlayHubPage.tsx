@@ -66,9 +66,13 @@ export function PlayHubPage() {
     (playthrough) => playthrough.isCompleted,
   );
 
-  const navigateToPlaythrough = (playthroughId: number) => {
+  const navigateToPlaythrough = (
+    playthroughId: number,
+    showIntroPages = false,
+  ) => {
     navigate(
       `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}`,
+      showIntroPages ? { state: { showIntroPages: true } } : undefined,
     );
   };
 
@@ -88,7 +92,7 @@ export function PlayHubPage() {
     try {
       const startedPlaythrough = await startJourneyPlaythrough(journeyId);
       toast.success("A new playthrough was started.");
-      navigateToPlaythrough(startedPlaythrough.id);
+      navigateToPlaythrough(startedPlaythrough.id, true);
     } catch (requestError) {
       toast.error(
         getApiError(requestError).message,
