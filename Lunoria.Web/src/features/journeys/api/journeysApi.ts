@@ -9,6 +9,7 @@ import type {
   PlaythroughCreated,
   PlaythroughDetails,
   PlaythroughSummary,
+  ScenePlaythroughDetails,
 } from "@/features/journeys/types";
 import { SceneDialog } from "@/features/scenes/types";
 
@@ -64,6 +65,25 @@ export async function getPlaythrough(
 ): Promise<PlaythroughDetails> {
   const { data } = await apiClient.get<PlaythroughDetails>(
     `/playthroughs/${playthroughId}`,
+  );
+  return data;
+}
+
+export async function startScenePlaythrough(
+  playthroughId: number,
+  sceneId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/start`,
+  );
+}
+
+export async function getScenePlaythrough(
+  playthroughId: number,
+  sceneId: number,
+): Promise<ScenePlaythroughDetails> {
+  const { data } = await apiClient.get<ScenePlaythroughDetails>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}`,
   );
   return data;
 }

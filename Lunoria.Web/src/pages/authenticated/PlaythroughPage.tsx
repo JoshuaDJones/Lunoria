@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
+import { useToast } from "@/app/providers";
 import { Button, Card } from "@/components/ui";
 import {
   getPlaythrough,
   IntroPageViewer,
   ScenePlaythroughStatus,
+  startScenePlaythrough,
   type PlaythroughDetails,
 } from "@/features/journeys";
 import { getApiError } from "@/lib/apiClient";
@@ -13,6 +15,7 @@ import { getApiError } from "@/lib/apiClient";
 export function PlaythroughPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const {
     seriesId,
     journeyId,
@@ -27,12 +30,28 @@ export function PlaythroughPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [viewingIntroPageId, setViewingIntroPageId] = useState<number>();
+  const [startingSceneId, setStartingSceneId] = useState<number>();
   const hasHandledAutomaticIntro = useRef(false);
 
   const navigateToScene = (sceneId: number) => {
     navigate(
       `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}/scenes/${sceneId}`,
     );
+  };
+
+  const startScene = async (sceneId: number) => {
+    setStartingSceneId(sceneId);
+
+    try {
+      await startScenePlaythrough(playthroughId, sceneId);
+      navigateToScene(sceneId);
+    } catch (requestError: unknown) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to start scene",
+      );
+      setStartingSceneId(undefined);
+    }
   };
 
   useEffect(() => {
@@ -185,9 +204,22 @@ export function PlaythroughPage() {
                           <Button
                             variant="primary"
                             className="mt-5 self-end px-10"
+                            disabled={startingSceneId !== undefined}
+                            onClick={() => void startScene(scene.id)}
+                          >
+                            {startingSceneId === scene.id
+                              ? "Starting..."
+                              : "Start"}
+                          </Button>
+                        )}
+
+                        {scene.status === ScenePlaythroughStatus.InProgress && (
+                          <Button
+                            variant="primary"
+                            className="mt-5 self-end px-10"
                             onClick={() => navigateToScene(scene.id)}
                           >
-                            Start
+                            Resume
                           </Button>
                         )}
                       </div>
