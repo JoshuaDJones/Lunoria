@@ -255,28 +255,28 @@ export function JourneyEditorPage() {
               </Button>
 
               <div className="mt-auto space-y-4 pt-2">
-              <Button
-                onClick={() =>
-                  navigate(
-                    `/series/${seriesId}/journeys/${journeyId}/intro-pages`,
-                  )
-                }
-                variant="secondary"
-                inverted
-                size="lg"
-                className="w-full py-4"
-              >
-                Intro Pages
-              </Button>
-              <Button
-                onClick={() => setIsManagingCharacters(true)}
-                variant="secondary"
-                inverted
-                size="lg"
-                className="w-full py-4"
-              >
-                Characters
-              </Button>
+                <Button
+                  onClick={() =>
+                    navigate(
+                      `/series/${seriesId}/journeys/${journeyId}/intro-pages`,
+                    )
+                  }
+                  variant="secondary"
+                  inverted
+                  size="lg"
+                  className="w-full py-4"
+                >
+                  Intro Pages
+                </Button>
+                <Button
+                  onClick={() => setIsManagingCharacters(true)}
+                  variant="secondary"
+                  inverted
+                  size="lg"
+                  className="w-full py-4"
+                >
+                  Characters
+                </Button>
               </div>
             </aside>
           </div>
@@ -330,7 +330,10 @@ export function JourneyEditorPage() {
           title={`${charactersScene.name} Characters`}
           onClose={() => setCharactersScene(undefined)}
         >
-          <SceneCharacterManager key={charactersScene.id} scene={charactersScene} />
+          <SceneCharacterManager
+            key={charactersScene.id}
+            scene={charactersScene}
+          />
         </Drawer>
       )}
 
@@ -374,12 +377,19 @@ export function JourneyEditorPage() {
             }
             onCancel={() => setIsManagingCharacters(false)}
             onCharacterUpdated={(updatedCharacter) => {
-              setJourney((current) => current ? {
-                ...current,
-                journeyCharacters: current.journeyCharacters?.map((character) =>
-                  character.id === updatedCharacter.id ? updatedCharacter : character,
-                ) ?? [],
-              } : current);
+              setJourney((current) =>
+                current
+                  ? {
+                      ...current,
+                      journeyCharacters:
+                        current.journeyCharacters?.map((character) =>
+                          character.id === updatedCharacter.id
+                            ? updatedCharacter
+                            : character,
+                        ) ?? [],
+                    }
+                  : current,
+              );
             }}
             onSave={async (characterIds) => {
               await replaceJourneyCharacters(journeyId, characterIds);

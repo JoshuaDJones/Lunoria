@@ -89,9 +89,7 @@ export function SceneEditorForm({
     const name = textValue(sceneDraft.values, "name");
     const gridMode = textValue(sceneDraft.values, "gridMode") as GridMode;
     const gridUrl =
-      gridMode === "external"
-        ? textValue(sceneDraft.values, "gridUrl")
-        : "";
+      gridMode === "external" ? textValue(sceneDraft.values, "gridUrl") : "";
     const input = {
       journeyId,
       name,
@@ -181,12 +179,14 @@ export function SceneEditorForm({
     <ResourceForm
       key="scene"
       fields={sceneFields}
-      initialValues={draft?.values ?? {
-        name: formScene?.name ?? "",
-        description: formScene?.description ?? "",
-        gridMode: mode,
-        gridUrl: formScene?.gridUrl ?? "",
-      }}
+      initialValues={
+        draft?.values ?? {
+          name: formScene?.name ?? "",
+          description: formScene?.description ?? "",
+          gridMode: mode,
+          gridUrl: formScene?.gridUrl ?? "",
+        }
+      }
       initialPhoto={draft?.photo}
       existingPhotoUrl={formScene?.photoUrl}
       requirePhoto={!formScene}

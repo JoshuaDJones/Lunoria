@@ -15,7 +15,8 @@ export type FormValues = Record<string, FormValue>;
 export interface ResourceFormField {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "color" | "checkbox" | "radio" | "select";
+  type?:
+    "text" | "textarea" | "number" | "color" | "checkbox" | "radio" | "select";
   required?: boolean;
   options?: { label: string; value: string }[];
   visibleWhen?: { field: string; value: FormValue };

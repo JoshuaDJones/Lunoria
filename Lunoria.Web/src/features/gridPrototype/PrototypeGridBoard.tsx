@@ -47,7 +47,9 @@ export function PrototypeGridBoard({
         0,
         Math.min(
           session.columns - 1,
-          Math.floor(((clientX - bounds.left) / bounds.width) * session.columns),
+          Math.floor(
+            ((clientX - bounds.left) / bounds.width) * session.columns,
+          ),
         ),
       ),
       row: Math.max(

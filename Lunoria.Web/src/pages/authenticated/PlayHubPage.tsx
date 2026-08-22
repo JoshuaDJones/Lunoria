@@ -55,11 +55,7 @@ export function PlayHubPage() {
     };
   }, [journeyId, reloadKey]);
 
-  if (
-    !seriesId ||
-    !Number.isInteger(journeyId) ||
-    journeyId <= 0
-  ) {
+  if (!seriesId || !Number.isInteger(journeyId) || journeyId <= 0) {
     return <Navigate to="/journeys" replace />;
   }
 
@@ -106,7 +102,9 @@ export function PlayHubPage() {
   return (
     <AppLayout
       scrolling
-      background={<div className="stone-image absolute inset-0 z-0 h-full w-full" />}
+      background={
+        <div className="stone-image absolute inset-0 z-0 h-full w-full" />
+      }
     >
       <main className="w-full p-6 sm:p-10">
         <header className="mb-6 flex flex-wrap items-end justify-between gap-5">

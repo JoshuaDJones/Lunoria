@@ -101,7 +101,10 @@ export async function updateJourneyCharacter(
   journeyCharacterId: number,
   request: UpdateJourneyCharacterRequest,
 ): Promise<JourneyCharacter> {
-  const { data } = await apiClient.put<JourneyCharacter>(`/JourneyCharacter/assignment/${journeyCharacterId}`, request);
+  const { data } = await apiClient.put<JourneyCharacter>(
+    `/JourneyCharacter/assignment/${journeyCharacterId}`,
+    request,
+  );
   return data;
 }
 

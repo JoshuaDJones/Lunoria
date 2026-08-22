@@ -21,41 +21,85 @@ import type {
 } from "@/features/scenes/types";
 
 export async function listSceneChests(sceneId: number): Promise<SceneChest[]> {
-  const { data } = await apiClient.get<SceneChest[]>(`/scenes/${sceneId}/chests`);
+  const { data } = await apiClient.get<SceneChest[]>(
+    `/scenes/${sceneId}/chests`,
+  );
   return data;
 }
 
-export async function createSceneChest(sceneId: number, input: SceneChestInput): Promise<SceneChest> {
-  const { data } = await apiClient.post<SceneChest>(`/scenes/${sceneId}/chests`, input);
+export async function createSceneChest(
+  sceneId: number,
+  input: SceneChestInput,
+): Promise<SceneChest> {
+  const { data } = await apiClient.post<SceneChest>(
+    `/scenes/${sceneId}/chests`,
+    input,
+  );
   return data;
 }
 
-export async function updateSceneChest(sceneId: number, chestId: number, input: SceneChestInput): Promise<SceneChest> {
-  const { data } = await apiClient.put<SceneChest>(`/scenes/${sceneId}/chests/${chestId}`, input);
+export async function updateSceneChest(
+  sceneId: number,
+  chestId: number,
+  input: SceneChestInput,
+): Promise<SceneChest> {
+  const { data } = await apiClient.put<SceneChest>(
+    `/scenes/${sceneId}/chests/${chestId}`,
+    input,
+  );
   return data;
 }
 
-export async function deleteSceneChest(sceneId: number, chestId: number): Promise<void> {
+export async function deleteSceneChest(
+  sceneId: number,
+  chestId: number,
+): Promise<void> {
   await apiClient.delete(`/scenes/${sceneId}/chests/${chestId}`);
 }
 
-export async function listSceneChestLootEntries(sceneId: number, chestId: number): Promise<SceneChestLootEntry[]> {
-  const { data } = await apiClient.get<SceneChestLootEntry[]>(`/scenes/${sceneId}/chests/${chestId}/loot-entries`);
+export async function listSceneChestLootEntries(
+  sceneId: number,
+  chestId: number,
+): Promise<SceneChestLootEntry[]> {
+  const { data } = await apiClient.get<SceneChestLootEntry[]>(
+    `/scenes/${sceneId}/chests/${chestId}/loot-entries`,
+  );
   return data;
 }
 
-export async function createSceneChestLootEntry(sceneId: number, chestId: number, input: SceneChestLootEntryInput): Promise<SceneChestLootEntry> {
-  const { data } = await apiClient.post<SceneChestLootEntry>(`/scenes/${sceneId}/chests/${chestId}/loot-entries`, input);
+export async function createSceneChestLootEntry(
+  sceneId: number,
+  chestId: number,
+  input: SceneChestLootEntryInput,
+): Promise<SceneChestLootEntry> {
+  const { data } = await apiClient.post<SceneChestLootEntry>(
+    `/scenes/${sceneId}/chests/${chestId}/loot-entries`,
+    input,
+  );
   return data;
 }
 
-export async function updateSceneChestLootEntry(sceneId: number, chestId: number, entryId: number, input: SceneChestLootEntryInput): Promise<SceneChestLootEntry> {
-  const { data } = await apiClient.put<SceneChestLootEntry>(`/scenes/${sceneId}/chests/${chestId}/loot-entries/${entryId}`, input);
+export async function updateSceneChestLootEntry(
+  sceneId: number,
+  chestId: number,
+  entryId: number,
+  input: SceneChestLootEntryInput,
+): Promise<SceneChestLootEntry> {
+  const { data } = await apiClient.put<SceneChestLootEntry>(
+    `/scenes/${sceneId}/chests/${chestId}/loot-entries/${entryId}`,
+    input,
+  );
   return data;
 }
 
-export async function deleteSceneChestLootEntry(sceneId: number, chestId: number, entryId: number): Promise<void> {
-  await apiClient.delete(`/scenes/${sceneId}/chests/${chestId}/loot-entries/${entryId}`);
+export async function deleteSceneChestLootEntry(
+  sceneId: number,
+  chestId: number,
+  entryId: number,
+): Promise<void> {
+  await apiClient.delete(
+    `/scenes/${sceneId}/chests/${chestId}/loot-entries/${entryId}`,
+  );
 }
 
 export interface ListScenesParams {
@@ -158,10 +202,9 @@ export async function reorderSceneEventActions(
   eventId: number,
   actions: SortOrderInput[],
 ): Promise<void> {
-  await apiClient.put(
-    `/scenes/${sceneId}/events/${eventId}/actions/order`,
-    { actions },
-  );
+  await apiClient.put(`/scenes/${sceneId}/events/${eventId}/actions/order`, {
+    actions,
+  });
 }
 
 export interface CreateDialogPageSectionRequest {
@@ -229,8 +272,12 @@ export async function reorderScenes(
   await apiClient.put("/Scene/order", { scenes }, { params: { journeyId } });
 }
 
-export async function getSceneGrid(sceneId: number): Promise<SceneGridConfiguration> {
-  const { data } = await apiClient.get<SceneGridConfiguration>(`/scenes/${sceneId}/grid`);
+export async function getSceneGrid(
+  sceneId: number,
+): Promise<SceneGridConfiguration> {
+  const { data } = await apiClient.get<SceneGridConfiguration>(
+    `/scenes/${sceneId}/grid`,
+  );
   return data;
 }
 
@@ -260,13 +307,21 @@ export async function deleteSceneGrid(sceneId: number): Promise<void> {
   await apiClient.delete(`/scenes/${sceneId}/grid`);
 }
 
-export async function listSceneCharacters(sceneId: number): Promise<SceneCharacter[]> {
-  const { data } = await apiClient.get<SceneCharacter[]>("/SceneCharacter", { params: { sceneId } });
+export async function listSceneCharacters(
+  sceneId: number,
+): Promise<SceneCharacter[]> {
+  const { data } = await apiClient.get<SceneCharacter[]>("/SceneCharacter", {
+    params: { sceneId },
+  });
   return data;
 }
 
-export async function getSceneCharacter(sceneCharacterId: number): Promise<SceneCharacter> {
-  const { data } = await apiClient.get<SceneCharacter>(`/SceneCharacter/${sceneCharacterId}`);
+export async function getSceneCharacter(
+  sceneCharacterId: number,
+): Promise<SceneCharacter> {
+  const { data } = await apiClient.get<SceneCharacter>(
+    `/SceneCharacter/${sceneCharacterId}`,
+  );
   return data;
 }
 
@@ -274,7 +329,10 @@ export async function addSceneCharacter(
   sceneId: number,
   characterId: number,
 ): Promise<SceneCharacter> {
-  const { data } = await apiClient.post<SceneCharacter>("/SceneCharacter", { sceneId, characterId });
+  const { data } = await apiClient.post<SceneCharacter>("/SceneCharacter", {
+    sceneId,
+    characterId,
+  });
   return data;
 }
 
@@ -282,7 +340,10 @@ export async function updateSceneCharacter(
   sceneCharacterId: number,
   input: SceneCharacterInput,
 ): Promise<SceneCharacter> {
-  const { data } = await apiClient.put<SceneCharacter>(`/SceneCharacter/${sceneCharacterId}`, input);
+  const { data } = await apiClient.put<SceneCharacter>(
+    `/SceneCharacter/${sceneCharacterId}`,
+    input,
+  );
   return data;
 }
 
@@ -296,7 +357,10 @@ export async function replaceSceneCharacterSpells(
   sceneCharacterId: number,
   spellIds: number[],
 ): Promise<SceneCharacter> {
-  const { data } = await apiClient.put<SceneCharacter>(`/SceneCharacter/${sceneCharacterId}/spells`, { spellIds });
+  const { data } = await apiClient.put<SceneCharacter>(
+    `/SceneCharacter/${sceneCharacterId}/spells`,
+    { spellIds },
+  );
   return data;
 }
 

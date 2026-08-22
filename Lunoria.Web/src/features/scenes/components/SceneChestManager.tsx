@@ -43,7 +43,8 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
   const [chests, setChests] = useState<SceneChest[]>([]);
   const [selectedChestId, setSelectedChestId] = useState<number>();
   const [editingChest, setEditingChest] = useState<SceneChest | null>();
-  const [editingEntry, setEditingEntry] = useState<SceneChestLootEntry | null>();
+  const [editingEntry, setEditingEntry] =
+    useState<SceneChestLootEntry | null>();
   const [equipment, setEquipment] = useState<EquippableItem[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [view, setView] = useState<View>("chests");
@@ -92,9 +93,15 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
     setView("loot");
     try {
       const entries = await listSceneChestLootEntries(scene.id, chest.id);
-      updateChest(chest.id, (current) => ({ ...current, lootEntries: entries }));
+      updateChest(chest.id, (current) => ({
+        ...current,
+        lootEntries: entries,
+      }));
     } catch (requestError) {
-      toast.error(getApiError(requestError).message, "Unable to load chest loot");
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to load chest loot",
+      );
     }
   };
 
@@ -115,7 +122,10 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
     }
   };
 
-  const updateChest = (chestId: number, update: (chest: SceneChest) => SceneChest) => {
+  const updateChest = (
+    chestId: number,
+    update: (chest: SceneChest) => SceneChest,
+  ) => {
     setChests((current) =>
       current.map((chest) => (chest.id === chestId ? update(chest) : chest)),
     );
@@ -157,17 +167,28 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
       }));
       toast.success("Loot entry was deleted.");
     } catch (requestError) {
-      toast.error(getApiError(requestError).message, "Unable to delete loot entry");
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to delete loot entry",
+      );
     }
   };
 
-  if (isLoading) return <p className="text-content-secondary">Loading chests...</p>;
+  if (isLoading)
+    return <p className="text-content-secondary">Loading chests...</p>;
 
   if (error) {
     return (
       <div className="space-y-4">
-        <p className="rounded-lg border border-danger/40 p-3 text-danger" role="alert">{error}</p>
-        <Button onClick={() => void load()} variant="primary">Try again</Button>
+        <p
+          className="rounded-lg border border-danger/40 p-3 text-danger"
+          role="alert"
+        >
+          {error}
+        </p>
+        <Button onClick={() => void load()} variant="primary">
+          Try again
+        </Button>
       </div>
     );
   }
@@ -187,7 +208,9 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
               : [...current, saved],
           );
           setView("chests");
-          toast.success(`Chest "${saved.name}" was ${editingChest ? "updated" : "created"}.`);
+          toast.success(
+            `Chest "${saved.name}" was ${editingChest ? "updated" : "created"}.`,
+          );
         }}
       />
     );
@@ -203,16 +226,29 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
         onCancel={() => setView("loot")}
         onSave={async (input) => {
           const saved = editingEntry
-            ? await updateSceneChestLootEntry(scene.id, selectedChest.id, editingEntry.id, input)
-            : await createSceneChestLootEntry(scene.id, selectedChest.id, input);
+            ? await updateSceneChestLootEntry(
+                scene.id,
+                selectedChest.id,
+                editingEntry.id,
+                input,
+              )
+            : await createSceneChestLootEntry(
+                scene.id,
+                selectedChest.id,
+                input,
+              );
           updateChest(selectedChest.id, (chest) => ({
             ...chest,
             lootEntries: editingEntry
-              ? chest.lootEntries.map((entry) => (entry.id === saved.id ? saved : entry))
+              ? chest.lootEntries.map((entry) =>
+                  entry.id === saved.id ? saved : entry,
+                )
               : [...chest.lootEntries, saved],
           }));
           setView("loot");
-          toast.success(`Loot entry was ${editingEntry ? "updated" : "created"}.`);
+          toast.success(
+            `Loot entry was ${editingEntry ? "updated" : "created"}.`,
+          );
         }}
       />
     );
@@ -233,31 +269,66 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
         </Button>
         <div className="mt-5 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-semibold text-content">{selectedChest.name}</h3>
-            <p className="mt-1 text-sm text-content-secondary">Roll a d{selectedChest.dieSides} to select loot.</p>
+            <h3 className="text-2xl font-semibold text-content">
+              {selectedChest.name}
+            </h3>
+            <p className="mt-1 text-sm text-content-secondary">
+              Roll a d{selectedChest.dieSides} to select loot.
+            </p>
           </div>
-          <Button onClick={() => void openLootForm(null)} variant="add" leftIcon={<FontAwesomeIcon icon={faPlus} />} size="sm">
+          <Button
+            onClick={() => void openLootForm(null)}
+            variant="add"
+            leftIcon={<FontAwesomeIcon icon={faPlus} />}
+            size="sm"
+          >
             Add loot
           </Button>
         </div>
         {selectedChest.lootEntries.length === 0 ? (
-          <EmptyState title="No loot yet" message="Add the first loot entry for this chest." />
+          <EmptyState
+            title="No loot yet"
+            message="Add the first loot entry for this chest."
+          />
         ) : (
           <div className="mt-5 space-y-3">
             {[...selectedChest.lootEntries]
               .sort((a, b) => a.rollMinimum - b.rollMinimum)
               .map((entry) => (
-                <article key={entry.id} className="rounded-xl border border-border bg-surface p-4">
+                <article
+                  key={entry.id}
+                  className="rounded-xl border border-border bg-surface p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-content">{lootName(entry)}</h4>
+                      <h4 className="font-semibold text-content">
+                        {lootName(entry)}
+                      </h4>
                       <p className="mt-1 text-sm text-content-secondary">
-                        Roll {entry.rollMinimum}{entry.rollMaximum !== entry.rollMinimum ? `-${entry.rollMaximum}` : ""} · Quantity {entry.quantity}
+                        Roll {entry.rollMinimum}
+                        {entry.rollMaximum !== entry.rollMinimum
+                          ? `-${entry.rollMaximum}`
+                          : ""}{" "}
+                        · Quantity {entry.quantity}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={() => void removeEntry(entry)} variant="danger" size="sm" leftIcon={<FontAwesomeIcon icon={faTrash} />}>Delete</Button>
-                      <Button onClick={() => void openLootForm(entry)} variant="primary" size="sm" leftIcon={<FontAwesomeIcon icon={faPen} />}>Edit</Button>
+                      <Button
+                        onClick={() => void removeEntry(entry)}
+                        variant="danger"
+                        size="sm"
+                        leftIcon={<FontAwesomeIcon icon={faTrash} />}
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        onClick={() => void openLootForm(entry)}
+                        variant="primary"
+                        size="sm"
+                        leftIcon={<FontAwesomeIcon icon={faPen} />}
+                      >
+                        Edit
+                      </Button>
                     </div>
                   </div>
                 </article>
@@ -271,7 +342,9 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-content-secondary">Chests available in {scene.name}.</p>
+        <p className="text-sm text-content-secondary">
+          Chests available in {scene.name}.
+        </p>
         <Button
           onClick={() => {
             setEditingChest(null);
@@ -285,26 +358,61 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
         </Button>
       </div>
       {chests.length === 0 ? (
-        <EmptyState title="No chests yet" message="Add the first chest for this scene." />
+        <EmptyState
+          title="No chests yet"
+          message="Add the first chest for this scene."
+        />
       ) : (
         <div className="mt-5 space-y-3">
           {chests.map((chest) => (
-            <article key={chest.id} className="rounded-xl border border-border bg-surface p-4">
-              <button type="button" onClick={() => void openLoot(chest)} className="flex w-full cursor-pointer items-center gap-3 text-left">
+            <article
+              key={chest.id}
+              className="rounded-xl border border-border bg-surface p-4"
+            >
+              <button
+                type="button"
+                onClick={() => void openLoot(chest)}
+                className="flex w-full cursor-pointer items-center gap-3 text-left"
+              >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/15 text-brand-hover">
                   <FontAwesomeIcon icon={faBoxOpen} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-content">{chest.name}</span>
+                  <span className="block font-semibold text-content">
+                    {chest.name}
+                  </span>
                   <span className="mt-0.5 block text-sm text-content-secondary">
-                    d{chest.dieSides} · {chest.lootEntries.length} {chest.lootEntries.length === 1 ? "loot entry" : "loot entries"}
+                    d{chest.dieSides} · {chest.lootEntries.length}{" "}
+                    {chest.lootEntries.length === 1
+                      ? "loot entry"
+                      : "loot entries"}
                   </span>
                 </span>
-                <FontAwesomeIcon icon={faChevronRight} className="text-content-muted" />
+                <FontAwesomeIcon
+                  icon={faChevronRight}
+                  className="text-content-muted"
+                />
               </button>
               <div className="mt-3 flex justify-end gap-2 border-t border-border pt-3">
-                <Button onClick={() => void removeChest(chest)} variant="danger" size="sm" leftIcon={<FontAwesomeIcon icon={faTrash} />}>Delete</Button>
-                <Button onClick={() => { setEditingChest(chest); setView("chest-form"); }} variant="primary" size="sm" leftIcon={<FontAwesomeIcon icon={faPen} />}>Edit</Button>
+                <Button
+                  onClick={() => void removeChest(chest)}
+                  variant="danger"
+                  size="sm"
+                  leftIcon={<FontAwesomeIcon icon={faTrash} />}
+                >
+                  Delete
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingChest(chest);
+                    setView("chest-form");
+                  }}
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<FontAwesomeIcon icon={faPen} />}
+                >
+                  Edit
+                </Button>
               </div>
             </article>
           ))}
@@ -314,7 +422,11 @@ export function SceneChestManager({ scene }: SceneChestManagerProps) {
   );
 }
 
-function ChestForm({ chest, onSave, onCancel }: {
+function ChestForm({
+  chest,
+  onSave,
+  onCancel,
+}: {
   chest: SceneChest | null | undefined;
   onSave: (input: SceneChestInput) => Promise<void>;
   onCancel: () => void;
@@ -324,21 +436,53 @@ function ChestForm({ chest, onSave, onCancel }: {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const submit = async (event: FormEvent) => {
-    event.preventDefault(); setIsSaving(true); setError("");
-    try { await onSave({ name, dieSides: Number(dieSides) }); }
-    catch (requestError) { setError(getApiError(requestError).message); setIsSaving(false); }
+    event.preventDefault();
+    setIsSaving(true);
+    setError("");
+    try {
+      await onSave({ name, dieSides: Number(dieSides) });
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+      setIsSaving(false);
+    }
   };
   return (
     <form onSubmit={(event) => void submit(event)} className="space-y-5">
-      <h3 className="text-2xl font-semibold text-content">{chest ? "Edit chest" : "Add chest"}</h3>
-      <FormField htmlFor="chest-name" label="Name"><Input id="chest-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={250} required /></FormField>
-      <FormField htmlFor="chest-die-sides" label="Die sides"><Input id="chest-die-sides" type="number" min={1} value={dieSides} onChange={(e) => setDieSides(e.target.value)} required /></FormField>
+      <h3 className="text-2xl font-semibold text-content">
+        {chest ? "Edit chest" : "Add chest"}
+      </h3>
+      <FormField htmlFor="chest-name" label="Name">
+        <Input
+          id="chest-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={250}
+          required
+        />
+      </FormField>
+      <FormField htmlFor="chest-die-sides" label="Die sides">
+        <Input
+          id="chest-die-sides"
+          type="number"
+          min={1}
+          value={dieSides}
+          onChange={(e) => setDieSides(e.target.value)}
+          required
+        />
+      </FormField>
       <FormActions isSaving={isSaving} error={error} onCancel={onCancel} />
     </form>
   );
 }
 
-function LootEntryForm({ chest, entry, equipment, items, onSave, onCancel }: {
+function LootEntryForm({
+  chest,
+  entry,
+  equipment,
+  items,
+  onSave,
+  onCancel,
+}: {
   chest: SceneChest;
   entry: SceneChestLootEntry | null | undefined;
   equipment: EquippableItem[];
@@ -347,56 +491,152 @@ function LootEntryForm({ chest, entry, equipment, items, onSave, onCancel }: {
   onCancel: () => void;
 }) {
   const initialType = entry?.equippableItem ? "equipment" : "consumable";
-  const [itemType, setItemType] = useState<"equipment" | "consumable">(initialType);
-  const [itemId, setItemId] = useState(String(entry?.equippableItem?.id ?? entry?.consumableItem?.id ?? ""));
-  const [rollMinimum, setRollMinimum] = useState(String(entry?.rollMinimum ?? 1));
-  const [rollMaximum, setRollMaximum] = useState(String(entry?.rollMaximum ?? 1));
+  const [itemType, setItemType] = useState<"equipment" | "consumable">(
+    initialType,
+  );
+  const [itemId, setItemId] = useState(
+    String(entry?.equippableItem?.id ?? entry?.consumableItem?.id ?? ""),
+  );
+  const [rollMinimum, setRollMinimum] = useState(
+    String(entry?.rollMinimum ?? 1),
+  );
+  const [rollMaximum, setRollMaximum] = useState(
+    String(entry?.rollMaximum ?? 1),
+  );
   const [quantity, setQuantity] = useState(String(entry?.quantity ?? 1));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const choices = itemType === "equipment" ? equipment : items;
   const submit = async (event: FormEvent) => {
-    event.preventDefault(); setIsSaving(true); setError("");
+    event.preventDefault();
+    setIsSaving(true);
+    setError("");
     try {
       await onSave({
-        rollMinimum: Number(rollMinimum), rollMaximum: Number(rollMaximum), quantity: Number(quantity),
+        rollMinimum: Number(rollMinimum),
+        rollMaximum: Number(rollMaximum),
+        quantity: Number(quantity),
         equippableItemId: itemType === "equipment" ? Number(itemId) : null,
         consumableItemId: itemType === "consumable" ? Number(itemId) : null,
       });
-    } catch (requestError) { setError(getApiError(requestError).message); setIsSaving(false); }
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+      setIsSaving(false);
+    }
   };
   return (
     <form onSubmit={(event) => void submit(event)} className="space-y-5">
-      <h3 className="text-2xl font-semibold text-content">{entry ? "Edit loot entry" : "Add loot entry"}</h3>
+      <h3 className="text-2xl font-semibold text-content">
+        {entry ? "Edit loot entry" : "Add loot entry"}
+      </h3>
       <FormField htmlFor="loot-type" label="Item type">
-        <Select id="loot-type" value={itemType} onChange={(e) => { setItemType(e.target.value as "equipment" | "consumable"); setItemId(""); }}>
-          <option value="consumable">Consumable</option><option value="equipment">Equipment</option>
+        <Select
+          id="loot-type"
+          value={itemType}
+          onChange={(e) => {
+            setItemType(e.target.value as "equipment" | "consumable");
+            setItemId("");
+          }}
+        >
+          <option value="consumable">Consumable</option>
+          <option value="equipment">Equipment</option>
         </Select>
       </FormField>
       <FormField htmlFor="loot-item" label="Item">
-        <Select id="loot-item" value={itemId} onChange={(e) => setItemId(e.target.value)} required>
-          <option value="" disabled>Select an item</option>
-          {choices.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        <Select
+          id="loot-item"
+          value={itemId}
+          onChange={(e) => setItemId(e.target.value)}
+          required
+        >
+          <option value="" disabled>
+            Select an item
+          </option>
+          {choices.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
         </Select>
       </FormField>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField htmlFor="loot-roll-min" label="Minimum roll"><Input id="loot-roll-min" type="number" min={1} max={chest.dieSides} value={rollMinimum} onChange={(e) => setRollMinimum(e.target.value)} required /></FormField>
-        <FormField htmlFor="loot-roll-max" label="Maximum roll"><Input id="loot-roll-max" type="number" min={1} max={chest.dieSides} value={rollMaximum} onChange={(e) => setRollMaximum(e.target.value)} required /></FormField>
+        <FormField htmlFor="loot-roll-min" label="Minimum roll">
+          <Input
+            id="loot-roll-min"
+            type="number"
+            min={1}
+            max={chest.dieSides}
+            value={rollMinimum}
+            onChange={(e) => setRollMinimum(e.target.value)}
+            required
+          />
+        </FormField>
+        <FormField htmlFor="loot-roll-max" label="Maximum roll">
+          <Input
+            id="loot-roll-max"
+            type="number"
+            min={1}
+            max={chest.dieSides}
+            value={rollMaximum}
+            onChange={(e) => setRollMaximum(e.target.value)}
+            required
+          />
+        </FormField>
       </div>
-      <FormField htmlFor="loot-quantity" label="Quantity"><Input id="loot-quantity" type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} required /></FormField>
+      <FormField htmlFor="loot-quantity" label="Quantity">
+        <Input
+          id="loot-quantity"
+          type="number"
+          min={1}
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          required
+        />
+      </FormField>
       <FormActions isSaving={isSaving} error={error} onCancel={onCancel} />
     </form>
   );
 }
 
-function FormActions({ isSaving, error, onCancel }: { isSaving: boolean; error: string; onCancel: () => void }) {
-  return <div className="border-t border-border pt-4">{error && <p className="mb-3 text-sm text-danger" role="alert">{error}</p>}<div className="flex justify-end gap-3"><Button onClick={onCancel} disabled={isSaving}>Cancel</Button><Button type="submit" disabled={isSaving} variant="primary">{isSaving ? "Saving..." : "Save"}</Button></div></div>;
+function FormActions({
+  isSaving,
+  error,
+  onCancel,
+}: {
+  isSaving: boolean;
+  error: string;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="border-t border-border pt-4">
+      {error && (
+        <p className="mb-3 text-sm text-danger" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="flex justify-end gap-3">
+        <Button onClick={onCancel} disabled={isSaving}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSaving} variant="primary">
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function EmptyState({ title, message }: { title: string; message: string }) {
-  return <div className="mt-5 rounded-xl border border-border bg-surface/60 p-8 text-center"><h3 className="text-xl font-semibold text-content">{title}</h3><p className="mt-2 text-sm text-content-secondary">{message}</p></div>;
+  return (
+    <div className="mt-5 rounded-xl border border-border bg-surface/60 p-8 text-center">
+      <h3 className="text-xl font-semibold text-content">{title}</h3>
+      <p className="mt-2 text-sm text-content-secondary">{message}</p>
+    </div>
+  );
 }
 
 function lootName(entry: SceneChestLootEntry): string {
-  return entry.equippableItem?.name ?? entry.consumableItem?.name ?? "Unknown item";
+  return (
+    entry.equippableItem?.name ?? entry.consumableItem?.name ?? "Unknown item"
+  );
 }

@@ -30,7 +30,8 @@ function readAsDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error("Could not read image."));
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Could not read image."));
     reader.readAsDataURL(file);
   });
 }
@@ -39,7 +40,9 @@ interface GridPrototypePageProps {
   initialGrid?: SceneGridConfiguration;
 }
 
-export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) {
+export function GridPrototypePage({
+  initialGrid,
+}: GridPrototypePageProps = {}) {
   const connectionRef = useRef<HubConnection | null>(null);
   const activeCodeRef = useRef<string | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
@@ -102,13 +105,14 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
         setConnectionState("Connected");
 
         if (initialGrid) {
-          const result = await connection.invoke<CreateGridPrototypeSessionResult>(
-            "CreateConfiguredSession",
-            initialGrid.rows,
-            initialGrid.columns,
-            initialGrid.gridColor,
-            initialGrid.backgroundImageUrl,
-          );
+          const result =
+            await connection.invoke<CreateGridPrototypeSessionResult>(
+              "CreateConfiguredSession",
+              initialGrid.rows,
+              initialGrid.columns,
+              initialGrid.gridColor,
+              initialGrid.backgroundImageUrl,
+            );
           if (!active) return;
           sessionStorage.setItem(
             hostTokenKey(result.session.code),
@@ -146,10 +150,12 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
   const handleCreate = async () => {
     setError(null);
     try {
-      const result = await invoke<CreateGridPrototypeSessionResult>(
-        "CreateSession",
+      const result =
+        await invoke<CreateGridPrototypeSessionResult>("CreateSession");
+      sessionStorage.setItem(
+        hostTokenKey(result.session.code),
+        result.hostToken,
       );
-      sessionStorage.setItem(hostTokenKey(result.session.code), result.hostToken);
       setHostToken(result.hostToken);
       applySession(result.session);
     } catch (createError) {
@@ -315,8 +321,14 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
               <span className="h-px flex-1 bg-border" />
             </div>
 
-            <form className="grid gap-3" onSubmit={(event) => void handleJoin(event)}>
-              <label htmlFor="grid-code" className="text-sm text-content-secondary">
+            <form
+              className="grid gap-3"
+              onSubmit={(event) => void handleJoin(event)}
+            >
+              <label
+                htmlFor="grid-code"
+                className="text-sm text-content-secondary"
+              >
                 Session code
               </label>
               <input
@@ -365,9 +377,7 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
     >
       <header
         className={`flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-raised px-4 py-3 ${
-          initialGrid
-            ? "absolute top-3 right-3 left-3 z-30 shadow-2xl"
-            : "mb-4"
+          initialGrid ? "absolute top-3 right-3 left-3 z-30 shadow-2xl" : "mb-4"
         }`}
       >
         <div className="mr-auto">
@@ -427,7 +437,11 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
             >
               Remove selected
             </Button>
-            <Button variant="danger" size="sm" onClick={() => void handleCloseSession()}>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => void handleCloseSession()}
+            >
               Close session
             </Button>
           </>
@@ -451,7 +465,9 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
       )}
 
       <section className="flex min-h-0 flex-1 items-stretch justify-center">
-        <div className={initialGrid ? "h-full w-full" : "w-full max-w-[1800px]"}>
+        <div
+          className={initialGrid ? "h-full w-full" : "w-full max-w-[1800px]"}
+        >
           <PrototypeGridBoard
             session={session}
             selectedTokenId={selectedTokenId}
@@ -463,8 +479,12 @@ export function GridPrototypePage({ initialGrid }: GridPrototypePageProps = {}) 
           />
           {!initialGrid && (
             <div className="mt-2 flex justify-between text-xs text-content-muted">
-              <span>{session.rows} rows × {session.columns} columns</span>
-              <span>{session.tokens.length} pieces · {connectionState}</span>
+              <span>
+                {session.rows} rows × {session.columns} columns
+              </span>
+              <span>
+                {session.tokens.length} pieces · {connectionState}
+              </span>
             </div>
           )}
         </div>

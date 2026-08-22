@@ -129,7 +129,9 @@ export function SceneEventManager({
 
     try {
       await deleteSceneEvent(scene.id, sceneEvent.id);
-      setEvents((current) => current.filter((item) => item.id !== sceneEvent.id));
+      setEvents((current) =>
+        current.filter((item) => item.id !== sceneEvent.id),
+      );
       toast.success(`Event "${sceneEvent.name}" was deleted.`);
     } catch (requestError) {
       toast.error(getApiError(requestError).message, "Unable to delete event");
@@ -178,10 +180,15 @@ export function SceneEventManager({
   if (error) {
     return (
       <div className="space-y-4">
-        <p className="rounded-lg border border-danger/40 p-3 text-danger" role="alert">
+        <p
+          className="rounded-lg border border-danger/40 p-3 text-danger"
+          role="alert"
+        >
           {error}
         </p>
-        <Button onClick={() => void load()} variant="primary">Try again</Button>
+        <Button onClick={() => void load()} variant="primary">
+          Try again
+        </Button>
       </div>
     );
   }
@@ -204,7 +211,9 @@ export function SceneEventManager({
             ),
           );
           setView("events");
-          toast.success(`Event "${saved.name}" was ${editingEvent ? "updated" : "created"}.`);
+          toast.success(
+            `Event "${saved.name}" was ${editingEvent ? "updated" : "created"}.`,
+          );
         }}
       />
     );
@@ -234,7 +243,9 @@ export function SceneEventManager({
             ),
           );
           setView("actions");
-          toast.success(`Action "${saved.name}" was ${editingAction ? "updated" : "created"}.`);
+          toast.success(
+            `Action "${saved.name}" was ${editingAction ? "updated" : "created"}.`,
+          );
         }}
       />
     );
@@ -307,9 +318,13 @@ export function SceneEventManager({
 
         <div className="mt-5 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-semibold text-content">{selectedEvent.name}</h3>
+            <h3 className="text-2xl font-semibold text-content">
+              {selectedEvent.name}
+            </h3>
             {selectedEvent.description && (
-              <p className="mt-1 text-sm text-content-secondary">{selectedEvent.description}</p>
+              <p className="mt-1 text-sm text-content-secondary">
+                {selectedEvent.description}
+              </p>
             )}
           </div>
           <div className="flex shrink-0 gap-2">
@@ -336,7 +351,10 @@ export function SceneEventManager({
         </div>
 
         {actions.length === 0 ? (
-          <EmptyState title="No actions yet" message="Add the first action for this event." />
+          <EmptyState
+            title="No actions yet"
+            message="Add the first action for this event."
+          />
         ) : (
           <div className="mt-5 space-y-3">
             {actions.map((action) => (
@@ -386,11 +404,17 @@ export function SceneEventManager({
       </div>
 
       {events.length === 0 ? (
-        <EmptyState title="No events yet" message="Add the first event for this scene." />
+        <EmptyState
+          title="No events yet"
+          message="Add the first event for this scene."
+        />
       ) : (
         <div className="mt-5 space-y-3">
           {events.map((sceneEvent) => (
-            <article key={sceneEvent.id} className="rounded-xl border border-border bg-surface p-4">
+            <article
+              key={sceneEvent.id}
+              className="rounded-xl border border-border bg-surface p-4"
+            >
               <button
                 type="button"
                 onClick={() => openActions(sceneEvent)}
@@ -400,12 +424,20 @@ export function SceneEventManager({
                   <FontAwesomeIcon icon={faBolt} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-content">{sceneEvent.name}</span>
+                  <span className="block font-semibold text-content">
+                    {sceneEvent.name}
+                  </span>
                   <span className="mt-0.5 block text-sm text-content-secondary">
-                    {sceneEvent.sceneEventActions.length} {sceneEvent.sceneEventActions.length === 1 ? "action" : "actions"}
+                    {sceneEvent.sceneEventActions.length}{" "}
+                    {sceneEvent.sceneEventActions.length === 1
+                      ? "action"
+                      : "actions"}
                   </span>
                 </span>
-                <FontAwesomeIcon icon={faChevronRight} className="text-content-muted" />
+                <FontAwesomeIcon
+                  icon={faChevronRight}
+                  className="text-content-muted"
+                />
               </button>
               {sceneEvent.description && (
                 <p className="mt-3 border-t border-border pt-3 text-sm text-content-secondary">
@@ -441,7 +473,11 @@ export function SceneEventManager({
   );
 }
 
-function EventForm({ event, onSave, onCancel }: {
+function EventForm({
+  event,
+  onSave,
+  onCancel,
+}: {
   event: SceneEvent | null | undefined;
   onSave: (input: SceneEventInput) => Promise<void>;
   onCancel: () => void;
@@ -464,20 +500,42 @@ function EventForm({ event, onSave, onCancel }: {
   };
 
   return (
-    <form onSubmit={(submitEvent) => void submit(submitEvent)} className="space-y-5">
-      <h3 className="text-2xl font-semibold text-content">{event ? "Edit event" : "Add event"}</h3>
+    <form
+      onSubmit={(submitEvent) => void submit(submitEvent)}
+      className="space-y-5"
+    >
+      <h3 className="text-2xl font-semibold text-content">
+        {event ? "Edit event" : "Add event"}
+      </h3>
       <FormField htmlFor="event-name" label="Name">
-        <Input id="event-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={200} required />
+        <Input
+          id="event-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={200}
+          required
+        />
       </FormField>
       <FormField htmlFor="event-description" label="Description">
-        <Textarea id="event-description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} rows={5} />
+        <Textarea
+          id="event-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={2000}
+          rows={5}
+        />
       </FormField>
       <FormActions isSaving={isSaving} error={error} onCancel={onCancel} />
     </form>
   );
 }
 
-function ActionForm({ action, journeyCharacters, onSave, onCancel }: {
+function ActionForm({
+  action,
+  journeyCharacters,
+  onSave,
+  onCancel,
+}: {
   action: SceneEventAction | null | undefined;
   journeyCharacters: JourneyCharacter[];
   onSave: (input: SceneEventActionInput) => Promise<void>;
@@ -485,11 +543,19 @@ function ActionForm({ action, journeyCharacters, onSave, onCancel }: {
 }) {
   const adjustment = action?.characterStatAdjustmentAction;
   const [name, setName] = useState(action?.name ?? "");
-  const [targetType, setTargetType] = useState(action?.actionTargetType ?? ActionTargetType.AllJourneyCharacters);
-  const [statType, setStatType] = useState(adjustment?.characterStatType ?? CharacterStatType.CurrentHp);
-  const [operation, setOperation] = useState(adjustment?.adjustmentOperation ?? AdjustmentOperation.Add);
+  const [targetType, setTargetType] = useState(
+    action?.actionTargetType ?? ActionTargetType.AllJourneyCharacters,
+  );
+  const [statType, setStatType] = useState(
+    adjustment?.characterStatType ?? CharacterStatType.CurrentHp,
+  );
+  const [operation, setOperation] = useState(
+    adjustment?.adjustmentOperation ?? AdjustmentOperation.Add,
+  );
   const [value, setValue] = useState(String(adjustment?.value ?? 0));
-  const [characterId, setCharacterId] = useState(adjustment?.characterId ? String(adjustment.characterId) : "");
+  const [characterId, setCharacterId] = useState(
+    adjustment?.characterId ? String(adjustment.characterId) : "",
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -505,7 +571,10 @@ function ActionForm({ action, journeyCharacters, onSave, onCancel }: {
         characterStatType: statType,
         adjustmentOperation: operation,
         value: Number(value),
-        characterId: targetType === ActionTargetType.SingleJourneyCharacter ? Number(characterId) : null,
+        characterId:
+          targetType === ActionTargetType.SingleJourneyCharacter
+            ? Number(characterId)
+            : null,
       });
     } catch (requestError) {
       setError(getApiError(requestError).message);
@@ -514,70 +583,157 @@ function ActionForm({ action, journeyCharacters, onSave, onCancel }: {
   };
 
   return (
-    <form onSubmit={(submitEvent) => void submit(submitEvent)} className="space-y-5">
-      <h3 className="text-2xl font-semibold text-content">{action ? "Edit action" : "Add action"}</h3>
+    <form
+      onSubmit={(submitEvent) => void submit(submitEvent)}
+      className="space-y-5"
+    >
+      <h3 className="text-2xl font-semibold text-content">
+        {action ? "Edit action" : "Add action"}
+      </h3>
       <FormField htmlFor="action-name" label="Name">
-        <Input id="action-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={200} required />
+        <Input
+          id="action-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={200}
+          required
+        />
       </FormField>
       <FormField htmlFor="action-target" label="Target">
-        <Select id="action-target" value={targetType} onChange={(e) => setTargetType(Number(e.target.value) as ActionTargetType)}>
-          <option value={ActionTargetType.AllJourneyCharacters}>All journey characters</option>
-          <option value={ActionTargetType.SingleJourneyCharacter}>One journey character</option>
+        <Select
+          id="action-target"
+          value={targetType}
+          onChange={(e) =>
+            setTargetType(Number(e.target.value) as ActionTargetType)
+          }
+        >
+          <option value={ActionTargetType.AllJourneyCharacters}>
+            All journey characters
+          </option>
+          <option value={ActionTargetType.SingleJourneyCharacter}>
+            One journey character
+          </option>
         </Select>
       </FormField>
       {targetType === ActionTargetType.SingleJourneyCharacter && (
         <FormField htmlFor="action-character" label="Character">
-          <Select id="action-character" value={characterId} onChange={(e) => setCharacterId(e.target.value)} required>
-            <option value="" disabled>Select a character</option>
+          <Select
+            id="action-character"
+            value={characterId}
+            onChange={(e) => setCharacterId(e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Select a character
+            </option>
             {journeyCharacters.map((item) => (
-              <option key={item.characterId} value={item.characterId}>{item.character.name}</option>
+              <option key={item.characterId} value={item.characterId}>
+                {item.character.name}
+              </option>
             ))}
           </Select>
         </FormField>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField htmlFor="action-stat" label="Stat">
-          <Select id="action-stat" value={statType} onChange={(e) => setStatType(Number(e.target.value) as CharacterStatType)}>
-            {enumEntries(statLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+          <Select
+            id="action-stat"
+            value={statType}
+            onChange={(e) =>
+              setStatType(Number(e.target.value) as CharacterStatType)
+            }
+          >
+            {enumEntries(statLabels).map(([id, label]) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
           </Select>
         </FormField>
         <FormField htmlFor="action-operation" label="Operation">
-          <Select id="action-operation" value={operation} onChange={(e) => setOperation(Number(e.target.value) as AdjustmentOperation)}>
-            {enumEntries(operationLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+          <Select
+            id="action-operation"
+            value={operation}
+            onChange={(e) =>
+              setOperation(Number(e.target.value) as AdjustmentOperation)
+            }
+          >
+            {enumEntries(operationLabels).map(([id, label]) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
           </Select>
         </FormField>
       </div>
       <FormField htmlFor="action-value" label="Value">
-        <Input id="action-value" type="number" value={value} onChange={(e) => setValue(e.target.value)} required />
+        <Input
+          id="action-value"
+          type="number"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          required
+        />
       </FormField>
       <FormActions isSaving={isSaving} error={error} onCancel={onCancel} />
     </form>
   );
 }
 
-function ActionCard({ action, onEdit, onDelete }: { action: SceneEventAction; onEdit: () => void; onDelete: () => void }) {
+function ActionCard({
+  action,
+  onEdit,
+  onDelete,
+}: {
+  action: SceneEventAction;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const adjustment = action.characterStatAdjustmentAction;
-  const target = action.actionTargetType === ActionTargetType.AllJourneyCharacters
-    ? "All journey characters"
-    : adjustment?.character?.name ?? "Selected character";
+  const target =
+    action.actionTargetType === ActionTargetType.AllJourneyCharacters
+      ? "All journey characters"
+      : (adjustment?.character?.name ?? "Selected character");
 
   return (
     <article className="rounded-xl border border-border bg-surface p-4">
       <h4 className="font-semibold text-content">{action.name}</h4>
       {adjustment && (
         <p className="mt-1 text-sm text-content-secondary">
-          {operationLabels[adjustment.adjustmentOperation]} {adjustment.value} to {statLabels[adjustment.characterStatType]} · {target}
+          {operationLabels[adjustment.adjustmentOperation]} {adjustment.value}{" "}
+          to {statLabels[adjustment.characterStatType]} · {target}
         </p>
       )}
       <div className="mt-3 flex justify-end gap-2">
-        <Button onClick={onDelete} variant="danger" size="sm" leftIcon={<FontAwesomeIcon icon={faTrash} />}>Delete</Button>
-        <Button onClick={onEdit} variant="primary" size="sm" leftIcon={<FontAwesomeIcon icon={faPen} />}>Edit</Button>
+        <Button
+          onClick={onDelete}
+          variant="danger"
+          size="sm"
+          leftIcon={<FontAwesomeIcon icon={faTrash} />}
+        >
+          Delete
+        </Button>
+        <Button
+          onClick={onEdit}
+          variant="primary"
+          size="sm"
+          leftIcon={<FontAwesomeIcon icon={faPen} />}
+        >
+          Edit
+        </Button>
       </div>
     </article>
   );
 }
 
-function OrderEditor<T extends { id: number; name: string; sortOrder: number }>({ title, items, onSave, onCancel }: {
+function OrderEditor<
+  T extends { id: number; name: string; sortOrder: number },
+>({
+  title,
+  items,
+  onSave,
+  onCancel,
+}: {
   title: string;
   items: T[];
   onSave: (items: T[]) => Promise<void>;
@@ -604,7 +760,9 @@ function OrderEditor<T extends { id: number; name: string; sortOrder: number }>(
   const save = async () => {
     setIsSaving(true);
     setError("");
-    try { await onSave(ordered); } catch (requestError) {
+    try {
+      await onSave(ordered);
+    } catch (requestError) {
       setError(getApiError(requestError).message);
       setIsSaving(false);
     }
@@ -613,28 +771,68 @@ function OrderEditor<T extends { id: number; name: string; sortOrder: number }>(
   return (
     <div>
       <h3 className="text-2xl font-semibold text-content">Sort {title}s</h3>
-      <p className="mt-1 text-sm text-content-secondary">Drag items into the order they should run.</p>
+      <p className="mt-1 text-sm text-content-secondary">
+        Drag items into the order they should run.
+      </p>
       <ol className="mt-5 space-y-3">
         {ordered.map((item, index) => (
-          <li key={item.id} draggable={!isSaving} onDragStart={() => setDraggedId(item.id)} onDragOver={(e) => { e.preventDefault(); move(item.id); }} onDragEnd={() => setDraggedId(undefined)} className={`flex cursor-grab items-center gap-4 rounded-xl border bg-surface p-4 ${draggedId === item.id ? "border-brand opacity-50" : "border-border"}`}>
+          <li
+            key={item.id}
+            draggable={!isSaving}
+            onDragStart={() => setDraggedId(item.id)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              move(item.id);
+            }}
+            onDragEnd={() => setDraggedId(undefined)}
+            className={`flex cursor-grab items-center gap-4 rounded-xl border bg-surface p-4 ${draggedId === item.id ? "border-brand opacity-50" : "border-border"}`}
+          >
             <FontAwesomeIcon icon={faBars} className="text-content-muted" />
-            <span className="w-6 text-center text-sm text-content-muted">{index + 1}</span>
+            <span className="w-6 text-center text-sm text-content-muted">
+              {index + 1}
+            </span>
             <span className="font-semibold text-content">{item.name}</span>
           </li>
         ))}
       </ol>
-      <FormActions isSaving={isSaving} error={error} onCancel={onCancel} onSave={() => void save()} />
+      <FormActions
+        isSaving={isSaving}
+        error={error}
+        onCancel={onCancel}
+        onSave={() => void save()}
+      />
     </div>
   );
 }
 
-function FormActions({ isSaving, error, onCancel, onSave }: { isSaving: boolean; error: string; onCancel: () => void; onSave?: () => void }) {
+function FormActions({
+  isSaving,
+  error,
+  onCancel,
+  onSave,
+}: {
+  isSaving: boolean;
+  error: string;
+  onCancel: () => void;
+  onSave?: () => void;
+}) {
   return (
     <div className="border-t border-border pt-4">
-      {error && <p className="mb-3 text-sm text-danger" role="alert">{error}</p>}
+      {error && (
+        <p className="mb-3 text-sm text-danger" role="alert">
+          {error}
+        </p>
+      )}
       <div className="flex justify-end gap-3">
-        <Button onClick={onCancel} disabled={isSaving}>Cancel</Button>
-        <Button type={onSave ? "button" : "submit"} onClick={onSave} disabled={isSaving} variant="primary">
+        <Button onClick={onCancel} disabled={isSaving}>
+          Cancel
+        </Button>
+        <Button
+          type={onSave ? "button" : "submit"}
+          onClick={onSave}
+          disabled={isSaving}
+          variant="primary"
+        >
           {isSaving ? "Saving..." : "Save"}
         </Button>
       </div>
@@ -655,6 +853,11 @@ function sortItems<T extends { sortOrder: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-function enumEntries<T extends number>(labels: Record<T, string>): [T, string][] {
-  return Object.entries(labels).map(([id, label]) => [Number(id) as T, label as string]);
+function enumEntries<T extends number>(
+  labels: Record<T, string>,
+): [T, string][] {
+  return Object.entries(labels).map(([id, label]) => [
+    Number(id) as T,
+    label as string,
+  ]);
 }

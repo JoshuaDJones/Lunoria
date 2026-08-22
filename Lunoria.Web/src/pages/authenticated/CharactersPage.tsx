@@ -256,9 +256,11 @@ export function CharactersPage() {
               ),
               alternateFormId: String(editing?.alternateFormId ?? ""),
               dialogActiveColor:
-                editing?.characterDialogSettings?.dialogActiveColor ?? "#808080",
+                editing?.characterDialogSettings?.dialogActiveColor ??
+                "#808080",
               dialogInActiveColor:
-                editing?.characterDialogSettings?.dialogUnActiveColor ?? "#808080",
+                editing?.characterDialogSettings?.dialogUnActiveColor ??
+                "#808080",
               characterType: String(
                 editing?.characterType ?? CharacterType.Player,
               ),
