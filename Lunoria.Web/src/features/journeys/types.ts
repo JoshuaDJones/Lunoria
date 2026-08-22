@@ -169,6 +169,7 @@ export interface ScenePlaythroughParticipant {
   playthroughCharacterId: number;
   displayedPlaythroughCharacterId: number;
   name: string;
+  description: string;
   photoUrl: string | null;
   portraitUrl: string | null;
   currentHp: number;

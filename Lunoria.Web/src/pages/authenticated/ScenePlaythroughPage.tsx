@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useToast } from "@/app/providers";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, Drawer } from "@/components/ui";
 import {
   addSceneCharacterInstance,
   getScenePlaythrough,
@@ -24,6 +24,7 @@ export function ScenePlaythroughPage() {
   const [error, setError] = useState("");
   const [addingSceneCharacterId, setAddingSceneCharacterId] =
     useState<number>();
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   const addCharacterInstance = async (scenePlaythroughCharacterId: number) => {
     setAddingSceneCharacterId(scenePlaythroughCharacterId);
@@ -94,9 +95,28 @@ export function ScenePlaythroughPage() {
             {scene?.name ?? ""}
           </h1>
           {scene && (
-            <p className="text-2xl font-semibold text-content sm:text-3xl">
-              Round {scene.roundNumber}
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-2xl font-semibold text-content sm:text-3xl">
+                Round {scene.roundNumber}
+              </p>
+              <Button
+                aria-label="Open scene options"
+                className="h-14 w-14 border-transparent p-0 hover:border-transparent"
+                onClick={() => setIsOptionsOpen(true)}
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-8 w-8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </Button>
+            </div>
           )}
         </header>
 
@@ -170,6 +190,14 @@ export function ScenePlaythroughPage() {
           </div>
         )}
       </main>
+
+      {isOptionsOpen && (
+        <Drawer title="Scene Options" onClose={() => setIsOptionsOpen(false)}>
+          <p className="text-content-muted">
+            Scene controls will be available here.
+          </p>
+        </Drawer>
+      )}
     </AppLayout>
   );
 }
@@ -187,30 +215,31 @@ function ParticipantCard({
   canAddCharacterInstance: boolean;
   onAddCharacterInstance: (scenePlaythroughCharacterId: number) => void;
 }) {
-  const imageUrl = participant.portraitUrl ?? participant.photoUrl;
+  const imageUrl =
+    participant.portraitUrl?.trim() || participant.photoUrl?.trim();
 
   return (
     <Card
       className={
         participant.isCurrentParticipant
-          ? "border-brand ring-2 ring-brand"
+          ? "border-brand"
           : undefined
       }
     >
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt=""
-          className="aspect-[4/3] w-full object-cover"
-        />
-      ) : (
-        <div className="flex aspect-[4/3] items-center justify-center bg-surface text-content-muted">
-          No image
+      <div className="flex min-h-48">
+        <div className="flex w-2/5 shrink-0 items-center justify-center bg-canvas">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt=""
+              className="h-full max-h-56 w-full object-contain"
+            />
+          ) : (
+            <span className="text-content-muted">No image</span>
+          )}
         </div>
-      )}
 
-      <div className="p-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-col p-4">
           <div>
             <h3 className="text-xl font-semibold text-content">
               {participant.name}
@@ -218,65 +247,65 @@ function ParticipantCard({
             <p className="text-sm text-content-muted">
               {getParticipantTypeLabel(participant.participantType)}
             </p>
+            {participant.description && (
+              <p className="mt-2 text-sm text-content-secondary">
+                {participant.description}
+              </p>
+            )}
           </div>
-          {participant.isCurrentParticipant && (
-            <span className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-on-brand">
-              Current
-            </span>
+
+          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-lg bg-surface/75 p-2">
+              <dt className="text-content-muted">HP</dt>
+              <dd className="font-semibold text-content">
+                {participant.currentHp} / {participant.maxHp}
+              </dd>
+            </div>
+            <div className="rounded-lg bg-surface/75 p-2">
+              <dt className="text-content-muted">MP</dt>
+              <dd className="font-semibold text-content">
+                {participant.currentMp} / {participant.maxMp}
+              </dd>
+            </div>
+          </dl>
+
+          {(participant.isDown ||
+            participant.isDead ||
+            participant.isInAlternateForm) && (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+              {participant.isDown && (
+                <span className="rounded-full border border-border px-3 py-1 text-content-secondary">
+                  Down
+                </span>
+              )}
+              {participant.isDead && (
+                <span className="rounded-full border border-danger px-3 py-1 text-danger">
+                  Dead
+                </span>
+              )}
+              {participant.isInAlternateForm && (
+                <span className="rounded-full border border-border px-3 py-1 text-content-secondary">
+                  Alternate form
+                </span>
+              )}
+            </div>
           )}
+
+          {canAddCharacterInstance &&
+            participant.scenePlaythroughCharacterId !== null && (
+              <Button
+                className="mt-4 w-full"
+                disabled={addDisabled}
+                onClick={() =>
+                  onAddCharacterInstance(
+                    participant.scenePlaythroughCharacterId!,
+                  )
+                }
+              >
+                {isAdding ? "Adding..." : "Add another"}
+              </Button>
+            )}
         </div>
-
-        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-lg bg-surface/75 p-2">
-            <dt className="text-content-muted">HP</dt>
-            <dd className="font-semibold text-content">
-              {participant.currentHp} / {participant.maxHp}
-            </dd>
-          </div>
-          <div className="rounded-lg bg-surface/75 p-2">
-            <dt className="text-content-muted">MP</dt>
-            <dd className="font-semibold text-content">
-              {participant.currentMp} / {participant.maxMp}
-            </dd>
-          </div>
-        </dl>
-
-        {(participant.isDown ||
-          participant.isDead ||
-          participant.isInAlternateForm) && (
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-            {participant.isDown && (
-              <span className="rounded-full border border-border px-3 py-1 text-content-secondary">
-                Down
-              </span>
-            )}
-            {participant.isDead && (
-              <span className="rounded-full border border-danger px-3 py-1 text-danger">
-                Dead
-              </span>
-            )}
-            {participant.isInAlternateForm && (
-              <span className="rounded-full border border-border px-3 py-1 text-content-secondary">
-                Alternate form
-              </span>
-            )}
-          </div>
-        )}
-
-        {canAddCharacterInstance &&
-          participant.scenePlaythroughCharacterId !== null && (
-            <Button
-              className="mt-4 w-full"
-              disabled={addDisabled}
-              onClick={() =>
-                onAddCharacterInstance(
-                  participant.scenePlaythroughCharacterId!,
-                )
-              }
-            >
-              {isAdding ? "Adding..." : "Add another"}
-            </Button>
-          )}
       </div>
     </Card>
   );

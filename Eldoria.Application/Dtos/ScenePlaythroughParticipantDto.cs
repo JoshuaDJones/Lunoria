@@ -14,6 +14,7 @@ public sealed class ScenePlaythroughParticipantDto
     public int PlaythroughCharacterId { get; set; }
     public int DisplayedPlaythroughCharacterId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public string? PhotoUrl { get; set; }
     public string? PortraitUrl { get; set; }
     public int CurrentHp { get; set; }

@@ -157,6 +157,7 @@ public static class ScenePlaythroughMappings
             PlaythroughCharacterId = baseCharacter.Id,
             DisplayedPlaythroughCharacterId = displayedCharacter.Id,
             Name = displayedCharacter.Name,
+            Description = displayedCharacter.Description,
             PhotoUrl = displayedCharacter.PhotoUrl,
             PortraitUrl = displayedCharacter.PortraitUrl,
             CurrentHp = journeyCharacter?.CurrentHp ?? sceneCharacter!.CurrentHp,
