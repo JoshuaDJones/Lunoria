@@ -28,6 +28,8 @@ namespace Eldoria.Application.Services
             int baseMaxEquippableInventory,
             CharacterType characterType,
             int? alternateFormId,
+            string dialogActiveColor,
+            string dialogInActiveColor,
             CancellationToken ct)
         {
             var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, ct);
@@ -53,6 +55,11 @@ namespace Eldoria.Application.Services
                 CharacterType = characterType,
                 BaseAlternateFormId = alternateFormId,
                 BaseAlternateForm = alternateForm,
+                CharacterDialogSettings = new CharacterDialogSettings
+                {
+                    DialogActiveColor = dialogActiveColor.Trim(),
+                    DialogInActiveColor = dialogInActiveColor.Trim()
+                },
                 CreatedAt = now,
                 UpdatedAt = now,
             };
@@ -121,6 +128,8 @@ namespace Eldoria.Application.Services
             int baseMaxEquippableInventory,
             CharacterType characterType,
             int? alternateFormId,
+            string dialogActiveColor,
+            string dialogInActiveColor,
             CancellationToken ct)
         {
             var character = await _characterRepository.GetByIdForUserAsync(userId, id, ct);
@@ -154,6 +163,11 @@ namespace Eldoria.Application.Services
             character.CharacterType = characterType;
             character.BaseAlternateFormId = alternateFormId;
             character.BaseAlternateForm = alternateForm;
+            character.CharacterDialogSettings ??= new CharacterDialogSettings();
+            character.CharacterDialogSettings.DialogActiveColor =
+                dialogActiveColor.Trim();
+            character.CharacterDialogSettings.DialogInActiveColor =
+                dialogInActiveColor.Trim();
             character.UpdatedAt = DateTime.UtcNow;
 
             _characterRepository.Update(character);

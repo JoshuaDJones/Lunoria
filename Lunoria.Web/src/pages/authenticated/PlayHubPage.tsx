@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { ApiLoadError, Button } from "@/components/ui";
@@ -12,6 +12,7 @@ import {
 import { getApiError } from "@/lib/apiClient";
 
 export function PlayHubPage() {
+  const navigate = useNavigate();
   const { confirm } = useConfirmDialog();
   const toast = useToast();
   const { seriesId, journeyId: journeyIdParam } = useParams<{
@@ -69,6 +70,12 @@ export function PlayHubPage() {
     (playthrough) => playthrough.isCompleted,
   );
 
+  const navigateToPlaythrough = (playthroughId: number) => {
+    navigate(
+      `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}`,
+    );
+  };
+
   const startNewPlaythrough = async () => {
     const confirmed = await confirm({
       title: "Start a new playthrough?",
@@ -83,9 +90,9 @@ export function PlayHubPage() {
     setIsStarting(true);
 
     try {
-      await startJourneyPlaythrough(journeyId);
+      const startedPlaythrough = await startJourneyPlaythrough(journeyId);
       toast.success("A new playthrough was started.");
-      setReloadKey((value) => value + 1);
+      navigateToPlaythrough(startedPlaythrough.playthrough.id);
     } catch (requestError) {
       toast.error(
         getApiError(requestError).message,
@@ -145,11 +152,13 @@ export function PlayHubPage() {
                 title="In Progress"
                 emptyMessage="No playthroughs are currently in progress."
                 playthroughs={inProgress}
+                onResume={navigateToPlaythrough}
               />
               <PlaythroughSection
                 title="Completed"
                 emptyMessage="No playthroughs have been completed yet."
                 playthroughs={completed}
+                onResume={navigateToPlaythrough}
               />
             </div>
           )}
@@ -163,12 +172,14 @@ interface PlaythroughSectionProps {
   title: string;
   emptyMessage: string;
   playthroughs: PlaythroughSummary[];
+  onResume: (playthroughId: number) => void;
 }
 
 function PlaythroughSection({
   title,
   emptyMessage,
   playthroughs,
+  onResume,
 }: PlaythroughSectionProps) {
   return (
     <section>
@@ -216,6 +227,16 @@ function PlaythroughSection({
                   <div>
                     <dt className="text-content-muted">Completed</dt>
                     <dd>{formatDate(playthrough.completedAt)}</dd>
+                  </div>
+                )}
+                {!playthrough.completedAt && (
+                  <div className="flex-1 flex justify-end">
+                    <Button
+                      variant="primary"
+                      onClick={() => onResume(playthrough.id)}
+                    >
+                      Resume
+                    </Button>
                   </div>
                 )}
               </dl>

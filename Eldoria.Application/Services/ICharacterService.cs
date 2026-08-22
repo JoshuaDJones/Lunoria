@@ -24,6 +24,8 @@ namespace Eldoria.Application.Services
             int baseMaxEquippableInventory,
             CharacterType characterType,
             int? alternateFormId,
+            string dialogActiveColor,
+            string dialogInActiveColor,
             CancellationToken ct);
 
         Task<Result<CharacterDto>> UpdateAsync(int userId, 
@@ -40,6 +42,8 @@ namespace Eldoria.Application.Services
             int baseMaxEquippableInventory,
             CharacterType characterType,
             int? alternateFormId,
+            string dialogActiveColor,
+            string dialogInActiveColor,
             CancellationToken ct);
     }
 }

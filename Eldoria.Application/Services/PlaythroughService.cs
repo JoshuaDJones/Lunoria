@@ -5,6 +5,7 @@ using Eldoria.Core.Entities.Playthrough.Journey;
 using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Enums;
 using Eldoria.Core.Interfaces;
+using CharacterDialogSettings = Eldoria.Core.Entities.CharacterDialogSettings;
 using Journey = Eldoria.Core.Entities.Journey;
 
 namespace Eldoria.Application.Services;
@@ -196,9 +197,11 @@ public sealed class PlaythroughService(
                   BaseMaxEquippableInventory = character.BaseMaxEquippableInventory,
 
                   DialogActiveColor =
-                      character.CharacterDialogSettings.DialogActiveColor,
+                      character.CharacterDialogSettings?.DialogActiveColor
+                      ?? CharacterDialogSettings.DefaultActiveColor,
                   DialogInActiveColor =
-                      character.CharacterDialogSettings.DialogInActiveColor
+                      character.CharacterDialogSettings?.DialogInActiveColor
+                      ?? CharacterDialogSettings.DefaultInactiveColor
               })
               .ToDictionary(
                   character => character.SourceCharacterId,
@@ -606,13 +609,6 @@ public sealed class PlaythroughService(
 
         foreach (var character in assets.Characters)
         {
-            if (character.CharacterDialogSettings is null)
-            {
-                return new Error(
-                    "Playthrough.InvalidSourceGraph",
-                    $"Character {character.Id} does not have dialog settings.");
-            }
-
             if (character.BaseAlternateFormId is int alternateFormId &&
                 !characterIds.Contains(alternateFormId))
             {

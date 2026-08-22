@@ -108,6 +108,46 @@ export interface PlaythroughSummary {
   isCompleted: boolean;
 }
 
+export enum ScenePlaythroughStatus {
+  NotStarted = 1,
+  InProgress = 2,
+  Completed = 3,
+}
+
+export interface PlaythroughSceneSummary {
+  id: number;
+  name: string;
+  description: string | null;
+  photoUrl: string | null;
+  gridUrl: string | null;
+  sortOrder: number;
+  status: ScenePlaythroughStatus;
+  roundNumber: number;
+  startedAt: string | null;
+  endedAt: string | null;
+}
+
+export interface PlaythroughIntroPage {
+  id: number;
+  sortOrder: number;
+  type: IntroPageType;
+  config: string;
+  previewPhotoUrl: string | null;
+}
+
+export interface PlaythroughEventLog {
+  id: number;
+  message: string;
+  eventTime: string;
+}
+
+export interface PlaythroughStart {
+  playthrough: PlaythroughSummary;
+  scenes: PlaythroughSceneSummary[];
+  introPages: PlaythroughIntroPage[];
+  eventLogs: PlaythroughEventLog[];
+}
+
 export interface JourneyInput {
   name: string;
   description: string;

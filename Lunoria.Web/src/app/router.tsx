@@ -17,6 +17,7 @@ import { JourneysPage } from "@/pages/authenticated/JourneysPage";
 import { JourneyEditorPage } from "@/pages/authenticated/JourneyEditorPage";
 import { JourneyIntroPagesPage } from "@/pages/authenticated/JourneyIntroPagesPage";
 import { PlayHubPage } from "@/pages/authenticated/PlayHubPage";
+import { PlaythroughPage } from "@/pages/authenticated/PlaythroughPage";
 import { GridPrototypePage } from "@/pages/public/GridPrototypePage";
 import { SceneGridPage } from "@/pages/authenticated/SceneGridPage";
 
@@ -104,6 +105,10 @@ export const router = createBrowserRouter([
       {
         path: "/series/:seriesId/journeys/:journeyId/play",
         element: <PlayHubPage />,
+      },
+      {
+        path: "/series/:seriesId/journeys/:journeyId/playthroughs/:playthroughId",
+        element: <PlaythroughPage />,
       },
     ],
   },

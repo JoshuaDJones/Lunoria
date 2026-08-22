@@ -52,6 +52,8 @@ export interface CharacterInput {
   baseMaxEquippableInventory: number;
   characterType: CharacterType;
   alternateFormId?: number | null;
+  dialogActiveColor: string;
+  dialogInActiveColor: string;
 }
 
 export type CreateCharacterInput = CharacterInput & { photo: File };

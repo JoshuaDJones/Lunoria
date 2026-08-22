@@ -52,6 +52,18 @@ const fields: ResourceFormField[] = [
   },
   { name: "alternateFormId", label: "Alternate form ID", type: "number" },
   {
+    name: "dialogActiveColor",
+    label: "Active dialog color",
+    type: "color",
+    required: true,
+  },
+  {
+    name: "dialogInActiveColor",
+    label: "Inactive dialog color",
+    type: "color",
+    required: true,
+  },
+  {
     name: "characterType",
     label: "Character type",
     type: "radio",
@@ -243,6 +255,10 @@ export function CharactersPage() {
                 editing?.baseMaxEquippableInventory ?? 0,
               ),
               alternateFormId: String(editing?.alternateFormId ?? ""),
+              dialogActiveColor:
+                editing?.characterDialogSettings?.dialogActiveColor ?? "#808080",
+              dialogInActiveColor:
+                editing?.characterDialogSettings?.dialogUnActiveColor ?? "#808080",
               characterType: String(
                 editing?.characterType ?? CharacterType.Player,
               ),
@@ -270,6 +286,8 @@ export function CharactersPage() {
                   "baseMaxEquippableInventory",
                 ),
                 alternateFormId: nullableNumberValue(values, "alternateFormId"),
+                dialogActiveColor: textValue(values, "dialogActiveColor"),
+                dialogInActiveColor: textValue(values, "dialogInActiveColor"),
                 characterType: Number(values.characterType) as CharacterType,
               };
 

@@ -35,5 +35,11 @@ namespace Eldoria.Api.Requests
         public Eldoria.Core.Enums.CharacterType? CharacterType { get; set; }
 
         public int? AlternateFormId { get; set; }
+
+        [RegularExpression("^#[0-9A-Fa-f]{6}$")]
+        public string DialogActiveColor { get; set; } = "#808080";
+
+        [RegularExpression("^#[0-9A-Fa-f]{6}$")]
+        public string DialogInActiveColor { get; set; } = "#808080";
     }
 }

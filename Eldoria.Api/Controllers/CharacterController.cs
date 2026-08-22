@@ -76,6 +76,8 @@ namespace Eldoria.Api.Controllers
                 req.BaseMaxEquippableInventory!.Value,
                 req.CharacterType!.Value,
                 req.AlternateFormId,
+                req.DialogActiveColor,
+                req.DialogInActiveColor,
                 ct);
 
             if (result.Success)
@@ -103,6 +105,8 @@ namespace Eldoria.Api.Controllers
                 req.BaseMaxEquippableInventory!.Value,
                 req.CharacterType!.Value,
                 req.AlternateFormId,
+                req.DialogActiveColor,
+                req.DialogInActiveColor,
                 ct);
 
             if (result.Success)
