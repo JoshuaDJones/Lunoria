@@ -1,11 +1,11 @@
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
-using Eldoria.Core.Entities;
 using Eldoria.Core.Entities.Playthrough.Base;
 using Eldoria.Core.Entities.Playthrough.Journey;
 using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Enums;
 using Eldoria.Core.Interfaces;
+using Journey = Eldoria.Core.Entities.Journey;
 
 namespace Eldoria.Application.Services;
 
@@ -14,7 +14,7 @@ public sealed class PlaythroughService(
     IJourneyRepository journeyRepository
     ) : IPlaythroughService
 {
-    public async Task<Result<PlaythroughSummaryDto>> StartAsync(
+    public async Task<Result<PlaythroughStartDto>> StartAsync(
         int userId,
         int journeyId,
         CancellationToken ct)
@@ -26,13 +26,13 @@ public sealed class PlaythroughService(
 
         if (journey is null)
         {
-            return Result<PlaythroughSummaryDto>.Fail(
+            return Result<PlaythroughStartDto>.Fail(
                 new Error("Journey.NotFound", "Journey was not found."));
         }
 
         if (journey.UserId != userId)
         {
-            return Result<PlaythroughSummaryDto>.Fail(
+            return Result<PlaythroughStartDto>.Fail(
                 new Error(
                     "Auth.Forbidden",
                     "You do not have permission to start a playthrough for this journey."));
@@ -54,7 +54,7 @@ public sealed class PlaythroughService(
 
         if (sourceJourney is null)
         {
-            return Result<PlaythroughSummaryDto>.Fail(
+            return Result<PlaythroughStartDto>.Fail(
                 new Error("Journey.NotFound", "Journey was not found."));
         }
 
@@ -67,7 +67,7 @@ public sealed class PlaythroughService(
         var sourceError = ValidateStartSource(sourceJourney, assets);
 
         if (sourceError is not null)
-            return Result<PlaythroughSummaryDto>.Fail(sourceError);
+            return Result<PlaythroughStartDto>.Fail(sourceError);
 
         var newPlaythrough = new Playthrough
         {
@@ -115,6 +115,15 @@ public sealed class PlaythroughService(
             .ToList();
 
         newPlaythrough.IntroPages = introPagePTList;
+
+        newPlaythrough.EventLogs =
+        [
+            new PlaythroughEventLog
+            {
+                Message = "Playthrough Generated",
+                EventTime = startedAt
+            }
+        ];
 
         // Add spell types to playthrough
 
@@ -523,7 +532,7 @@ public sealed class PlaythroughService(
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
-        return Result<PlaythroughSummaryDto>.Ok(newPlaythrough.ToSummaryDto());
+        return Result<PlaythroughStartDto>.Ok(newPlaythrough.ToStartDto());
     }
 
     private static HashSet<int> GetReferencedCharacterIds(Journey journey)

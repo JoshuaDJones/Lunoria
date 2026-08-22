@@ -33,9 +33,7 @@ namespace Eldoria.Api.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType<PlaythroughSummaryDto>(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<PlaythroughSummaryDto>> Start(
+        public async Task<ActionResult<PlaythroughStartDto>> Start(
             int journeyId,
             CancellationToken ct)
         {

@@ -5,7 +5,7 @@ namespace Eldoria.Application.Services;
 
 public interface IPlaythroughService
 {
-    Task<Result<PlaythroughSummaryDto>> StartAsync(
+    Task<Result<PlaythroughStartDto>> StartAsync(
         int userId,
         int journeyId,
         CancellationToken ct);
