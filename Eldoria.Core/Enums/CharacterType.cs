@@ -4,6 +4,7 @@
     {
         Player = 1,
         NPC = 2,
-        Enemy = 3
+        Enemy = 3,
+        All = 4
     }
 }

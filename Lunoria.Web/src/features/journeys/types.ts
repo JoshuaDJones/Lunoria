@@ -97,6 +97,17 @@ export interface Journey {
   introPages: IntroPage[] | null;
 }
 
+export interface PlaythroughSummary {
+  id: number;
+  sourceJourneyId: number;
+  name: string;
+  description: string;
+  photoUrl: string;
+  startedAt: string;
+  completedAt: string | null;
+  isCompleted: boolean;
+}
+
 export interface JourneyInput {
   name: string;
   description: string;

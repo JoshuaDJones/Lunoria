@@ -11,7 +11,6 @@ namespace Eldoria.Core.Entities.Playthrough.Base
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
-        public int SortOrder { get; set; }
 
         public DateTime StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }

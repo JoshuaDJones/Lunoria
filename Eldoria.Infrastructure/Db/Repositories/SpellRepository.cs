@@ -21,8 +21,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
         public Task<List<Spell>> GetListForUserAsync(
             int userId,
-            int skip,
-            int take,
+            int? skip,
+            int? take,
             int? spellTypeId,
             CancellationToken ct)
         {
@@ -37,8 +37,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
             return query
                 .OrderBy(spell => spell.Name)
-                .Skip(skip)
-                .Take(take)
+                .Skip(skip ?? 0)
+                .Take(take ?? int.MaxValue)
                 .ToListAsync(ct);
         }
 

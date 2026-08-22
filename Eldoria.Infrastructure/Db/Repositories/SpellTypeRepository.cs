@@ -11,16 +11,16 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
         public Task<List<SpellType>> GetListForUserAsync(
             int userId,
-            int skip,
-            int take,
+            int? skip,
+            int? take,
             CancellationToken ct)
         {
             return _dbContext.SpellTypes
                 .AsNoTracking()
                 .Where(spellType => spellType.UserId == userId)
                 .OrderBy(spellType => spellType.TypeName)
-                .Skip(skip)
-                .Take(take)
+                .Skip(skip ?? 0)
+                .Take(take ?? int.MaxValue)
                 .ToListAsync(ct);
         }
 

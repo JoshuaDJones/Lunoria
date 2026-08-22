@@ -11,16 +11,16 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
         public Task<List<ConsumableItem>> GetListForUserAsync(
             int userId,
-            int skip,
-            int take,
+            int? skip,
+            int? take,
             CancellationToken ct)
         {
             return _dbContext.ConsumableItems
                 .AsNoTracking()
                 .Where(item => item.UserId == userId)
                 .OrderBy(item => item.Name)
-                .Skip(skip)
-                .Take(take)
+                .Skip(skip ?? 0)
+                .Take(take ?? int.MaxValue)
                 .ToListAsync(ct);
         }
 

@@ -6,5 +6,9 @@ namespace Eldoria.Core.Interfaces
     { 
         Task<List<Journey>> GetUsersJourneys(int userId, int skip, int take, CancellationToken ct);
         Task<Journey?> GetJourneyWithPlayers(int journeyId, CancellationToken ct);
+        Task<Journey?> GetPlaythroughSourceAsync(
+            int userId,
+            int journeyId,
+            CancellationToken ct);
     }
 }

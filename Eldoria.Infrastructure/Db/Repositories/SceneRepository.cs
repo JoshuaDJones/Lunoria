@@ -28,15 +28,15 @@ namespace Eldoria.Infrastructure.Db.Repositories
             await transaction.CommitAsync(ct);
         }
 
-        public async Task<List<Scene>> GetJourneyScenes(int journeyId, int skip, int take, CancellationToken ct)
+        public async Task<List<Scene>> GetJourneyScenes(int journeyId, int? skip, int? take, CancellationToken ct)
         {
             return await _dbContext.Scenes
                 .AsNoTracking()
                 .Include(scene => scene.Grid)
                 .Where(j => j.JourneyId == journeyId)
                 .OrderBy(s => s.SortOrder)
-                .Skip(skip)
-                .Take(take)
+                .Skip(skip ?? 0)
+                .Take(take ?? int.MaxValue)
                 .ToListAsync(ct);
         }
 

@@ -6,6 +6,7 @@ import type {
   JourneyCharacterSpell,
   JourneyCharacter,
   JourneyInput,
+  PlaythroughSummary,
 } from "@/features/journeys/types";
 import { SceneDialog } from "@/features/scenes/types";
 
@@ -36,6 +37,19 @@ export async function listJourneys(
 export async function getJourney(id: number): Promise<Journey> {
   const { data } = await apiClient.get<Journey>(`/Journey/${id}`);
   return data;
+}
+
+export async function listJourneyPlaythroughs(
+  journeyId: number,
+): Promise<PlaythroughSummary[]> {
+  const { data } = await apiClient.get<PlaythroughSummary[]>(
+    `/journeys/${journeyId}/playthroughs`,
+  );
+  return data;
+}
+
+export async function startJourneyPlaythrough(journeyId: number): Promise<void> {
+  await apiClient.post(`/journeys/${journeyId}/playthroughs`);
 }
 
 export async function createJourney(

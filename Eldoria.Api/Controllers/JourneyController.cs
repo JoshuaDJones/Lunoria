@@ -8,12 +8,9 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class JourneyController(
-        IJourneyService journeyService,
-        IPlaythroughService playthroughService) : ControllerBase
+    public class JourneyController(IJourneyService journeyService) : ControllerBase
     {
         private readonly IJourneyService _journeyService = journeyService;
-        private readonly IPlaythroughService _playthroughService = playthroughService;
 
         [HttpGet]
         public async Task<ActionResult<List<JourneyDto>>> List([FromQuery] int skip = 0, [FromQuery] int take = 500, CancellationToken ct = default)
@@ -37,27 +34,6 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
-                _ => BadRequest(result.Error)
-            };
-        }
-
-        [HttpGet("{journeyId:int}/playthroughs")]
-        public async Task<ActionResult<List<PlaythroughSummaryDto>>> GetPlaythroughs(
-            int journeyId,
-            CancellationToken ct)
-        {
-            var result = await _playthroughService.GetForJourneyAsync(
-                User.GetUserId(),
-                journeyId,
-                ct);
-
-            if (result.Success)
-                return Ok(result.Value);
-
-            return result.Error.Code switch
-            {
-                "Journey.NotFound" => NotFound(result.Error),
                 "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };

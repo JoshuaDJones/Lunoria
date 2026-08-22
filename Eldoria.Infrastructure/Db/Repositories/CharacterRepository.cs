@@ -12,8 +12,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
 
         public async Task<List<Character>> GetCharactersForUserAsync(
             int userId,
-            int skip,
-            int take,
+            int? skip,
+            int? take,
             CharacterType typeFilter,
             CancellationToken ct)
         {
@@ -28,11 +28,16 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .Include(c => c.CharacterDialogSettings)
                 .AsQueryable();
 
-            query = query.Where(c => c.CharacterType == typeFilter);
+            if (typeFilter != CharacterType.All)
+                query = query.Where(c => c.CharacterType == typeFilter);
+
+            if (skip.HasValue)
+                query = query.Skip(skip.Value);
+
+            if (take.HasValue)
+                query = query.Take(take.Value);
 
             return await query
-                .Skip(skip)
-                .Take(take)
                 .ToListAsync(ct);
         }
 

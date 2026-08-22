@@ -74,6 +74,7 @@ export function SceneEditorForm({
 }: SceneEditorFormProps) {
   const [page, setPage] = useState<"scene" | "grid">("scene");
   const [draft, setDraft] = useState<SceneDraft>();
+  const [createdScene, setCreatedScene] = useState<Scene>();
 
   const saveScene = async (
     sceneDraft: SceneDraft,
@@ -98,9 +99,10 @@ export function SceneEditorForm({
       gridUrl,
     };
 
+    const existingScene = scene ?? createdScene;
     let savedScene: Scene;
-    if (scene) {
-      savedScene = await updateScene(scene.id, {
+    if (existingScene) {
+      savedScene = await updateScene(existingScene.id, {
         ...input,
         photo: sceneDraft.photo,
       });
@@ -109,18 +111,30 @@ export function SceneEditorForm({
         ...input,
         photo: requiredPhoto(sceneDraft.photo),
       });
+      // Creating a scene and its grid requires two API requests. Keep the
+      // created scene so a failed grid request retries against the same scene
+      // instead of creating a duplicate.
+      setCreatedScene(savedScene);
+      setDraft((current) =>
+        current ? { ...current, photo: undefined } : current,
+      );
     }
 
     if (gridMode === "internal" && grid) {
       const gridInput = {
         rows: grid.rows,
         columns: grid.columns,
-        gridColor: grid.gridColor,
+        gridColor: grid.gridColor.trim() || "#ffffff",
         background: grid.background,
-        removeBackground: grid.removeBackground,
       };
-      if (scene?.grid) await updateSceneGrid(savedScene.id, gridInput);
-      else await createSceneGrid(savedScene.id, gridInput);
+      if (scene?.grid) {
+        await updateSceneGrid(savedScene.id, {
+          ...gridInput,
+          removeBackground: grid.removeBackground,
+        });
+      } else {
+        await createSceneGrid(savedScene.id, gridInput);
+      }
     } else if (gridMode === "none" && scene?.grid) {
       await deleteSceneGrid(savedScene.id);
     }
@@ -131,6 +145,7 @@ export function SceneEditorForm({
   if (page === "grid" && draft) {
     return (
       <ResourceForm
+        key="grid"
         fields={gridFields}
         initialValues={{
           rows: String(scene?.grid?.rows ?? 20),
@@ -160,19 +175,21 @@ export function SceneEditorForm({
     );
   }
 
-  const mode = initialGridMode(scene);
+  const formScene = scene ?? createdScene;
+  const mode = initialGridMode(formScene);
   return (
     <ResourceForm
+      key="scene"
       fields={sceneFields}
       initialValues={draft?.values ?? {
-        name: scene?.name ?? "",
-        description: scene?.description ?? "",
+        name: formScene?.name ?? "",
+        description: formScene?.description ?? "",
         gridMode: mode,
-        gridUrl: scene?.gridUrl ?? "",
+        gridUrl: formScene?.gridUrl ?? "",
       }}
       initialPhoto={draft?.photo}
-      existingPhotoUrl={scene?.photoUrl}
-      requirePhoto={!scene}
+      existingPhotoUrl={formScene?.photoUrl}
+      requirePhoto={!formScene}
       submitLabel={(values) =>
         values.gridMode === "internal" ? "Continue to grid" : "Save"
       }
