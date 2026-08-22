@@ -92,7 +92,7 @@ export function PlayHubPage() {
     try {
       const startedPlaythrough = await startJourneyPlaythrough(journeyId);
       toast.success("A new playthrough was started.");
-      navigateToPlaythrough(startedPlaythrough.playthrough.id);
+      navigateToPlaythrough(startedPlaythrough.id);
     } catch (requestError) {
       toast.error(
         getApiError(requestError).message,

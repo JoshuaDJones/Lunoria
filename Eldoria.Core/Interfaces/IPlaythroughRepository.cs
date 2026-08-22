@@ -21,6 +21,11 @@ public interface IPlaythroughRepository
         int sourceJourneyId,
         CancellationToken ct);
 
+    Task<Playthrough?> GetDetailsAsync(
+        int userId,
+        int playthroughId,
+        CancellationToken ct);
+
     Task AddAsync(Playthrough playthrough, CancellationToken ct);
 
     Task<int> SaveChangesAsync(CancellationToken ct);

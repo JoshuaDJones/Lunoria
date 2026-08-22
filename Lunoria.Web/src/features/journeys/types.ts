@@ -141,7 +141,11 @@ export interface PlaythroughEventLog {
   eventTime: string;
 }
 
-export interface PlaythroughStart {
+export interface PlaythroughCreated {
+  id: number;
+}
+
+export interface PlaythroughDetails {
   playthrough: PlaythroughSummary;
   scenes: PlaythroughSceneSummary[];
   introPages: PlaythroughIntroPage[];

@@ -33,7 +33,7 @@ namespace Eldoria.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<PlaythroughStartDto>> Start(
+        public async Task<ActionResult<PlaythroughCreatedDto>> Start(
             int journeyId,
             CancellationToken ct)
         {
@@ -49,6 +49,26 @@ namespace Eldoria.Api.Controllers
             {
                 "Journey.NotFound" => NotFound(result.Error),
                 "Auth.Forbidden" => Forbid(),
+                _ => BadRequest(result.Error)
+            };
+        }
+
+        [HttpGet("~/api/v1/playthroughs/{playthroughId:int}")]
+        public async Task<ActionResult<PlaythroughDetailsDto>> Get(
+            int playthroughId,
+            CancellationToken ct)
+        {
+            var result = await _playthroughService.GetAsync(
+                User.GetUserId(),
+                playthroughId,
+                ct);
+
+            if (result.Success)
+                return Ok(result.Value);
+
+            return result.Error.Code switch
+            {
+                "Playthrough.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

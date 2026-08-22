@@ -20,9 +20,9 @@ public static class PlaythroughMappings
         };
     }
 
-    public static PlaythroughStartDto ToStartDto(this Playthrough playthrough)
+    public static PlaythroughDetailsDto ToDetailsDto(this Playthrough playthrough)
     {
-        return new PlaythroughStartDto
+        return new PlaythroughDetailsDto
         {
             Playthrough = playthrough.ToSummaryDto(),
             Scenes = playthrough.Scenes

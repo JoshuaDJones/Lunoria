@@ -15,7 +15,7 @@ public sealed class PlaythroughService(
     IJourneyRepository journeyRepository
     ) : IPlaythroughService
 {
-    public async Task<Result<PlaythroughStartDto>> StartAsync(
+    public async Task<Result<PlaythroughCreatedDto>> StartAsync(
         int userId,
         int journeyId,
         CancellationToken ct)
@@ -27,13 +27,13 @@ public sealed class PlaythroughService(
 
         if (journey is null)
         {
-            return Result<PlaythroughStartDto>.Fail(
+            return Result<PlaythroughCreatedDto>.Fail(
                 new Error("Journey.NotFound", "Journey was not found."));
         }
 
         if (journey.UserId != userId)
         {
-            return Result<PlaythroughStartDto>.Fail(
+            return Result<PlaythroughCreatedDto>.Fail(
                 new Error(
                     "Auth.Forbidden",
                     "You do not have permission to start a playthrough for this journey."));
@@ -55,7 +55,7 @@ public sealed class PlaythroughService(
 
         if (sourceJourney is null)
         {
-            return Result<PlaythroughStartDto>.Fail(
+            return Result<PlaythroughCreatedDto>.Fail(
                 new Error("Journey.NotFound", "Journey was not found."));
         }
 
@@ -68,7 +68,7 @@ public sealed class PlaythroughService(
         var sourceError = ValidateStartSource(sourceJourney, assets);
 
         if (sourceError is not null)
-            return Result<PlaythroughStartDto>.Fail(sourceError);
+            return Result<PlaythroughCreatedDto>.Fail(sourceError);
 
         var newPlaythrough = new Playthrough
         {
@@ -535,7 +535,27 @@ public sealed class PlaythroughService(
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
-        return Result<PlaythroughStartDto>.Ok(newPlaythrough.ToStartDto());
+        return Result<PlaythroughCreatedDto>.Ok(new PlaythroughCreatedDto
+        {
+            Id = newPlaythrough.Id
+        });
+    }
+
+    public async Task<Result<PlaythroughDetailsDto>> GetAsync(
+        int userId,
+        int playthroughId,
+        CancellationToken ct)
+    {
+        var playthrough = await playthroughRepository.GetDetailsAsync(
+            userId,
+            playthroughId,
+            ct);
+
+        return playthrough is null
+            ? Result<PlaythroughDetailsDto>.Fail(new Error(
+                "Playthrough.NotFound",
+                "Playthrough was not found."))
+            : Result<PlaythroughDetailsDto>.Ok(playthrough.ToDetailsDto());
     }
 
     private static HashSet<int> GetReferencedCharacterIds(Journey journey)

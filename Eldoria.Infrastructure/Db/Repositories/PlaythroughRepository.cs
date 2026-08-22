@@ -121,6 +121,24 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
             .ToListAsync(ct);
     }
 
+    public Task<Playthrough?> GetDetailsAsync(
+        int userId,
+        int playthroughId,
+        CancellationToken ct)
+    {
+        return dbContext.Playthroughs
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(playthrough => playthrough.Scenes)
+            .Include(playthrough => playthrough.IntroPages)
+            .Include(playthrough => playthrough.EventLogs)
+            .SingleOrDefaultAsync(
+                playthrough =>
+                    playthrough.Id == playthroughId &&
+                    playthrough.UserId == userId,
+                ct);
+    }
+
     public Task AddAsync(Playthrough playthrough, CancellationToken ct)
     {
         return dbContext.Playthroughs.AddAsync(playthrough, ct).AsTask();
