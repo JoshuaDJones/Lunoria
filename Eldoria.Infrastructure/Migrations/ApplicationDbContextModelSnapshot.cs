@@ -1436,8 +1436,7 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.HasIndex("ScenePlaythroughId", "PlaythroughCharacterId");
 
-                    b.HasIndex("ScenePlaythroughId", "SourceSceneCharacterId")
-                        .IsUnique();
+                    b.HasIndex("ScenePlaythroughId", "SourceSceneCharacterId");
 
                     b.ToTable("ScenePTCharacters", (string)null);
                 });

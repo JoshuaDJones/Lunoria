@@ -215,6 +215,35 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
                 ct);
     }
 
+    public Task<ScenePT?> GetSceneForCharacterInstanceAddAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CancellationToken ct)
+    {
+        return dbContext.ScenePTs
+            .AsSplitQuery()
+            .Include(scene => scene.SceneParticipants)
+            .Include(scene => scene.SceneCharacters)
+                .ThenInclude(character => character.PlaythroughCharacter)
+            .Include(scene => scene.SceneCharacters)
+                .ThenInclude(character => character.AlternateForm)
+            .Include(scene => scene.SceneCharacters)
+                .ThenInclude(character => character.Spells)
+            .Include(scene => scene.SceneCharacters)
+                .ThenInclude(character => character.ConsumableItems)
+            .Include(scene => scene.SceneCharacters)
+                .ThenInclude(character => character.EquippableItems)
+            .Include(scene => scene.Playthrough)
+                .ThenInclude(playthrough => playthrough.EventLogs)
+            .SingleOrDefaultAsync(
+                scene =>
+                    scene.Id == sceneId &&
+                    scene.PlaythroughId == playthroughId &&
+                    scene.Playthrough.UserId == userId,
+                ct);
+    }
+
     public Task AddAsync(Playthrough playthrough, CancellationToken ct)
     {
         return dbContext.Playthroughs.AddAsync(playthrough, ct).AsTask();

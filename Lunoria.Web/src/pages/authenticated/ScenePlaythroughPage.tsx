@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
-import { Card } from "@/components/ui";
+import { useToast } from "@/app/providers";
+import { Button, Card } from "@/components/ui";
 import {
+  addSceneCharacterInstance,
   getScenePlaythrough,
   ParticipantType,
+  ScenePlaythroughStatus,
   type ScenePlaythroughDetails,
   type ScenePlaythroughParticipant,
 } from "@/features/journeys";
 import { getApiError } from "@/lib/apiClient";
 
 export function ScenePlaythroughPage() {
+  const toast = useToast();
   const { playthroughId: playthroughIdParam, sceneId: sceneIdParam } =
     useParams<{ playthroughId: string; sceneId: string }>();
   const playthroughId = Number(playthroughIdParam);
@@ -18,6 +22,30 @@ export function ScenePlaythroughPage() {
   const [scene, setScene] = useState<ScenePlaythroughDetails>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [addingSceneCharacterId, setAddingSceneCharacterId] =
+    useState<number>();
+
+  const addCharacterInstance = async (scenePlaythroughCharacterId: number) => {
+    setAddingSceneCharacterId(scenePlaythroughCharacterId);
+
+    try {
+      await addSceneCharacterInstance(
+        playthroughId,
+        sceneId,
+        scenePlaythroughCharacterId,
+      );
+      const refreshedScene = await getScenePlaythrough(playthroughId, sceneId);
+      setScene(refreshedScene);
+      toast.success("A new character instance was added to the scene.");
+    } catch (requestError: unknown) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to add character",
+      );
+    } finally {
+      setAddingSceneCharacterId(undefined);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -97,6 +125,15 @@ export function ScenePlaythroughPage() {
                     <ParticipantCard
                       key={participant.id}
                       participant={participant}
+                      isAdding={
+                        addingSceneCharacterId ===
+                        participant.scenePlaythroughCharacterId
+                      }
+                      addDisabled={addingSceneCharacterId !== undefined}
+                      canAddCharacterInstance={
+                        scene.status === ScenePlaythroughStatus.InProgress
+                      }
+                      onAddCharacterInstance={addCharacterInstance}
                     />
                   ))}
                 </div>
@@ -139,8 +176,16 @@ export function ScenePlaythroughPage() {
 
 function ParticipantCard({
   participant,
+  isAdding,
+  addDisabled,
+  canAddCharacterInstance,
+  onAddCharacterInstance,
 }: {
   participant: ScenePlaythroughParticipant;
+  isAdding: boolean;
+  addDisabled: boolean;
+  canAddCharacterInstance: boolean;
+  onAddCharacterInstance: (scenePlaythroughCharacterId: number) => void;
 }) {
   const imageUrl = participant.portraitUrl ?? participant.photoUrl;
 
@@ -217,6 +262,21 @@ function ParticipantCard({
             )}
           </div>
         )}
+
+        {canAddCharacterInstance &&
+          participant.scenePlaythroughCharacterId !== null && (
+            <Button
+              className="mt-4 w-full"
+              disabled={addDisabled}
+              onClick={() =>
+                onAddCharacterInstance(
+                  participant.scenePlaythroughCharacterId!,
+                )
+              }
+            >
+              {isAdding ? "Adding..." : "Add another"}
+            </Button>
+          )}
       </div>
     </Card>
   );

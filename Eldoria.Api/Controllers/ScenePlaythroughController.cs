@@ -48,11 +48,31 @@ public sealed class ScenePlaythroughController(
         return result.Success ? NoContent() : ToError(result.Error);
     }
 
+    [HttpPost("participants/scene-characters/{scenePlaythroughCharacterId:int}")]
+    public async Task<IActionResult> AddSceneCharacterInstance(
+        int playthroughId,
+        int sceneId,
+        int scenePlaythroughCharacterId,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.AddSceneCharacterInstanceAsync(
+            User.GetUserId(),
+            playthroughId,
+            sceneId,
+            scenePlaythroughCharacterId,
+            ct);
+
+        return result.Success ? NoContent() : ToError(result.Error);
+    }
+
     private IActionResult ToError(Error error) => error.Code switch
     {
         "ScenePlaythrough.NotFound" => NotFound(error),
         "ScenePlaythrough.AlreadyStarted" => Conflict(error),
         "ScenePlaythrough.InvalidState" => Conflict(error),
+        "ScenePlaythrough.NotInProgress" => Conflict(error),
+        "ScenePlaythrough.CharacterNotFound" => NotFound(error),
+        "ScenePlaythrough.InvalidCharacterType" => BadRequest(error),
         "Playthrough.Completed" => Conflict(error),
         _ => BadRequest(error)
     };

@@ -117,6 +117,94 @@ public sealed class ScenePlaythroughService(
             : Result<ScenePlaythroughDetailsDto>.Ok(scene.ToDetailsDto());
     }
 
+    public async Task<Result> AddSceneCharacterInstanceAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int scenePlaythroughCharacterId,
+        CancellationToken ct)
+    {
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId,
+            playthroughId,
+            sceneId,
+            ct);
+
+        if (scene is null)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.NotFound",
+                "Scene playthrough was not found."));
+        }
+
+        if (scene.Playthrough.CompletedAt is not null)
+        {
+            return Result.Fail(new Error(
+                "Playthrough.Completed",
+                "A character cannot be added to a completed playthrough."));
+        }
+
+        if (scene.Status != ScenePlaythroughStatus.InProgress)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.NotInProgress",
+                "Characters can only be added while the scene is in progress."));
+        }
+
+        var sourceCharacter = scene.SceneCharacters.SingleOrDefault(
+            character => character.Id == scenePlaythroughCharacterId);
+
+        if (sourceCharacter is null)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.CharacterNotFound",
+                "The scene character instance was not found."));
+        }
+
+        var participantType = sourceCharacter.PlaythroughCharacter.CharacterType switch
+        {
+            CharacterType.NPC => ParticipantType.NPC,
+            CharacterType.Enemy => ParticipantType.Enemy,
+            _ => (ParticipantType?)null
+        };
+
+        if (participantType is null)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.InvalidCharacterType",
+                "Only NPC or enemy scene characters can be added as new instances."));
+        }
+
+        var characterInstance = CloneSceneCharacter(sourceCharacter);
+        var sortOrder = scene.SceneParticipants
+            .Where(participant => participant.ParticipantType == participantType.Value)
+            .Select(participant => participant.SortOrderWithinType ?? -1)
+            .DefaultIfEmpty(-1)
+            .Max() + 1;
+
+        scene.SceneCharacters.Add(characterInstance);
+        scene.SceneParticipants.Add(new ScenePTParticipant
+        {
+            IsActive = true,
+            SortOrderWithinType = sortOrder,
+            ParticipantType = participantType.Value,
+            ScenePlaythroughCharacter = characterInstance
+        });
+        scene.Playthrough.EventLogs.Add(new PlaythroughEventLog
+        {
+            Message = $"Added {sourceCharacter.PlaythroughCharacter.Name} to {scene.Name}",
+            EventTime = DateTime.UtcNow
+        });
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Result.Ok();
+    }
+
     private static List<ScenePTParticipant> CreateSceneCharacterParticipants(
         ScenePT scene,
         CharacterType characterType,
@@ -135,5 +223,56 @@ public sealed class ScenePlaythroughService(
                 ScenePlaythroughCharacter = character
             })
             .ToList();
+    }
+
+    private static ScenePTCharacter CloneSceneCharacter(
+        ScenePTCharacter sourceCharacter)
+    {
+        return new ScenePTCharacter
+        {
+            SourceSceneCharacterId = sourceCharacter.SourceSceneCharacterId,
+            InitialMeleeAttackDamage = sourceCharacter.InitialMeleeAttackDamage,
+            InitialBowAttackDamage = sourceCharacter.InitialBowAttackDamage,
+            InitialMovement = sourceCharacter.InitialMovement,
+            InitialMaxConsumableInventory =
+                sourceCharacter.InitialMaxConsumableInventory,
+            InitialMaxEquippableInventory =
+                sourceCharacter.InitialMaxEquippableInventory,
+            InitialMaxHp = sourceCharacter.InitialMaxHp,
+            InitialMaxMp = sourceCharacter.InitialMaxMp,
+            IsInitiallyActive = sourceCharacter.IsInitiallyActive,
+            MeleeAttackDamage = sourceCharacter.InitialMeleeAttackDamage,
+            BowAttackDamage = sourceCharacter.InitialBowAttackDamage,
+            Movement = sourceCharacter.InitialMovement,
+            MaxConsumableInventory = sourceCharacter.InitialMaxConsumableInventory,
+            MaxEquippableInventory = sourceCharacter.InitialMaxEquippableInventory,
+            CurrentHp = sourceCharacter.InitialMaxHp,
+            CurrentMp = sourceCharacter.InitialMaxMp,
+            MaxHp = sourceCharacter.InitialMaxHp,
+            MaxMp = sourceCharacter.InitialMaxMp,
+            IsActive = true,
+            IsDead = false,
+            IsInAlternateForm = false,
+            PlaythroughCharacterId = sourceCharacter.PlaythroughCharacterId,
+            AlternateFormId = sourceCharacter.AlternateFormId,
+            Spells = [.. sourceCharacter.Spells.Select(spell =>
+                new ScenePTCharacterSpell
+                {
+                    SourceSceneCharacterSpellId = spell.SourceSceneCharacterSpellId,
+                    PlaythroughSpellId = spell.PlaythroughSpellId
+                })],
+            ConsumableItems = [.. sourceCharacter.ConsumableItems.Select(item =>
+                new ScenePTCharacterConsumableItem
+                {
+                    IsUsed = false,
+                    PlaythroughConsumableItemId = item.PlaythroughConsumableItemId
+                })],
+            EquippableItems = [.. sourceCharacter.EquippableItems.Select(item =>
+                new ScenePTCharacterEquippableItem
+                {
+                    IsEquipped = item.IsEquipped,
+                    PlaythroughEquippableItemId = item.PlaythroughEquippableItemId
+                })]
+        };
     }
 }

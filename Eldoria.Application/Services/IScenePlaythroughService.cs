@@ -16,4 +16,11 @@ public interface IScenePlaythroughService
         int playthroughId,
         int sceneId,
         CancellationToken ct);
+
+    Task<Result> AddSceneCharacterInstanceAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int scenePlaythroughCharacterId,
+        CancellationToken ct);
 }

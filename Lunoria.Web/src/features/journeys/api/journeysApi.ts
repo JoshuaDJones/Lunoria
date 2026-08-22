@@ -88,6 +88,16 @@ export async function getScenePlaythrough(
   return data;
 }
 
+export async function addSceneCharacterInstance(
+  playthroughId: number,
+  sceneId: number,
+  scenePlaythroughCharacterId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/scene-characters/${scenePlaythroughCharacterId}`,
+  );
+}
+
 export async function createJourney(
   input: CreateJourneyInput,
 ): Promise<Journey> {

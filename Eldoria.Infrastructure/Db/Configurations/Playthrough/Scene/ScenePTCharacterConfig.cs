@@ -11,7 +11,7 @@ public sealed class ScenePTCharacterConfig : IEntityTypeConfiguration<ScenePTCha
         builder.ToTable("ScenePTCharacters");
         builder.HasKey(x => x.Id);
 
-        builder.HasIndex(x => new { x.ScenePlaythroughId, x.SourceSceneCharacterId }).IsUnique();
+        builder.HasIndex(x => new { x.ScenePlaythroughId, x.SourceSceneCharacterId });
         builder.HasIndex(x => new { x.ScenePlaythroughId, x.PlaythroughCharacterId });
 
         builder.HasOne(x => x.ScenePlaythrough)

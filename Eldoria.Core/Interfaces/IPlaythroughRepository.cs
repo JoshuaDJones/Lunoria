@@ -41,6 +41,12 @@ public interface IPlaythroughRepository
         int sceneId,
         CancellationToken ct);
 
+    Task<ScenePT?> GetSceneForCharacterInstanceAddAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CancellationToken ct);
+
     Task AddAsync(Playthrough playthrough, CancellationToken ct);
 
     Task<int> SaveChangesAsync(CancellationToken ct);
