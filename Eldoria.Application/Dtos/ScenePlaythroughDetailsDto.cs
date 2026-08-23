@@ -15,6 +15,8 @@ public sealed class ScenePlaythroughDetailsDto
     public DateTime? EndedAt { get; set; }
     public int? CurrentParticipantId { get; set; }
     public List<ScenePlaythroughParticipantDto> Participants { get; set; } = [];
+    public List<ScenePlaythroughJourneyCharacterOptionDto> JourneyCharacters { get; set; } = [];
+    public List<ScenePlaythroughCharacterOptionDto> PlaythroughCharacters { get; set; } = [];
     public List<ScenePlaythroughChestDto> Chests { get; set; } = [];
     public List<ScenePlaythroughDialogDto> Dialogs { get; set; } = [];
     public List<PlaythroughEventLogDto> EventLogs { get; set; } = [];

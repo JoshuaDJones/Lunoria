@@ -889,6 +889,43 @@ namespace Eldoria.Infrastructure.Migrations
                     b.ToTable("PlaythroughIntroPages", (string)null);
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Base.PlaythroughJoinSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PlaythroughId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nchar(64)")
+                        .IsFixedLength();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaythroughId")
+                        .IsUnique();
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("PlaythroughJoinSessions", (string)null);
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Base.PlaythroughSpell", b =>
                 {
                     b.Property<int>("Id")
@@ -1425,7 +1462,7 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<int>("ScenePlaythroughId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SourceSceneCharacterId")
+                    b.Property<int?>("SourceSceneCharacterId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -2886,6 +2923,17 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("Playthrough");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Base.PlaythroughJoinSession", b =>
+                {
+                    b.HasOne("Eldoria.Core.Entities.Playthrough.Base.Playthrough", "Playthrough")
+                        .WithOne("JoinSession")
+                        .HasForeignKey("Eldoria.Core.Entities.Playthrough.Base.PlaythroughJoinSession", "PlaythroughId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Playthrough");
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Base.PlaythroughSpell", b =>
                 {
                     b.HasOne("Eldoria.Core.Entities.Playthrough.Base.Playthrough", "Playthrough")
@@ -3578,6 +3626,8 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("EventLogs");
 
                     b.Navigation("IntroPages");
+
+                    b.Navigation("JoinSession");
 
                     b.Navigation("JourneyCharacters");
 

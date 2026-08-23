@@ -98,6 +98,75 @@ export async function addSceneCharacterInstance(
   );
 }
 
+export async function activateSceneJourneyCharacter(
+  playthroughId: number,
+  sceneId: number,
+  journeyPlaythroughCharacterId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/journey-characters/${journeyPlaythroughCharacterId}/activate`,
+  );
+}
+
+export async function addPlaythroughCharacterToScene(
+  playthroughId: number,
+  sceneId: number,
+  playthroughCharacterId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/playthrough-characters/${playthroughCharacterId}`,
+  );
+}
+
+export interface UpdateSceneParticipantStatsInput {
+  currentHp: number;
+  maxHp: number;
+  currentMp: number;
+  maxMp: number;
+  movement: number;
+  meleeAttackDamage: number | null;
+  bowAttackDamage: number | null;
+}
+
+export async function updateSceneParticipantStats(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  input: UpdateSceneParticipantStatsInput,
+): Promise<void> {
+  await apiClient.put(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/stats`,
+    input,
+  );
+}
+
+export interface SceneMovementResult {
+  movement: number;
+}
+
+export async function recordSceneParticipantMovement(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  roll: number,
+): Promise<SceneMovementResult> {
+  const { data } = await apiClient.post<SceneMovementResult>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/movement`,
+    { roll },
+  );
+  return data;
+}
+
+export async function forfeitSceneParticipantAction(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/forfeit-action`,
+  );
+}
+
 export async function createJourney(
   input: CreateJourneyInput,
 ): Promise<Journey> {

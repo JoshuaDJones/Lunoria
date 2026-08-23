@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
-import { useToast } from "@/app/providers";
+import { useModalStack, useToast } from "@/app/providers";
 import { Button, Card, Drawer } from "@/components/ui";
 import {
-  addSceneCharacterInstance,
+  activateSceneJourneyCharacter,
+  addPlaythroughCharacterToScene,
+  forfeitSceneParticipantAction,
   getScenePlaythrough,
   ParticipantType,
-  ScenePlaythroughStatus,
+  recordSceneParticipantMovement,
+  SceneOptionsPanel,
+  updateSceneParticipantStats,
   type ScenePlaythroughDetails,
+  type ScenePlaythroughDialog,
   type ScenePlaythroughParticipant,
 } from "@/features/journeys";
+import { DialogViewer } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
 
 export function ScenePlaythroughPage() {
   const toast = useToast();
+  const modalStack = useModalStack();
   const { playthroughId: playthroughIdParam, sceneId: sceneIdParam } =
     useParams<{ playthroughId: string; sceneId: string }>();
   const playthroughId = Number(playthroughIdParam);
@@ -22,29 +29,163 @@ export function ScenePlaythroughPage() {
   const [scene, setScene] = useState<ScenePlaythroughDetails>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [addingSceneCharacterId, setAddingSceneCharacterId] =
-    useState<number>();
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [begunTurnKey, setBegunTurnKey] = useState("");
+  const [awaitingActionTurnKey, setAwaitingActionTurnKey] = useState("");
+  const [optionAction, setOptionAction] = useState<string>();
+  const [viewingDialog, setViewingDialog] =
+    useState<ScenePlaythroughDialog>();
 
-  const addCharacterInstance = async (scenePlaythroughCharacterId: number) => {
-    setAddingSceneCharacterId(scenePlaythroughCharacterId);
+  const beginParticipantTurn = (
+    roundNumber: number,
+    participant: ScenePlaythroughParticipant,
+  ) => {
+    const turnKey = `${roundNumber}:${participant.id}`;
 
+    modalStack.push({
+      title: "Movement Roll",
+      placement: "center",
+      content: (
+        <MovementRollOptions
+          defaultMovement={participant.movement}
+          onContinue={(roll) =>
+            completeMovementRoll(turnKey, participant, roll)
+          }
+        />
+      ),
+    });
+  };
+
+  const forfeitAction = async (
+    participant: ScenePlaythroughParticipant,
+  ) => {
     try {
-      await addSceneCharacterInstance(
+      await forfeitSceneParticipantAction(
         playthroughId,
         sceneId,
-        scenePlaythroughCharacterId,
+        participant.id,
       );
-      const refreshedScene = await getScenePlaythrough(playthroughId, sceneId);
-      setScene(refreshedScene);
-      toast.success("A new character instance was added to the scene.");
+      setScene(await getScenePlaythrough(playthroughId, sceneId));
+      setBegunTurnKey("");
+      setAwaitingActionTurnKey("");
+      modalStack.dismissAll();
+      toast.success(
+        `${participant.name} forfeited their action.`,
+        "Action forfeited",
+      );
     } catch (requestError: unknown) {
       toast.error(
         getApiError(requestError).message,
-        "Unable to add character",
+        "Unable to forfeit action",
       );
+    }
+  };
+
+  const openTurnActionDialog = (
+    turnKey: string,
+    participant: ScenePlaythroughParticipant,
+  ) => {
+    setAwaitingActionTurnKey(turnKey);
+    modalStack.push({
+      title: "Turn Action",
+      placement: "center",
+      content: (
+        <TurnActionOptions
+          participantType={participant.participantType}
+          onSelect={(title) => {
+            if (title === "Attack") {
+              modalStack.push({
+                title: "Attack Type",
+                placement: "center",
+                content: (
+                  <AttackTypeOptions
+                    onSelect={(attackType) =>
+                      modalStack.push({
+                        title: attackType,
+                        placement: "center",
+                        content: (
+                          <p className="text-content-muted">
+                            {attackType} options will be added here.
+                          </p>
+                        ),
+                      })
+                    }
+                  />
+                ),
+              });
+              return;
+            }
+
+            modalStack.push({
+              title,
+              placement: "center",
+              content: (
+                <p className="text-content-muted">
+                  {title} options will be added here.
+                </p>
+              ),
+            });
+          }}
+          onForfeit={() =>
+            modalStack.push({
+              title: "Forfeit Action",
+              placement: "center",
+              content: (
+                <ForfeitActionPrompt
+                  participantName={participant.name}
+                  onConfirm={() => forfeitAction(participant)}
+                />
+              ),
+            })
+          }
+        />
+      ),
+    });
+  };
+
+  const completeMovementRoll = async (
+    turnKey: string,
+    participant: ScenePlaythroughParticipant,
+    roll: number,
+  ) => {
+    try {
+      const result = await recordSceneParticipantMovement(
+        playthroughId,
+        sceneId,
+        participant.id,
+        roll,
+      );
+      setScene(await getScenePlaythrough(playthroughId, sceneId));
+      setBegunTurnKey(turnKey);
+      setAwaitingActionTurnKey(turnKey);
+      toast.success(
+        `${participant.name} can move ${result.movement} spaces.`,
+        "Movement",
+      );
+      modalStack.pop();
+      openTurnActionDialog(turnKey, participant);
+    } catch (requestError: unknown) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to record movement",
+      );
+    }
+  };
+
+  const runSceneOption = async (
+    actionKey: string,
+    operation: () => Promise<void>,
+    successMessage: string,
+  ) => {
+    setOptionAction(actionKey);
+    try {
+      await operation();
+      setScene(await getScenePlaythrough(playthroughId, sceneId));
+      toast.success(successMessage);
+    } catch (requestError: unknown) {
+      toast.error(getApiError(requestError).message, "Scene option failed");
     } finally {
-      setAddingSceneCharacterId(undefined);
+      setOptionAction(undefined);
     }
   };
 
@@ -79,6 +220,18 @@ export function ScenePlaythroughPage() {
       isCurrent = false;
     };
   }, [playthroughId, sceneId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
+        event.preventDefault();
+        setIsOptionsOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <AppLayout
@@ -141,21 +294,33 @@ export function ScenePlaythroughPage() {
                 </p>
               ) : (
                 <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                  {scene.participants.map((participant) => (
-                    <ParticipantCard
-                      key={participant.id}
-                      participant={participant}
-                      isAdding={
-                        addingSceneCharacterId ===
-                        participant.scenePlaythroughCharacterId
-                      }
-                      addDisabled={addingSceneCharacterId !== undefined}
-                      canAddCharacterInstance={
-                        scene.status === ScenePlaythroughStatus.InProgress
-                      }
-                      onAddCharacterInstance={addCharacterInstance}
-                    />
-                  ))}
+                  {scene.participants.map((participant) => {
+                    const turnKey = `${scene.roundNumber}:${participant.id}`;
+                    const isAwaitingAction =
+                      awaitingActionTurnKey === turnKey;
+                    const hasBegunTurn = begunTurnKey === turnKey;
+                    const turnPromptLabel = isAwaitingAction
+                      ? "Select Action"
+                      : !hasBegunTurn
+                        ? "Begin Turn"
+                        : undefined;
+
+                    return (
+                      <ParticipantCard
+                        key={participant.id}
+                        participant={participant}
+                        turnPromptLabel={turnPromptLabel}
+                        onTurnPrompt={() => {
+                          if (isAwaitingAction) {
+                            openTurnActionDialog(turnKey, participant);
+                            return;
+                          }
+
+                          beginParticipantTurn(scene.roundNumber, participant);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -193,10 +358,58 @@ export function ScenePlaythroughPage() {
 
       {isOptionsOpen && (
         <Drawer title="Scene Options" onClose={() => setIsOptionsOpen(false)}>
-          <p className="text-content-muted">
-            Scene controls will be available here.
-          </p>
+          {scene && (
+            <SceneOptionsPanel
+              scene={scene}
+              busyAction={optionAction}
+              onActivateJourneyCharacter={(characterId) =>
+                void runSceneOption(
+                  `activate-${characterId}`,
+                  () =>
+                    activateSceneJourneyCharacter(
+                      playthroughId,
+                      sceneId,
+                      characterId,
+                    ),
+                  "Journey character activated.",
+                )
+              }
+              onAddPlaythroughCharacter={(characterId) =>
+                void runSceneOption(
+                  `add-${characterId}`,
+                  () =>
+                    addPlaythroughCharacterToScene(
+                      playthroughId,
+                      sceneId,
+                      characterId,
+                    ),
+                  "Scene character added.",
+                )
+              }
+              onUpdateParticipant={(participantId, input) =>
+                void runSceneOption(
+                  `stats-${participantId}`,
+                  () =>
+                    updateSceneParticipantStats(
+                      playthroughId,
+                      sceneId,
+                      participantId,
+                      input,
+                    ),
+                  "Participant stats updated.",
+                )
+              }
+              onViewDialog={setViewingDialog}
+            />
+          )}
         </Drawer>
+      )}
+
+      {viewingDialog && (
+        <DialogViewer
+          dialog={viewingDialog}
+          onClose={() => setViewingDialog(undefined)}
+        />
       )}
     </AppLayout>
   );
@@ -204,29 +417,34 @@ export function ScenePlaythroughPage() {
 
 function ParticipantCard({
   participant,
-  isAdding,
-  addDisabled,
-  canAddCharacterInstance,
-  onAddCharacterInstance,
+  turnPromptLabel,
+  onTurnPrompt,
 }: {
   participant: ScenePlaythroughParticipant;
-  isAdding: boolean;
-  addDisabled: boolean;
-  canAddCharacterInstance: boolean;
-  onAddCharacterInstance: (scenePlaythroughCharacterId: number) => void;
+  turnPromptLabel?: "Begin Turn" | "Select Action";
+  onTurnPrompt: () => void;
 }) {
   const imageUrl =
     participant.portraitUrl?.trim() || participant.photoUrl?.trim();
+  const isWaitingForTurn =
+    participant.isCurrentParticipant &&
+    turnPromptLabel !== undefined;
 
   return (
     <Card
       className={
         participant.isCurrentParticipant
-          ? "border-brand"
-          : undefined
+          ? "relative border-utility"
+          : "relative"
       }
     >
-      <div className="flex min-h-48">
+      <div
+        className={`flex min-h-48 transition ${
+          isWaitingForTurn
+            ? "pointer-events-none select-none blur-[1.5px]"
+            : ""
+        }`}
+      >
         <div className="flex w-2/5 shrink-0 items-center justify-center bg-canvas">
           {imageUrl ? (
             <img
@@ -254,7 +472,7 @@ function ParticipantCard({
             )}
           </div>
 
-          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
             <div className="rounded-lg bg-surface/75 p-2">
               <dt className="text-content-muted">HP</dt>
               <dd className="font-semibold text-content">
@@ -265,6 +483,12 @@ function ParticipantCard({
               <dt className="text-content-muted">MP</dt>
               <dd className="font-semibold text-content">
                 {participant.currentMp} / {participant.maxMp}
+              </dd>
+            </div>
+            <div className="rounded-lg bg-surface/75 p-2">
+              <dt className="text-content-muted">Move</dt>
+              <dd className="font-semibold text-content">
+                {participant.movement}
               </dd>
             </div>
           </dl>
@@ -291,22 +515,21 @@ function ParticipantCard({
             </div>
           )}
 
-          {canAddCharacterInstance &&
-            participant.scenePlaythroughCharacterId !== null && (
-              <Button
-                className="mt-4 w-full"
-                disabled={addDisabled}
-                onClick={() =>
-                  onAddCharacterInstance(
-                    participant.scenePlaythroughCharacterId!,
-                  )
-                }
-              >
-                {isAdding ? "Adding..." : "Add another"}
-              </Button>
-            )}
         </div>
       </div>
+
+      {isWaitingForTurn && (
+        <div className="absolute inset-0 flex items-center justify-center bg-canvas/30">
+          <Button
+            variant="utility"
+            size="lg"
+            className="animate-[scene-turn-attention_1.5s_ease-in-out_infinite] motion-reduce:animate-none"
+            onClick={onTurnPrompt}
+          >
+            {turnPromptLabel}
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }
@@ -327,4 +550,220 @@ function formatDate(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+const dieDotPositions: Record<number, number[]> = {
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 2, 3, 5, 6, 8],
+};
+
+function MovementRollOptions({
+  defaultMovement,
+  onContinue,
+}: {
+  defaultMovement: number;
+  onContinue: (roll: number) => Promise<void>;
+}) {
+  const [selectedRoll, setSelectedRoll] = useState<number>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const totalMovement = defaultMovement + (selectedRoll ?? 0);
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-surface p-4 text-center">
+        <div>
+          <p className="text-sm text-content-muted">Default movement</p>
+          <p className="mt-1 text-3xl font-semibold text-content">
+            {defaultMovement}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-content-muted">Total movement</p>
+          <p className="mt-1 text-3xl font-semibold text-content">
+            {totalMovement}
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-6 text-content-secondary">
+        Select a die face to add it to the default movement.
+      </p>
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {[1, 2, 3, 4, 5, 6].map((value) => (
+          <button
+            key={value}
+            type="button"
+            aria-label={`Select movement roll ${value}`}
+            aria-pressed={selectedRoll === value}
+            className={`aspect-square cursor-pointer rounded-xl border-2 bg-surface p-5 transition hover:border-utility hover:bg-utility/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/50 ${
+              selectedRoll === value
+                ? "border-utility bg-utility/10"
+                : "border-border"
+            }`}
+            onClick={() => setSelectedRoll(value)}
+          >
+            <span className="grid h-full w-full grid-cols-3 grid-rows-3 gap-2">
+              {Array.from({ length: 9 }, (_, index) => (
+                <span
+                  key={index}
+                  className={
+                    dieDotPositions[value].includes(index)
+                      ? "m-auto block h-4 w-4 rounded-full bg-content sm:h-5 sm:w-5"
+                      : undefined
+                  }
+                />
+              ))}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <Button
+          variant="primary"
+          disabled={selectedRoll === undefined || isSubmitting}
+          onClick={() => {
+            if (selectedRoll === undefined) return;
+            setIsSubmitting(true);
+            void onContinue(selectedRoll).finally(() => setIsSubmitting(false));
+          }}
+        >
+          {isSubmitting ? "Continuing..." : "Continue"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function TurnActionOptions({
+  participantType,
+  onSelect,
+  onForfeit,
+}: {
+  participantType: ParticipantType;
+  onSelect: (title: "Attack" | "Open Chest" | "Trade Item") => void;
+  onForfeit: () => void;
+}) {
+  const canManageItems = participantType === ParticipantType.Player;
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <TurnActionButton
+        label="Attack"
+        imageSrc="/Attack_Action.png"
+        onClick={() => onSelect("Attack")}
+      />
+      {canManageItems && (
+        <>
+          <TurnActionButton
+            label="Open Chest"
+            imageSrc="/Open_Chest_Action.png"
+            onClick={() => onSelect("Open Chest")}
+          />
+          <TurnActionButton
+            label="Trade Item"
+            imageSrc="/Trade_Action.png"
+            onClick={() => onSelect("Trade Item")}
+          />
+        </>
+      )}
+      <TurnActionButton
+        label="Forfeit Action"
+        imageSrc="/Forfeit_Action.png"
+        onClick={onForfeit}
+      />
+    </div>
+  );
+}
+
+function TurnActionButton({
+  label,
+  imageSrc,
+  onClick,
+}: {
+  label: string;
+  imageSrc: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border-2 border-border bg-canvas shadow-lg transition hover:-translate-y-0.5 hover:border-utility hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60"
+      onClick={onClick}
+    >
+      <img
+        src={imageSrc}
+        alt=""
+        className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]"
+      />
+      <span className="absolute left-0 top-0 rounded-br-xl bg-canvas/90 px-4 py-2 text-left text-lg font-semibold text-content shadow-lg backdrop-blur-sm">
+        {label}
+      </span>
+    </button>
+  );
+}
+
+function AttackTypeOptions({
+  onSelect,
+}: {
+  onSelect: (
+    attackType: "Melee Attack" | "Range Attack" | "Spell Attack",
+  ) => void;
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      <TurnActionButton
+        label="Melee Attack"
+        imageSrc="/Melee_Attack.png"
+        onClick={() => onSelect("Melee Attack")}
+      />
+      <TurnActionButton
+        label="Range Attack"
+        imageSrc="/Bow_Attack.png"
+        onClick={() => onSelect("Range Attack")}
+      />
+      <TurnActionButton
+        label="Spell Attack"
+        imageSrc="/Spell_Attack.png"
+        onClick={() => onSelect("Spell Attack")}
+      />
+    </div>
+  );
+}
+
+function ForfeitActionPrompt({
+  participantName,
+  onConfirm,
+}: {
+  participantName: string;
+  onConfirm: () => Promise<void>;
+}) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  return (
+    <div>
+      <p className="text-content-secondary">
+        End {participantName}&apos;s turn without taking an action?
+      </p>
+      <div className="mt-6 flex justify-end">
+        <Button
+          size="lg"
+          variant="danger"
+          inverted
+          disabled={isSubmitting}
+          onClick={() => {
+            setIsSubmitting(true);
+            void onConfirm().finally(() => setIsSubmitting(false));
+          }}
+        >
+          {isSubmitting ? "Forfeiting..." : "Forfeit Action"}
+        </Button>
+      </div>
+    </div>
+  );
 }

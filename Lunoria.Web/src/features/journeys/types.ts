@@ -86,6 +86,25 @@ export interface JourneyCharacter {
   effectiveSpells: Spell[];
 }
 
+export interface ScenePlaythroughJourneyCharacterOption {
+  id: number;
+  playthroughCharacterId: number;
+  name: string;
+  photoUrl: string | null;
+  portraitUrl: string | null;
+  isActive: boolean;
+  isParticipant: boolean;
+}
+
+export interface ScenePlaythroughCharacterOption {
+  id: number;
+  name: string;
+  description: string;
+  photoUrl: string | null;
+  portraitUrl: string | null;
+  characterType: number;
+}
+
 export interface Journey {
   id: number;
   name: string;
@@ -176,6 +195,9 @@ export interface ScenePlaythroughParticipant {
   maxHp: number;
   currentMp: number;
   maxMp: number;
+  movement: number;
+  meleeAttackDamage: number | null;
+  bowAttackDamage: number | null;
   isDown: boolean;
   isDead: boolean;
   isInAlternateForm: boolean;
@@ -255,6 +277,8 @@ export interface ScenePlaythroughDetails {
   endedAt: string | null;
   currentParticipantId: number | null;
   participants: ScenePlaythroughParticipant[];
+  journeyCharacters: ScenePlaythroughJourneyCharacterOption[];
+  playthroughCharacters: ScenePlaythroughCharacterOption[];
   chests: ScenePlaythroughChest[];
   dialogs: ScenePlaythroughDialog[];
   eventLogs: PlaythroughEventLog[];

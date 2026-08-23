@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
-import { useToast } from "@/app/providers";
+import { useModalStack, useToast } from "@/app/providers";
 import { Button, Card } from "@/components/ui";
 import {
   getPlaythrough,
@@ -11,11 +11,17 @@ import {
   type PlaythroughDetails,
 } from "@/features/journeys";
 import { getApiError } from "@/lib/apiClient";
+import {
+  createPlaythroughJoinSession,
+  PlaythroughJoinDialog,
+  revokePlaythroughJoinSession,
+} from "@/features/playthroughSession";
 
 export function PlaythroughPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
+  const modalStack = useModalStack();
   const {
     seriesId,
     journeyId,
@@ -31,6 +37,7 @@ export function PlaythroughPage() {
   const [error, setError] = useState("");
   const [viewingIntroPageId, setViewingIntroPageId] = useState<number>();
   const [startingSceneId, setStartingSceneId] = useState<number>();
+  const [isCreatingJoinSession, setIsCreatingJoinSession] = useState(false);
   const hasHandledAutomaticIntro = useRef(false);
 
   const navigateToScene = (sceneId: number) => {
@@ -51,6 +58,47 @@ export function PlaythroughPage() {
         "Unable to start scene",
       );
       setStartingSceneId(undefined);
+    }
+  };
+
+  const openJoinDialog = async () => {
+    setIsCreatingJoinSession(true);
+    try {
+      const session = await createPlaythroughJoinSession(playthroughId);
+      const joinUrl = new URL(
+        `/join/${encodeURIComponent(session.token)}`,
+        window.location.origin,
+      ).toString();
+
+      modalStack.push({
+        title: "Join Playthrough",
+        placement: "center",
+        content: (
+          <PlaythroughJoinDialog
+            joinUrl={joinUrl}
+            expiresAt={session.expiresAt}
+            onRevoke={async () => {
+              try {
+                await revokePlaythroughJoinSession(playthroughId);
+                modalStack.dismissAll();
+                toast.success("The guest session was closed.");
+              } catch (requestError: unknown) {
+                toast.error(
+                  getApiError(requestError).message,
+                  "Unable to close guest session",
+                );
+              }
+            }}
+          />
+        ),
+      });
+    } catch (requestError: unknown) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to create guest session",
+      );
+    } finally {
+      setIsCreatingJoinSession(false);
     }
   };
 
@@ -121,15 +169,26 @@ export function PlaythroughPage() {
                 : ""}
             </h1>
           </div>
-          {playthrough && playthrough.introPages.length > 0 && (
-            <Button
-              variant="primary"
-              onClick={() =>
-                setViewingIntroPageId(playthrough.introPages[0].id)
-              }
-            >
-              Play Intro
-            </Button>
+          {playthrough && (
+            <div className="flex flex-wrap gap-3">
+              {playthrough.introPages.length > 0 && (
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    setViewingIntroPageId(playthrough.introPages[0].id)
+                  }
+                >
+                  Play Intro
+                </Button>
+              )}
+              <Button
+                variant="utility"
+                disabled={isCreatingJoinSession}
+                onClick={() => void openJoinDialog()}
+              >
+                {isCreatingJoinSession ? "Creating..." : "Join"}
+              </Button>
+            </div>
           )}
         </header>
         {isLoading && (

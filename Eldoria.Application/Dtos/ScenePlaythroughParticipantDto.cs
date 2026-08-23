@@ -21,6 +21,9 @@ public sealed class ScenePlaythroughParticipantDto
     public int MaxHp { get; set; }
     public int CurrentMp { get; set; }
     public int MaxMp { get; set; }
+    public int Movement { get; set; }
+    public int? MeleeAttackDamage { get; set; }
+    public int? BowAttackDamage { get; set; }
     public bool IsDown { get; set; }
     public bool IsDead { get; set; }
     public bool IsInAlternateForm { get; set; }

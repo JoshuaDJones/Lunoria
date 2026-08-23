@@ -5,7 +5,7 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
     public class ScenePTCharacter
     {
         public int Id { get; set; }
-        public int SourceSceneCharacterId { get; set; }
+        public int? SourceSceneCharacterId { get; set; }
 
         public int? InitialMeleeAttackDamage { get; set; }
         public int? InitialBowAttackDamage { get; set; }

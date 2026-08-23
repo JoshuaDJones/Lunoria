@@ -41,6 +41,7 @@ namespace Eldoria.Infrastructure.Db
         public DbSet<PlaythroughEquippableItem> PlaythroughEquippableItems { get; set; }
         public DbSet<PlaythroughEventLog> PlaythroughEventLogs { get; set; }
         public DbSet<PlaythroughIntroPage> PlaythroughIntroPages { get; set; }
+        public DbSet<PlaythroughJoinSession> PlaythroughJoinSessions { get; set; }
         public DbSet<PlaythroughSpell> PlaythroughSpells { get; set; }
         public DbSet<PlaythroughSpellType> PlaythroughSpellTypes { get; set; }
 

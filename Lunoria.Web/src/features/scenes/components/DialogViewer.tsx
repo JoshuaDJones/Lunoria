@@ -1,10 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import type { SceneDialog } from "@/features/scenes/types";
 import { Button } from "@/components/ui";
 
+export interface DialogViewerDialog {
+  title: string;
+  dialogPages: Array<{
+    id: number;
+    orderNum: number;
+    photoUrl: string | null;
+    dialogPageSections: Array<{
+      id: number;
+      orderNum: number;
+      readingText: string;
+      isNarrator: boolean;
+      character: {
+        name: string;
+        photoUrl: string | null;
+        dialogActiveColor?: string;
+        characterDialogSettings?: { dialogActiveColor: string } | null;
+      } | null;
+    }> | null;
+  }> | null;
+}
+
 interface DialogViewerProps {
-  dialog: SceneDialog;
+  dialog: DialogViewerDialog;
   onClose: () => void;
 }
 
@@ -38,7 +58,10 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
   }, [onClose, pages.length]);
 
   return createPortal(
-    <div className="fixed inset-0 z-100 flex bg-canvas/95 backdrop-blur-sm">
+    <div
+      data-nested-dialog="true"
+      className="fixed inset-0 z-100 flex bg-canvas/95 backdrop-blur-sm"
+    >
       <section
         role="dialog"
         aria-modal="true"
@@ -86,6 +109,7 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
                       key={section.id}
                       style={{
                         borderColor:
+                          section.character?.dialogActiveColor ||
                           section.character?.characterDialogSettings
                             ?.dialogActiveColor || undefined,
                       }}

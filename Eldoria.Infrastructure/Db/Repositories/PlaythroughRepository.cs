@@ -207,6 +207,11 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
                         .ThenInclude(section => section.Character)
             .Include(scene => scene.Playthrough)
                 .ThenInclude(playthrough => playthrough.EventLogs)
+            .Include(scene => scene.Playthrough)
+                .ThenInclude(playthrough => playthrough.JourneyCharacters)
+                    .ThenInclude(character => character.PlaythroughCharacter)
+            .Include(scene => scene.Playthrough)
+                .ThenInclude(playthrough => playthrough.Characters)
             .SingleOrDefaultAsync(
                 scene =>
                     scene.Id == sceneId &&
@@ -236,6 +241,12 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
                 .ThenInclude(character => character.EquippableItems)
             .Include(scene => scene.Playthrough)
                 .ThenInclude(playthrough => playthrough.EventLogs)
+            .Include(scene => scene.Playthrough)
+                .ThenInclude(playthrough => playthrough.JourneyCharacters)
+                    .ThenInclude(character => character.PlaythroughCharacter)
+            .Include(scene => scene.Playthrough)
+                .ThenInclude(playthrough => playthrough.Characters)
+                    .ThenInclude(character => character.Spells)
             .SingleOrDefaultAsync(
                 scene =>
                     scene.Id == sceneId &&

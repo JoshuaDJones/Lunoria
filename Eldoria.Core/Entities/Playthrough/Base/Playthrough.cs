@@ -27,5 +27,6 @@ namespace Eldoria.Core.Entities.Playthrough.Base
         public ICollection<PlaythroughEquippableItem> EquippableItems { get; set; } = [];
         public ICollection<JourneyPTCharacter> JourneyCharacters { get; set; } = [];
         public ICollection<ScenePT> Scenes { get; set; } = [];
+        public PlaythroughJoinSession? JoinSession { get; set; }
     }
 }

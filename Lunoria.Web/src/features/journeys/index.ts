@@ -6,5 +6,6 @@ export * from "./components/JourneyCharacterPicker";
 export * from "./components/IntroPageEditor";
 export * from "./components/IntroPagePreview";
 export * from "./components/IntroPageViewer";
+export * from "./components/SceneOptionsPanel";
 export * from "./introPageConfig";
 export * from "./types";

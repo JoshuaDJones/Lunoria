@@ -1,12 +1,15 @@
 ﻿using Eldoria.Application;
 using Eldoria.Api.GridPrototype;
+using Eldoria.Api.PlaythroughRealtime;
 using Eldoria.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,9 +78,20 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddInfrastructure(conn);
 builder.Services.AddApplication();
 builder.Services.AddSingleton<GridPrototypeSessionStore>();
+builder.Services.AddSingleton<IPlaythroughRealtimeNotifier, PlaythroughRealtimeNotifier>();
 builder.Services.AddSignalR(options =>
 {
     options.MaximumReceiveMessageSize = 4 * 1024 * 1024;
+});
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("public-playthrough", limiter =>
+    {
+        limiter.PermitLimit = 120;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
 });
 
 builder.Services.AddControllers();
@@ -148,6 +162,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.UseCors("AllowFrontend");
+app.UseRateLimiter();
 
 app.Use(async (context, next) =>
 {
@@ -171,5 +186,8 @@ app.Use(async (ctx, next) =>
 
 app.MapControllers();
 app.MapHub<GridPrototypeHub>("/hubs/grid-prototype").AllowAnonymous();
+app.MapHub<PlaythroughHub>("/hubs/playthrough")
+    .AllowAnonymous()
+    .RequireRateLimiting("public-playthrough");
 
 app.Run();

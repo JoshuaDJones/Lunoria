@@ -16,6 +16,14 @@ public sealed class AllowDuplicateScenePlaythroughCharacterInstances : Migration
             name: "IX_ScenePTCharacters_ScenePlaythroughId_SourceSceneCharacterId",
             table: "ScenePTCharacters");
 
+        migrationBuilder.AlterColumn<int>(
+            name: "SourceSceneCharacterId",
+            table: "ScenePTCharacters",
+            type: "int",
+            nullable: true,
+            oldClrType: typeof(int),
+            oldType: "int");
+
         migrationBuilder.CreateIndex(
             name: "IX_ScenePTCharacters_ScenePlaythroughId_SourceSceneCharacterId",
             table: "ScenePTCharacters",
@@ -27,6 +35,20 @@ public sealed class AllowDuplicateScenePlaythroughCharacterInstances : Migration
         migrationBuilder.DropIndex(
             name: "IX_ScenePTCharacters_ScenePlaythroughId_SourceSceneCharacterId",
             table: "ScenePTCharacters");
+
+        migrationBuilder.Sql(
+            "UPDATE [ScenePTCharacters] SET [SourceSceneCharacterId] = -[Id] " +
+            "WHERE [SourceSceneCharacterId] IS NULL");
+
+        migrationBuilder.AlterColumn<int>(
+            name: "SourceSceneCharacterId",
+            table: "ScenePTCharacters",
+            type: "int",
+            nullable: false,
+            defaultValue: 0,
+            oldClrType: typeof(int),
+            oldType: "int",
+            oldNullable: true);
 
         migrationBuilder.CreateIndex(
             name: "IX_ScenePTCharacters_ScenePlaythroughId_SourceSceneCharacterId",

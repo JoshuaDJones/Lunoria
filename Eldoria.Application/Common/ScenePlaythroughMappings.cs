@@ -1,6 +1,7 @@
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities.Playthrough.Base;
 using Eldoria.Core.Entities.Playthrough.Scene;
+using Eldoria.Core.Enums;
 
 namespace Eldoria.Application.Common;
 
@@ -25,6 +26,37 @@ public static class ScenePlaythroughMappings
                 .ThenBy(participant => participant.SortOrderWithinType)
                 .ThenBy(participant => participant.Id)
                 .Select(participant => participant.ToDto(scene.CurrentParticipantId))
+                .ToList(),
+            JourneyCharacters = scene.Playthrough.JourneyCharacters
+                .OrderBy(character => character.SourceJourneyCharacterId)
+                .Select(character => new ScenePlaythroughJourneyCharacterOptionDto
+                {
+                    Id = character.Id,
+                    PlaythroughCharacterId = character.PlaythroughCharacterId,
+                    Name = character.PlaythroughCharacter.Name,
+                    PhotoUrl = character.PlaythroughCharacter.PhotoUrl,
+                    PortraitUrl = character.PlaythroughCharacter.PortraitUrl,
+                    IsActive = character.IsActive,
+                    IsParticipant = scene.SceneParticipants.Any(participant =>
+                        participant.JourneyPlaythroughCharacterId == character.Id)
+                })
+                .ToList(),
+            PlaythroughCharacters = scene.Playthrough.Characters
+                .Where(character =>
+                    character.CharacterType == CharacterType.NPC ||
+                    character.CharacterType == CharacterType.Enemy)
+                .OrderBy(character => character.CharacterType)
+                .ThenBy(character => character.Name)
+                .ThenBy(character => character.Id)
+                .Select(character => new ScenePlaythroughCharacterOptionDto
+                {
+                    Id = character.Id,
+                    Name = character.Name,
+                    Description = character.Description,
+                    PhotoUrl = character.PhotoUrl,
+                    PortraitUrl = character.PortraitUrl,
+                    CharacterType = character.CharacterType
+                })
                 .ToList(),
             Chests = scene.SceneChests
                 .OrderBy(chest => chest.SourceSceneChestId)
@@ -164,6 +196,11 @@ public static class ScenePlaythroughMappings
             MaxHp = journeyCharacter?.MaxHp ?? sceneCharacter!.MaxHp,
             CurrentMp = journeyCharacter?.CurrentMp ?? sceneCharacter!.CurrentMp,
             MaxMp = journeyCharacter?.MaxMp ?? sceneCharacter!.MaxMp,
+            Movement = journeyCharacter?.Movement ?? sceneCharacter!.Movement,
+            MeleeAttackDamage = journeyCharacter?.MeleeAttackDamage
+                ?? sceneCharacter!.MeleeAttackDamage,
+            BowAttackDamage = journeyCharacter?.BowAttackDamage
+                ?? sceneCharacter!.BowAttackDamage,
             IsDown = journeyCharacter?.IsDown ?? false,
             IsDead = sceneCharacter?.IsDead ?? false,
             IsInAlternateForm = isInAlternateForm

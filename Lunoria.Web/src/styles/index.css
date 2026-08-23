@@ -13,6 +13,17 @@
   }
 }
 
+@keyframes scene-turn-attention {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 @theme {
   --font-cinzel: "Cinzel", serif;
 
