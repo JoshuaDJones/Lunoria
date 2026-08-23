@@ -5,7 +5,7 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
     public class ScenePTChest
     {
         public int Id { get; set; }
-        public int SourceSceneChestId { get; set; }
+        public int? SourceSceneChestId { get; set; }
         public string Name { get; set; } = string.Empty;
         public int DieSides { get; set; }
         public ChestStatus Status { get; set; } = ChestStatus.Unopened;

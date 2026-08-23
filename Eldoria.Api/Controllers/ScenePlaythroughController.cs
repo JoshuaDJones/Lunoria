@@ -111,6 +111,19 @@ public sealed class ScenePlaythroughController(
             result, playthroughId, "SceneCharacterAdded", ct);
     }
 
+    [HttpPost("chests")]
+    public async Task<IActionResult> AddChest(
+        int playthroughId,
+        int sceneId,
+        [FromBody] AddScenePlaythroughChestRequest request,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.AddChestAsync(
+            User.GetUserId(), playthroughId, sceneId, request.ToDto(), ct);
+        return await CompleteMutationAsync(
+            result, playthroughId, "SceneChestAdded", ct);
+    }
+
     [HttpPut("participants/{participantId:int}/stats")]
     public async Task<IActionResult> UpdateParticipantStats(
         int playthroughId,
@@ -229,6 +242,32 @@ public sealed class ScenePlaythroughController(
         return ToError(result.Error);
     }
 
+    [HttpPost("participants/{participantId:int}/consumables/{inventoryItemId:int}/use")]
+    public async Task<ActionResult<SceneUseConsumableResultDto>> UseConsumable(
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int inventoryItemId,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.UseConsumableAsync(
+            User.GetUserId(),
+            playthroughId,
+            sceneId,
+            participantId,
+            inventoryItemId,
+            ct);
+
+        if (result.Success)
+        {
+            await realtimeNotifier.NotifyUpdatedAsync(
+                playthroughId, "ConsumableUsed", ct);
+            return Ok(result.Value);
+        }
+
+        return ToError(result.Error);
+    }
+
     [HttpPost("participants/{participantId:int}/trade")]
     public async Task<IActionResult> TradeItem(
         int playthroughId,
@@ -286,10 +325,12 @@ public sealed class ScenePlaythroughController(
         "ScenePlaythrough.ChestAlreadyOpened" => Conflict(error),
         "ScenePlaythrough.ChestUnavailable" => Conflict(error),
         "ScenePlaythrough.ChestLootNotConfigured" => Conflict(error),
+        "ScenePlaythrough.ChestItemNotFound" => NotFound(error),
+        "ScenePlaythrough.ConsumableNotFound" => NotFound(error),
+        "ScenePlaythrough.UseConsumableUnavailable" => Conflict(error),
         "ScenePlaythrough.InventoryFull" => Conflict(error),
         "ScenePlaythrough.TradeUnavailable" => Conflict(error),
         "ScenePlaythrough.TradeItemNotFound" => NotFound(error),
-        "ScenePlaythrough.TradeItemEquipped" => Conflict(error),
         "ScenePlaythrough.TradeInventoryFull" => Conflict(error),
         "ScenePlaythrough.NotCurrentTurn" => Conflict(error),
         "Playthrough.Completed" => Conflict(error),

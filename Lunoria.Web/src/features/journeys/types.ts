@@ -219,6 +219,9 @@ export interface ScenePlaythroughParticipant {
   movement: number;
   meleeAttackDamage: number | null;
   bowAttackDamage: number | null;
+  meleeDamageReduction: number;
+  bowDamageReduction: number;
+  spellDamageReduction: number;
   isDown: boolean;
   isDead: boolean;
   isInAlternateForm: boolean;
@@ -246,6 +249,18 @@ export interface SceneOpenChestResult {
   isEquippable: boolean;
   awarded: boolean;
   item: ScenePlaythroughLootItem;
+}
+
+export interface SceneUseConsumableResult {
+  inventoryItemId: number;
+  itemId: number;
+  itemName: string;
+  hpRestored: number;
+  mpRestored: number;
+  currentHp: number;
+  maxHp: number;
+  currentMp: number;
+  maxMp: number;
 }
 
 export enum ChestStatus {
@@ -339,6 +354,8 @@ export interface ScenePlaythroughDetails {
   participants: ScenePlaythroughParticipant[];
   journeyCharacters: ScenePlaythroughJourneyCharacterOption[];
   playthroughCharacters: ScenePlaythroughCharacterOption[];
+  availableConsumableItems: ScenePlaythroughLootItem[];
+  availableEquippableItems: ScenePlaythroughLootItem[];
   chests: ScenePlaythroughChest[];
   dialogs: ScenePlaythroughDialog[];
   eventLogs: PlaythroughEventLog[];

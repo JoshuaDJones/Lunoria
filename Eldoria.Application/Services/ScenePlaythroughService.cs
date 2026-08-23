@@ -359,6 +359,79 @@ public sealed class ScenePlaythroughService(
         return Result.Ok();
     }
 
+    public async Task<Result> AddChestAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CreateScenePlaythroughChestDto input,
+        CancellationToken ct)
+    {
+        var inputError = ValidateChestInput(input);
+        if (inputError is not null)
+            return Result.Fail(inputError);
+
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId, playthroughId, sceneId, ct);
+        var stateError = ValidateManageableScene(scene);
+        if (stateError is not null)
+            return Result.Fail(stateError);
+
+        var consumables = scene!.Playthrough.ConsumableItems
+            .ToDictionary(item => item.Id);
+        var equippables = scene.Playthrough.EquippableItems
+            .ToDictionary(item => item.Id);
+        var lootEntries = new List<ScenePTChestLootEntry>(input.LootEntries.Count);
+
+        foreach (var entry in input.LootEntries)
+        {
+            PlaythroughConsumableItem? consumable = null;
+            PlaythroughEquippableItem? equippable = null;
+
+            if (entry.PlaythroughConsumableItemId is int consumableId &&
+                !consumables.TryGetValue(consumableId, out consumable))
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.ChestItemNotFound",
+                    "The selected consumable item is not available in this playthrough."));
+            }
+
+            if (entry.PlaythroughEquippableItemId is int equippableId &&
+                !equippables.TryGetValue(equippableId, out equippable))
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.ChestItemNotFound",
+                    "The selected equippable item is not available in this playthrough."));
+            }
+
+            lootEntries.Add(new ScenePTChestLootEntry
+            {
+                SourceSceneChestLootEntryId = null,
+                RollMinimum = entry.RollMinimum,
+                RollMaximum = entry.RollMaximum,
+                Quantity = entry.Quantity,
+                PlaythroughConsumableItem = consumable,
+                PlaythroughEquippableItem = equippable
+            });
+        }
+
+        var chest = new ScenePTChest
+        {
+            SourceSceneChestId = null,
+            Name = input.Name.Trim(),
+            DieSides = input.DieSides,
+            Status = ChestStatus.Unopened,
+            ChestLootEntries = lootEntries
+        };
+        scene.SceneChests.Add(chest);
+        AddEvent(scene, $"Added chest {chest.Name} to {scene.Name}");
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return Result.Ok();
+    }
+
     public async Task<Result> UpdateParticipantStatsAsync(
         int userId,
         int playthroughId,
@@ -473,7 +546,12 @@ public sealed class ScenePlaythroughService(
         var baseMovement = journeyCharacter?.Movement
             ?? sceneCharacter?.Movement
             ?? 0;
-        var movement = baseMovement + roll;
+        var equipmentEffects = ScenePlaythroughEquipmentEffects.For(participant);
+        var movement = ScenePlaythroughEquipmentEffects.Apply(
+            ScenePlaythroughEquipmentEffects.Apply(
+                baseMovement,
+                equipmentEffects.MovementModifier),
+            roll);
 
         AddEvent(scene, $"{characterName} moved {movement} spaces");
         await playthroughRepository.SaveChangesAsync(ct);
@@ -561,6 +639,8 @@ public sealed class ScenePlaythroughService(
         var targetName = targetJourneyCharacter?.PlaythroughCharacter.Name
             ?? targetSceneCharacter?.PlaythroughCharacter.Name
             ?? "Unknown character";
+        var attackerEquipment = ScenePlaythroughEquipmentEffects.For(attacker);
+        var targetEquipment = ScenePlaythroughEquipmentEffects.For(target);
 
         int baseDamage;
         string attackLabel;
@@ -576,7 +656,9 @@ public sealed class ScenePlaythroughService(
                 if (meleeDamage is null)
                     return AttackUnavailable("This participant has no melee attack.");
 
-                baseDamage = meleeDamage.Value;
+                baseDamage = ScenePlaythroughEquipmentEffects.Apply(
+                    meleeDamage.Value,
+                    attackerEquipment.MeleeAttackDamageModifier);
                 attackLabel = "a melee attack";
                 break;
 
@@ -589,7 +671,9 @@ public sealed class ScenePlaythroughService(
                 if (rangeDamage is null)
                     return AttackUnavailable("This participant has no range attack.");
 
-                baseDamage = rangeDamage.Value;
+                baseDamage = ScenePlaythroughEquipmentEffects.Apply(
+                    rangeDamage.Value,
+                    attackerEquipment.BowAttackDamageModifier);
                 attackLabel = "a range attack";
                 break;
 
@@ -621,7 +705,10 @@ public sealed class ScenePlaythroughService(
                 else
                     attackerSceneCharacter!.CurrentMp -= spell.MpCost;
 
-                baseDamage = spell.DamageEffect.Value;
+                baseDamage = ScenePlaythroughEquipmentEffects.Apply(
+                    spell.DamageEffect.Value,
+                    attackerEquipment.GetSpellDamageModifier(
+                        spell.PlaythroughSpellTypeId));
                 attackLabel = spell.Name;
                 break;
 
@@ -629,7 +716,16 @@ public sealed class ScenePlaythroughService(
                 return InvalidAttackType("The selected attack type is invalid.");
         }
 
-        var damage = (int)Math.Min(int.MaxValue, (long)baseDamage + roll);
+        var damageReduction = attackType switch
+        {
+            SceneAttackType.Melee => targetEquipment.MeleeDamageReduction,
+            SceneAttackType.Range => targetEquipment.BowDamageReduction,
+            SceneAttackType.Spell => targetEquipment.SpellDamageReduction,
+            _ => 0
+        };
+        var damage = ScenePlaythroughEquipmentEffects.Apply(
+            baseDamage,
+            roll - damageReduction);
         var targetCurrentHp = targetJourneyCharacter?.CurrentHp
             ?? targetSceneCharacter?.CurrentHp
             ?? 0;
@@ -671,8 +767,12 @@ public sealed class ScenePlaythroughService(
             {
                 rewardStat = "HP";
                 var previousHp = attackerJourneyCharacter.CurrentHp;
-                attackerJourneyCharacter.CurrentHp = (int)Math.Min(
+                var effectiveMaxHp = ScenePlaythroughEquipmentEffects.Apply(
                     attackerJourneyCharacter.MaxHp,
+                    attackerEquipment.MaxHpModifier,
+                    minimum: 1);
+                attackerJourneyCharacter.CurrentHp = (int)Math.Min(
+                    effectiveMaxHp,
                     (long)previousHp + 4);
                 rewardAmount = attackerJourneyCharacter.CurrentHp - previousHp;
             }
@@ -680,8 +780,11 @@ public sealed class ScenePlaythroughService(
             {
                 rewardStat = "MP";
                 var previousMp = attackerJourneyCharacter.CurrentMp;
-                attackerJourneyCharacter.CurrentMp = (int)Math.Min(
+                var effectiveMaxMp = ScenePlaythroughEquipmentEffects.Apply(
                     attackerJourneyCharacter.MaxMp,
+                    attackerEquipment.MaxMpModifier);
+                attackerJourneyCharacter.CurrentMp = (int)Math.Min(
+                    effectiveMaxMp,
                     (long)previousMp + 4);
                 rewardAmount = attackerJourneyCharacter.CurrentMp - previousMp;
             }
@@ -813,9 +916,14 @@ public sealed class ScenePlaythroughService(
         var currentInventoryCount = isEquippable
             ? character.EquippableItems.Count
             : character.ConsumableItems.Count(itemLink => !itemLink.IsUsed);
+        var equipmentEffects = ScenePlaythroughEquipmentEffects.For(participant);
         var inventoryLimit = isEquippable
-            ? character.MaxEquippableInventory
-            : character.MaxConsumableInventory;
+            ? ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxEquippableInventory,
+                equipmentEffects.MaxEquippableInventoryModifier)
+            : ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxConsumableInventory,
+                equipmentEffects.MaxConsumableInventoryModifier);
         if ((long)currentInventoryCount + lootEntry.Quantity > inventoryLimit)
         {
             var inventoryType = isEquippable ? "equippable" : "consumable";
@@ -845,7 +953,7 @@ public sealed class ScenePlaythroughService(
             {
                 character.EquippableItems.Add(new JourneyPTCharacterEquippableItem
                 {
-                    IsEquipped = false,
+                    IsEquipped = true,
                     PlaythroughEquippableItemId = item.Id
                 });
             }
@@ -883,6 +991,139 @@ public sealed class ScenePlaythroughService(
             IsEquippable = isEquippable,
             Awarded = true,
             Item = item
+        });
+    }
+
+    public async Task<Result<SceneUseConsumableResultDto>> UseConsumableAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int inventoryItemId,
+        CancellationToken ct)
+    {
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId, playthroughId, sceneId, ct);
+        var stateError = ValidateManageableScene(scene);
+        if (stateError is not null)
+            return Result<SceneUseConsumableResultDto>.Fail(stateError);
+
+        var participant = scene!.SceneParticipants.SingleOrDefault(
+            candidate => candidate.Id == participantId);
+        if (participant is null)
+        {
+            return Result<SceneUseConsumableResultDto>.Fail(new Error(
+                "ScenePlaythrough.ParticipantNotFound",
+                "The scene participant was not found."));
+        }
+
+        if (scene.CurrentParticipantId != participant.Id || !participant.IsActive)
+        {
+            return Result<SceneUseConsumableResultDto>.Fail(new Error(
+                "ScenePlaythrough.NotCurrentTurn",
+                "Only the active current participant can use a consumable item."));
+        }
+
+        if (participant.JourneyPlaythroughCharacter?.IsDown == true ||
+            participant.ScenePlaythroughCharacter?.IsDead == true)
+        {
+            return Result<SceneUseConsumableResultDto>.Fail(new Error(
+                "ScenePlaythrough.UseConsumableUnavailable",
+                "A downed or defeated participant cannot use a consumable item."));
+        }
+
+        PlaythroughConsumableItem? item;
+        int previousHp;
+        int previousMp;
+        int currentHp;
+        int currentMp;
+        int maxHp;
+        int maxMp;
+
+        if (participant.JourneyPlaythroughCharacter is { } journeyCharacter)
+        {
+            var itemLink = journeyCharacter.ConsumableItems.SingleOrDefault(
+                link => link.Id == inventoryItemId && !link.IsUsed);
+            if (itemLink is null)
+            {
+                return Result<SceneUseConsumableResultDto>.Fail(new Error(
+                    "ScenePlaythrough.ConsumableNotFound",
+                    "The available consumable inventory item was not found."));
+            }
+
+            item = itemLink.PlaythroughConsumableItem;
+            var equipmentEffects = ScenePlaythroughEquipmentEffects.For(journeyCharacter);
+            maxHp = ScenePlaythroughEquipmentEffects.Apply(
+                journeyCharacter.MaxHp, equipmentEffects.MaxHpModifier);
+            maxMp = ScenePlaythroughEquipmentEffects.Apply(
+                journeyCharacter.MaxMp, equipmentEffects.MaxMpModifier);
+            previousHp = journeyCharacter.CurrentHp;
+            previousMp = journeyCharacter.CurrentMp;
+            currentHp = RestoreStat(previousHp, item.HpEffect, maxHp);
+            currentMp = RestoreStat(previousMp, item.MpEffect, maxMp);
+            journeyCharacter.CurrentHp = currentHp;
+            journeyCharacter.CurrentMp = currentMp;
+            itemLink.IsUsed = true;
+        }
+        else if (participant.ScenePlaythroughCharacter is { } sceneCharacter)
+        {
+            var itemLink = sceneCharacter.ConsumableItems.SingleOrDefault(
+                link => link.Id == inventoryItemId && !link.IsUsed);
+            if (itemLink is null)
+            {
+                return Result<SceneUseConsumableResultDto>.Fail(new Error(
+                    "ScenePlaythrough.ConsumableNotFound",
+                    "The available consumable inventory item was not found."));
+            }
+
+            item = itemLink.PlaythroughConsumableItem;
+            var equipmentEffects = ScenePlaythroughEquipmentEffects.For(sceneCharacter);
+            maxHp = ScenePlaythroughEquipmentEffects.Apply(
+                sceneCharacter.MaxHp, equipmentEffects.MaxHpModifier);
+            maxMp = ScenePlaythroughEquipmentEffects.Apply(
+                sceneCharacter.MaxMp, equipmentEffects.MaxMpModifier);
+            previousHp = sceneCharacter.CurrentHp;
+            previousMp = sceneCharacter.CurrentMp;
+            currentHp = RestoreStat(previousHp, item.HpEffect, maxHp);
+            currentMp = RestoreStat(previousMp, item.MpEffect, maxMp);
+            sceneCharacter.CurrentHp = currentHp;
+            sceneCharacter.CurrentMp = currentMp;
+            itemLink.IsUsed = true;
+        }
+        else
+        {
+            return Result<SceneUseConsumableResultDto>.Fail(new Error(
+                "ScenePlaythrough.UseConsumableUnavailable",
+                "This participant does not have a usable inventory."));
+        }
+
+        var hpRestored = currentHp - previousHp;
+        var mpRestored = currentMp - previousMp;
+        var characterName = participant.JourneyPlaythroughCharacter
+                ?.PlaythroughCharacter.Name
+            ?? participant.ScenePlaythroughCharacter?.PlaythroughCharacter.Name
+            ?? "Unknown character";
+        AddEvent(
+            scene,
+            $"{characterName} used {item.Name} and restored {hpRestored} HP and {mpRestored} MP");
+        AdvanceTurn(scene, participant);
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Result<SceneUseConsumableResultDto>.Ok(new SceneUseConsumableResultDto
+        {
+            InventoryItemId = inventoryItemId,
+            ItemId = item.Id,
+            ItemName = item.Name,
+            HpRestored = hpRestored,
+            MpRestored = mpRestored,
+            CurrentHp = currentHp,
+            MaxHp = maxHp,
+            CurrentMp = currentMp,
+            MaxMp = maxMp
         });
     }
 
@@ -963,15 +1204,12 @@ public sealed class ScenePlaythroughService(
                     "The equippable inventory item was not found."));
             }
 
-            if (itemLink.IsEquipped)
-            {
-                return Result.Fail(new Error(
-                    "ScenePlaythrough.TradeItemEquipped",
-                    "An equipped item must be unequipped before it can be traded."));
-            }
-
-            if (destinationCharacter.EquippableItems.Count >=
-                destinationCharacter.MaxEquippableInventory)
+            var destinationEquipment =
+                ScenePlaythroughEquipmentEffects.For(destinationCharacter);
+            var destinationLimit = ScenePlaythroughEquipmentEffects.Apply(
+                destinationCharacter.MaxEquippableInventory,
+                destinationEquipment.MaxEquippableInventoryModifier);
+            if (destinationCharacter.EquippableItems.Count >= destinationLimit)
             {
                 return Result.Fail(new Error(
                     "ScenePlaythrough.TradeInventoryFull",
@@ -1009,8 +1247,13 @@ public sealed class ScenePlaythroughService(
                     "The consumable inventory item was not found."));
             }
 
+            var destinationEquipment =
+                ScenePlaythroughEquipmentEffects.For(destinationCharacter);
+            var destinationLimit = ScenePlaythroughEquipmentEffects.Apply(
+                destinationCharacter.MaxConsumableInventory,
+                destinationEquipment.MaxConsumableInventoryModifier);
             if (destinationCharacter.ConsumableItems.Count(link => !link.IsUsed) >=
-                destinationCharacter.MaxConsumableInventory)
+                destinationLimit)
             {
                 return Result.Fail(new Error(
                     "ScenePlaythrough.TradeInventoryFull",
@@ -1200,6 +1443,82 @@ public sealed class ScenePlaythroughService(
                 "Scene options are only available while the scene is in progress.");
     }
 
+    private static int RestoreStat(int current, int effect, int maximum)
+    {
+        if (current >= maximum)
+            return current;
+
+        return (int)Math.Min((long)current + effect, maximum);
+    }
+
+    private static Error? ValidateChestInput(CreateScenePlaythroughChestDto input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Trim().Length > 250)
+        {
+            return new Error(
+                "ScenePlaythrough.InvalidChest",
+                "A chest name of 250 characters or fewer is required.");
+        }
+
+        if (input.DieSides is < 1 or > 6)
+        {
+            return new Error(
+                "ScenePlaythrough.InvalidChest",
+                "A live chest must use between one and six die faces.");
+        }
+
+        if (input.LootEntries.Count == 0)
+        {
+            return new Error(
+                "ScenePlaythrough.InvalidChestLoot",
+                "Configure an item for every die face.");
+        }
+
+        var coveredRolls = new HashSet<int>();
+        foreach (var entry in input.LootEntries)
+        {
+            if (entry.RollMinimum < 1 ||
+                entry.RollMaximum < entry.RollMinimum ||
+                entry.RollMaximum > input.DieSides)
+            {
+                return new Error(
+                    "ScenePlaythrough.InvalidChestLoot",
+                    $"Every loot range must be between 1 and {input.DieSides}.");
+            }
+
+            if (entry.Quantity < 1)
+            {
+                return new Error(
+                    "ScenePlaythrough.InvalidChestLoot",
+                    "Every chest quantity must be at least one.");
+            }
+
+            if (entry.PlaythroughEquippableItemId.HasValue ==
+                entry.PlaythroughConsumableItemId.HasValue)
+            {
+                return new Error(
+                    "ScenePlaythrough.InvalidChestLoot",
+                    "Every die face must specify exactly one item.");
+            }
+
+            for (var roll = entry.RollMinimum; roll <= entry.RollMaximum; roll++)
+            {
+                if (!coveredRolls.Add(roll))
+                {
+                    return new Error(
+                        "ScenePlaythrough.InvalidChestLoot",
+                        "Chest loot ranges cannot overlap.");
+                }
+            }
+        }
+
+        return coveredRolls.Count == input.DieSides
+            ? null
+            : new Error(
+                "ScenePlaythrough.InvalidChestLoot",
+                "Configure an item for every die face.");
+    }
+
     private static ParticipantType? GetSceneParticipantType(CharacterType type) =>
         type switch
         {
@@ -1306,11 +1625,17 @@ public sealed class ScenePlaythroughService(
     private static IEnumerable<PlaythroughSpell> GetSpells(
         ScenePTParticipant participant)
     {
-        if (participant.JourneyPlaythroughCharacter is { } journeyCharacter)
-            return journeyCharacter.Spells.Select(link => link.PlaythroughSpell);
+        var characterSpells = participant.JourneyPlaythroughCharacter is { } journeyCharacter
+            ? journeyCharacter.Spells.Select(link => link.PlaythroughSpell)
+            : participant.ScenePlaythroughCharacter?.Spells
+                .Select(link => link.PlaythroughSpell)
+                ?? [];
+        var equipmentSpells = ScenePlaythroughEquipmentEffects.For(participant)
+            .AddedSpells;
 
-        return participant.ScenePlaythroughCharacter?.Spells
-            .Select(link => link.PlaythroughSpell)
-            ?? [];
+        return characterSpells
+            .Concat(equipmentSpells)
+            .GroupBy(spell => spell.Id)
+            .Select(group => group.First());
     }
 }

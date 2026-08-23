@@ -45,6 +45,13 @@ public interface IScenePlaythroughService
         int playthroughCharacterId,
         CancellationToken ct);
 
+    Task<Result> AddChestAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CreateScenePlaythroughChestDto input,
+        CancellationToken ct);
+
     Task<Result> UpdateParticipantStatsAsync(
         int userId,
         int playthroughId,
@@ -79,6 +86,14 @@ public interface IScenePlaythroughService
         int participantId,
         int chestId,
         int roll,
+        CancellationToken ct);
+
+    Task<Result<SceneUseConsumableResultDto>> UseConsumableAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int inventoryItemId,
         CancellationToken ct);
 
     Task<Result> TradeItemAsync(

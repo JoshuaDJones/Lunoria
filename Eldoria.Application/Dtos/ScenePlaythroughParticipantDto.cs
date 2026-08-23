@@ -24,6 +24,9 @@ public sealed class ScenePlaythroughParticipantDto
     public int Movement { get; set; }
     public int? MeleeAttackDamage { get; set; }
     public int? BowAttackDamage { get; set; }
+    public int MeleeDamageReduction { get; set; }
+    public int BowDamageReduction { get; set; }
+    public int SpellDamageReduction { get; set; }
     public bool IsDown { get; set; }
     public bool IsDead { get; set; }
     public bool IsInAlternateForm { get; set; }

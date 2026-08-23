@@ -41,7 +41,7 @@ public sealed class ScenePlaythroughTradeTests
     }
 
     [Fact]
-    public async Task TradeItem_CanMoveUnequippedItemFromPartnerToCurrentPlayer()
+    public async Task TradeItem_CanMoveItemFromPartnerToCurrentPlayer()
     {
         var repository = CreateRepository(out _);
         var actor = Player(1, "Hero");
@@ -90,7 +90,7 @@ public sealed class ScenePlaythroughTradeTests
     }
 
     [Fact]
-    public async Task TradeItem_WhenItemIsEquipped_DoesNotMoveItem()
+    public async Task TradeItem_WhenItemIsActive_MovesItemAndItsEffects()
     {
         var repository = CreateRepository(out _);
         var actor = Player(1, "Hero");
@@ -105,10 +105,9 @@ public sealed class ScenePlaythroughTradeTests
         var result = await service.TradeItemAsync(
             7, 8, 9, actor.Id, target.Id, itemLink.Id, true, Ct);
 
-        Assert.False(result.Success);
-        Assert.Equal("ScenePlaythrough.TradeItemEquipped", result.Error.Code);
-        Assert.Contains(itemLink, actor.JourneyPlaythroughCharacter.EquippableItems);
-        Assert.Empty(target.JourneyPlaythroughCharacter!.EquippableItems);
+        Assert.True(result.Success);
+        Assert.DoesNotContain(itemLink, actor.JourneyPlaythroughCharacter.EquippableItems);
+        Assert.Contains(itemLink, target.JourneyPlaythroughCharacter!.EquippableItems);
     }
 
     private static IPlaythroughRepository CreateRepository(

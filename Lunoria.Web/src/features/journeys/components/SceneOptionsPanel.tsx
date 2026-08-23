@@ -5,13 +5,17 @@ import type {
   ScenePlaythroughDialog,
   ScenePlaythroughParticipant,
 } from "@/features/journeys/types";
-import type { UpdateSceneParticipantStatsInput } from "@/features/journeys/api/journeysApi";
+import type {
+  AddSceneChestInput,
+  UpdateSceneParticipantStatsInput,
+} from "@/features/journeys/api/journeysApi";
 
 interface SceneOptionsPanelProps {
   scene: ScenePlaythroughDetails;
   busyAction?: string;
   onActivateJourneyCharacter: (id: number) => void;
   onAddPlaythroughCharacter: (id: number) => void;
+  onAddChest: (input: AddSceneChestInput) => void;
   onUpdateParticipant: (
     id: number,
     input: UpdateSceneParticipantStatsInput,
@@ -25,6 +29,7 @@ export function SceneOptionsPanel({
   busyAction,
   onActivateJourneyCharacter,
   onAddPlaythroughCharacter,
+  onAddChest,
   onUpdateParticipant,
   onViewDialog,
   onEndScene,
@@ -83,6 +88,15 @@ export function SceneOptionsPanel({
             ))}
           </div>
         )}
+      </OptionSection>
+
+      <OptionSection title="Add Chest">
+        <LiveChestForm
+          scene={scene}
+          disabled={busyAction !== undefined}
+          busy={busyAction === "add-chest"}
+          onSubmit={onAddChest}
+        />
       </OptionSection>
 
       <OptionSection title="Correct Participant Stats">
@@ -156,6 +170,164 @@ export function SceneOptionsPanel({
         </div>
       </OptionSection>
     </div>
+  );
+}
+
+interface ChestFaceDraft {
+  itemKey: string;
+  quantity: number;
+}
+
+function LiveChestForm({
+  scene,
+  disabled,
+  busy,
+  onSubmit,
+}: {
+  scene: ScenePlaythroughDetails;
+  disabled: boolean;
+  busy: boolean;
+  onSubmit: (input: AddSceneChestInput) => void;
+}) {
+  const [name, setName] = useState("");
+  const [faces, setFaces] = useState<ChestFaceDraft[]>(() =>
+    Array.from({ length: 6 }, () => ({ itemKey: "", quantity: 1 })),
+  );
+  const hasItems =
+    scene.availableConsumableItems.length > 0 ||
+    scene.availableEquippableItems.length > 0;
+  const canSubmit =
+    name.trim().length > 0 && faces.every((face) => face.itemKey !== "");
+
+  const updateFace = (index: number, update: Partial<ChestFaceDraft>) => {
+    setFaces((current) =>
+      current.map((face, faceIndex) =>
+        faceIndex === index ? { ...face, ...update } : face,
+      ),
+    );
+  };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!canSubmit) return;
+
+    onSubmit({
+      name: name.trim(),
+      dieSides: 6,
+      lootEntries: faces.map((face, index) => {
+        const [itemType, itemId] = face.itemKey.split(":");
+        return {
+          rollMinimum: index + 1,
+          rollMaximum: index + 1,
+          quantity: Math.max(1, face.quantity),
+          playthroughEquippableItemId:
+            itemType === "equippable" ? Number(itemId) : null,
+          playthroughConsumableItemId:
+            itemType === "consumable" ? Number(itemId) : null,
+        };
+      }),
+    });
+  };
+
+  return (
+    <form className="space-y-4" onSubmit={submit}>
+      <p className="text-sm text-content-secondary">
+        {scene.chests.length === 0
+          ? "No chests are currently in this scene."
+          : `${scene.chests.length} chest${scene.chests.length === 1 ? " is" : "s are"} currently in this scene.`}
+      </p>
+
+      {!hasItems ? (
+        <EmptyMessage>
+          This playthrough has no consumable or equippable items available for chest loot.
+        </EmptyMessage>
+      ) : (
+        <>
+          <FormField htmlFor="live-chest-name" label="Chest name">
+            <Input
+              id="live-chest-name"
+              maxLength={250}
+              value={name}
+              placeholder="Treasure chest"
+              disabled={disabled}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </FormField>
+
+          <div className="space-y-3">
+            {faces.map((face, index) => (
+              <div
+                key={index + 1}
+                className="grid grid-cols-[auto_minmax(0,1fr)_5rem] items-end gap-2 rounded-xl border border-border bg-surface p-3"
+              >
+                <span className="self-center text-sm font-semibold text-content">
+                  {index + 1}
+                </span>
+                <FormField
+                  htmlFor={`live-chest-face-${index + 1}`}
+                  label="Item"
+                >
+                  <Select
+                    id={`live-chest-face-${index + 1}`}
+                    value={face.itemKey}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      updateFace(index, { itemKey: event.target.value })
+                    }
+                  >
+                    <option value="">Choose item...</option>
+                    {scene.availableConsumableItems.length > 0 && (
+                      <optgroup label="Consumables">
+                        {scene.availableConsumableItems.map((item) => (
+                          <option key={item.id} value={`consumable:${item.id}`}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {scene.availableEquippableItems.length > 0 && (
+                      <optgroup label="Equipment">
+                        {scene.availableEquippableItems.map((item) => (
+                          <option key={item.id} value={`equippable:${item.id}`}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </Select>
+                </FormField>
+                <FormField
+                  htmlFor={`live-chest-quantity-${index + 1}`}
+                  label="Qty"
+                >
+                  <Input
+                    id={`live-chest-quantity-${index + 1}`}
+                    type="number"
+                    min={1}
+                    value={face.quantity}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      updateFace(index, {
+                        quantity: Math.max(1, Number(event.target.value)),
+                      })
+                    }
+                  />
+                </FormField>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            type="submit"
+            variant="add"
+            className="w-full"
+            disabled={disabled || !canSubmit}
+          >
+            {busy ? "Adding Chest..." : "Add Chest to Scene"}
+          </Button>
+        </>
+      )}
+    </form>
   );
 }
 

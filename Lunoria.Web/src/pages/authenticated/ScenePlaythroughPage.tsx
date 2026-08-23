@@ -6,6 +6,7 @@ import { useModalStack, useToast } from "@/app/providers";
 import { Button, Card, Drawer } from "@/components/ui";
 import {
   activateSceneJourneyCharacter,
+  addChestToScene,
   addPlaythroughCharacterToScene,
   ChestStatus,
   endScenePlaythrough,
@@ -19,6 +20,7 @@ import {
   SceneOptionsPanel,
   tradeSceneParticipantItem,
   updateSceneParticipantStats,
+  useSceneParticipantConsumable,
   type SceneAttackResult,
   type SceneOpenChestResult,
   type ScenePlaythroughChest,
@@ -181,6 +183,31 @@ export function ScenePlaythroughPage() {
     }
   };
 
+  const usePotion = async (
+    participant: ScenePlaythroughParticipant,
+    inventoryItem: ScenePlaythroughInventoryItem,
+  ) => {
+    try {
+      const result = await useSceneParticipantConsumable(
+        playthroughId,
+        sceneId,
+        participant.id,
+        inventoryItem.inventoryItemId,
+      );
+      setScene(await getScenePlaythrough(playthroughId, sceneId));
+      setBegunTurnKey("");
+      setAwaitingActionTurnKey("");
+      modalStack.dismissAll();
+      toast.success(
+        `${participant.name} used ${result.itemName} and restored ${result.hpRestored} HP and ${result.mpRestored} MP.`,
+        "Potion used",
+      );
+    } catch (requestError: unknown) {
+      toast.error(getApiError(requestError).message, "Unable to use potion");
+      throw requestError;
+    }
+  };
+
   const tradeItem = async (
     participant: ScenePlaythroughParticipant,
     target: ScenePlaythroughParticipant,
@@ -249,6 +276,7 @@ export function ScenePlaythroughPage() {
         <TurnActionOptions
           participantType={participant.participantType}
           hasUnopenedChests={unopenedChests.length > 0}
+          hasConsumables={participant.consumableItems.length > 0}
           onSelect={(title) => {
             if (title === "Attack") {
               modalStack.push({
@@ -299,6 +327,22 @@ export function ScenePlaythroughPage() {
                     }
                     onComplete={(result) =>
                       completeChestAction(participant, result)
+                    }
+                  />
+                ),
+              });
+              return;
+            }
+
+            if (title === "Use Potion") {
+              modalStack.push({
+                title: "Use Potion",
+                placement: "center",
+                content: (
+                  <PotionOptions
+                    participant={participant}
+                    onUse={(inventoryItem) =>
+                      usePotion(participant, inventoryItem)
                     }
                   />
                 ),
@@ -641,6 +685,13 @@ export function ScenePlaythroughPage() {
                   "Scene character added.",
                 )
               }
+              onAddChest={(input) =>
+                void runSceneOption(
+                  "add-chest",
+                  () => addChestToScene(playthroughId, sceneId, input),
+                  `Chest "${input.name}" added to the scene.`,
+                )
+              }
               onUpdateParticipant={(participantId, input) =>
                 void runSceneOption(
                   `stats-${participantId}`,
@@ -970,12 +1021,16 @@ function MovementRollOptions({
 function TurnActionOptions({
   participantType,
   hasUnopenedChests,
+  hasConsumables,
   onSelect,
   onForfeit,
 }: {
   participantType: ParticipantType;
   hasUnopenedChests: boolean;
-  onSelect: (title: "Attack" | "Open Chest" | "Trade Item") => void;
+  hasConsumables: boolean;
+  onSelect: (
+    title: "Attack" | "Open Chest" | "Use Potion" | "Trade Item",
+  ) => void;
   onForfeit: () => void;
 }) {
   const canManageItems = participantType === ParticipantType.Player;
@@ -987,6 +1042,13 @@ function TurnActionOptions({
         imageSrc="/Attack_Action.png"
         onClick={() => onSelect("Attack")}
       />
+      {hasConsumables && (
+        <TurnActionButton
+          label="Use Potion"
+          imageSrc="/Use_Potion_Action.png"
+          onClick={() => onSelect("Use Potion")}
+        />
+      )}
       {canManageItems && (
         <>
           {hasUnopenedChests && (
@@ -1037,6 +1099,139 @@ function TurnActionButton({
         {label}
       </span>
     </button>
+  );
+}
+
+function PotionOptions({
+  participant,
+  onUse,
+}: {
+  participant: ScenePlaythroughParticipant;
+  onUse: (item: ScenePlaythroughInventoryItem) => Promise<void>;
+}) {
+  const potionGroups = groupTradeInventoryItems(
+    participant.consumableItems,
+    false,
+  );
+  const [selectedInventoryItemId, setSelectedInventoryItemId] =
+    useState<number>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const selectedGroup = potionGroups.find(
+    ({ inventoryItem }) =>
+      inventoryItem.inventoryItemId === selectedInventoryItemId,
+  );
+  const selectedPotion = selectedGroup?.inventoryItem;
+  const hpEffect = selectedPotion?.item.hpEffect ?? 0;
+  const mpEffect = selectedPotion?.item.mpEffect ?? 0;
+  const hpRestored = Math.min(
+    hpEffect,
+    Math.max(0, participant.maxHp - participant.currentHp),
+  );
+  const mpRestored = Math.min(
+    mpEffect,
+    Math.max(0, participant.maxMp - participant.currentMp),
+  );
+
+  if (potionGroups.length === 0) {
+    return (
+      <p className="text-content-muted">
+        This participant has no available consumable items.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {potionGroups.map(({ inventoryItem, quantity }) => {
+          const isSelected =
+            inventoryItem.inventoryItemId === selectedInventoryItemId;
+          const item = inventoryItem.item;
+
+          return (
+            <button
+              key={inventoryItem.inventoryItemId}
+              type="button"
+              aria-pressed={isSelected}
+              className={`overflow-hidden rounded-xl border-2 bg-surface text-left transition hover:border-utility focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
+                isSelected ? "border-utility ring-2 ring-utility/30" : "border-border"
+              }`}
+              disabled={isSubmitting}
+              onClick={() =>
+                setSelectedInventoryItemId(inventoryItem.inventoryItemId)
+              }
+            >
+              <div className="relative aspect-[3/2] bg-canvas">
+                {item.photoUrl ? (
+                  <img
+                    src={item.photoUrl}
+                    alt=""
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center text-content-muted">
+                    No image
+                  </div>
+                )}
+                {quantity > 1 && (
+                  <span className="absolute right-2 top-2 rounded-full bg-utility px-2 py-1 text-xs font-bold text-on-utility shadow-lg">
+                    ×{quantity}
+                  </span>
+                )}
+              </div>
+              <div className="p-3">
+                <p className="font-semibold text-content">{item.name}</p>
+                {item.description && (
+                  <p className="mt-1 line-clamp-2 text-sm text-content-muted">
+                    {item.description}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  <span className="rounded-full bg-danger/10 px-2 py-1 font-semibold text-danger">
+                    HP +{item.hpEffect ?? 0}
+                  </span>
+                  <span className="rounded-full bg-magic/10 px-2 py-1 font-semibold text-magic-hover">
+                    MP +{item.mpEffect ?? 0}
+                  </span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {selectedPotion && (
+        <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl border border-border bg-surface p-4 text-center">
+          <div>
+            <p className="text-xs text-content-muted">HP after potion</p>
+            <p className="mt-1 text-xl font-semibold text-content">
+              {participant.currentHp + hpRestored} / {participant.maxHp}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-content-muted">MP after potion</p>
+            <p className="mt-1 text-xl font-semibold text-content">
+              {participant.currentMp + mpRestored} / {participant.maxMp}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 flex justify-end">
+        <Button
+          variant="magic"
+          size="lg"
+          disabled={!selectedPotion || isSubmitting}
+          onClick={() => {
+            if (!selectedPotion) return;
+            setIsSubmitting(true);
+            void onUse(selectedPotion).finally(() => setIsSubmitting(false));
+          }}
+        >
+          {isSubmitting ? "Using Potion..." : "Use Potion"}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -1114,7 +1309,6 @@ function TradeInventoryOptions({
       !selection ||
       selection.ownerParticipantId === destinationParticipantId ||
       selection.inventoryItem.isEquippable !== isEquippable ||
-      selection.inventoryItem.isEquipped ||
       isSubmitting
     ) {
       return;
@@ -1251,12 +1445,13 @@ function TradeInventorySlots({
   onSelect: (selection: TradeSelection) => void;
   onReceive: (isEquippable: boolean) => void;
 }) {
-  const slots = Math.max(limit, items.length);
+  const itemGroups = groupTradeInventoryItems(items, isEquippable);
+  const freeSlotCount = Math.max(0, limit - items.length);
+  const displayedSlotCount = itemGroups.length + freeSlotCount;
   const canReceive = Boolean(
     selection &&
       selection.ownerParticipantId !== participantId &&
       selection.inventoryItem.isEquippable === isEquippable &&
-      !selection.inventoryItem.isEquipped &&
       !disabled,
   );
 
@@ -1282,15 +1477,15 @@ function TradeInventorySlots({
         </span>
       </div>
 
-      {slots === 0 ? (
+      {displayedSlotCount === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-3 text-center text-xs text-content-muted">
           No inventory slots
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {Array.from({ length: slots }, (_, index) => {
-            const inventoryItem = items[index];
-            if (!inventoryItem) {
+          {Array.from({ length: displayedSlotCount }, (_, index) => {
+            const itemGroup = itemGroups[index];
+            if (!itemGroup) {
               return (
                 <div
                   key={`empty-${index}`}
@@ -1305,41 +1500,33 @@ function TradeInventorySlots({
               );
             }
 
+            const { inventoryItem, quantity } = itemGroup;
+
             const isSelected =
               selection?.ownerParticipantId === participantId &&
               selection.inventoryItem.inventoryItemId ===
                 inventoryItem.inventoryItemId &&
               selection.inventoryItem.isEquippable ===
                 inventoryItem.isEquippable;
-            const isLocked = inventoryItem.isEquipped;
-
             return (
               <button
                 key={`${inventoryItem.isEquippable ? "equipment" : "consumable"}-${inventoryItem.inventoryItemId}`}
                 type="button"
-                draggable={!disabled && !isLocked}
+                draggable={!disabled}
                 aria-pressed={isSelected}
-                title={
-                  isLocked
-                    ? `${inventoryItem.item.name} is equipped and cannot be traded.`
-                    : `Trade ${inventoryItem.item.name}`
-                }
+                title={`Trade ${inventoryItem.item.name}`}
                 className={`relative aspect-square overflow-hidden rounded-lg border text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
                   isSelected
                     ? "border-utility ring-2 ring-utility/40"
                     : "border-border"
-                } ${
-                  isLocked
-                    ? "cursor-not-allowed opacity-55"
-                    : "cursor-grab hover:border-utility active:cursor-grabbing"
-                }`}
+                } cursor-grab hover:border-utility active:cursor-grabbing`}
                 onClick={() => {
-                  if (!disabled && !isLocked) {
+                  if (!disabled) {
                     onSelect({ ownerParticipantId: participantId, inventoryItem });
                   }
                 }}
                 onDragStart={(event) => {
-                  if (disabled || isLocked) {
+                  if (disabled) {
                     event.preventDefault();
                     return;
                   }
@@ -1360,9 +1547,13 @@ function TradeInventorySlots({
                 ) : (
                   <div className="h-full w-full bg-surface-raised" />
                 )}
+                {quantity > 1 && (
+                  <span className="absolute right-1.5 top-1.5 rounded-full bg-utility px-2 py-0.5 text-xs font-bold text-on-utility shadow-lg">
+                    ×{quantity}
+                  </span>
+                )}
                 <span className="absolute inset-x-0 bottom-0 bg-canvas/90 px-2 py-1 text-xs font-semibold text-content backdrop-blur-sm">
                   {inventoryItem.item.name}
-                  {isLocked ? " · Equipped" : ""}
                 </span>
               </button>
             );
@@ -1383,6 +1574,31 @@ function TradeInventorySlots({
       )}
     </section>
   );
+}
+
+function groupTradeInventoryItems(
+  items: ScenePlaythroughInventoryItem[],
+  isEquippable: boolean,
+) {
+  if (isEquippable) {
+    return items.map((inventoryItem) => ({ inventoryItem, quantity: 1 }));
+  }
+
+  const groups = new Map<
+    number,
+    { inventoryItem: ScenePlaythroughInventoryItem; quantity: number }
+  >();
+
+  for (const inventoryItem of items) {
+    const existing = groups.get(inventoryItem.item.id);
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      groups.set(inventoryItem.item.id, { inventoryItem, quantity: 1 });
+    }
+  }
+
+  return Array.from(groups.values());
 }
 
 function OpenChestOptions({
@@ -1717,11 +1933,17 @@ function AttackResolutionOptions({
   const selectedSpell = damageSpells.find(
     (spell) => spell.id === selectedSpellId,
   );
+  const selectedTarget = targets.find(
+    (target) => target.id === selectedTargetId,
+  );
   const baseDamage = getAttackBaseDamage(attacker, attackType, selectedSpell);
+  const damageReduction = selectedTarget
+    ? getAttackDamageReduction(selectedTarget, attackType)
+    : 0;
   const totalDamage =
     baseDamage === null || selectedRoll === undefined
       ? null
-      : baseDamage + selectedRoll;
+      : Math.max(0, baseDamage + selectedRoll - damageReduction);
   const hasRequiredSpell =
     attackType !== SceneAttackType.Spell || selectedSpell !== undefined;
   const canAttack =
@@ -1733,11 +1955,17 @@ function AttackResolutionOptions({
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-surface p-4 text-center">
+      <div className="grid grid-cols-3 gap-4 rounded-xl border border-border bg-surface p-4 text-center">
         <div>
           <p className="text-sm text-content-muted">Attack damage</p>
           <p className="mt-1 text-3xl font-semibold text-content">
             {baseDamage ?? "—"}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-content-muted">Target reduction</p>
+          <p className="mt-1 text-3xl font-semibold text-content">
+            {selectedTarget ? damageReduction : "—"}
           </p>
         </div>
         <div>
@@ -1965,6 +2193,20 @@ function getAttackBaseDamage(
       return attacker.bowAttackDamage;
     case SceneAttackType.Spell:
       return spell?.damageEffect ?? null;
+  }
+}
+
+function getAttackDamageReduction(
+  target: ScenePlaythroughParticipant,
+  attackType: SceneAttackType,
+) {
+  switch (attackType) {
+    case SceneAttackType.Melee:
+      return target.meleeDamageReduction;
+    case SceneAttackType.Range:
+      return target.bowDamageReduction;
+    case SceneAttackType.Spell:
+      return target.spellDamageReduction;
   }
 }
 

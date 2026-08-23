@@ -13,6 +13,7 @@ import type {
   SceneAttackType,
   SceneOpenChestResult,
   ScenePlaythroughDetails,
+  SceneUseConsumableResult,
 } from "@/features/journeys/types";
 import { SceneDialog } from "@/features/scenes/types";
 
@@ -130,6 +131,31 @@ export async function addPlaythroughCharacterToScene(
   );
 }
 
+export interface AddSceneChestLootEntryInput {
+  rollMinimum: number;
+  rollMaximum: number;
+  quantity: number;
+  playthroughEquippableItemId: number | null;
+  playthroughConsumableItemId: number | null;
+}
+
+export interface AddSceneChestInput {
+  name: string;
+  dieSides: number;
+  lootEntries: AddSceneChestLootEntryInput[];
+}
+
+export async function addChestToScene(
+  playthroughId: number,
+  sceneId: number,
+  input: AddSceneChestInput,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/chests`,
+    input,
+  );
+}
+
 export interface UpdateSceneParticipantStatsInput {
   currentHp: number;
   maxHp: number;
@@ -209,6 +235,18 @@ export async function openSceneParticipantChest(
   const { data } = await apiClient.post<SceneOpenChestResult>(
     `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/chests/${chestId}/open`,
     { roll },
+  );
+  return data;
+}
+
+export async function useSceneParticipantConsumable(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  inventoryItemId: number,
+): Promise<SceneUseConsumableResult> {
+  const { data } = await apiClient.post<SceneUseConsumableResult>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/consumables/${inventoryItemId}/use`,
   );
   return data;
 }

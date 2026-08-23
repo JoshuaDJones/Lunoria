@@ -52,6 +52,7 @@ public static class PublicPlaythroughMappings
     private static PublicPlaythroughCharacterDto ToPublicCharacterDto(
         JourneyPTCharacter character)
     {
+        var equipmentEffects = ScenePlaythroughEquipmentEffects.For(character);
         var displayedCharacter = character.IsInAlternateForm && character.AlternateForm is not null
             ? character.AlternateForm
             : character.PlaythroughCharacter;
@@ -66,20 +67,37 @@ public static class PublicPlaythroughMappings
             PhotoUrl = displayedCharacter.PhotoUrl,
             PortraitUrl = displayedCharacter.PortraitUrl,
             CurrentHp = character.CurrentHp,
-            MaxHp = character.MaxHp,
+            MaxHp = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxHp, equipmentEffects.MaxHpModifier, minimum: 1),
             CurrentMp = character.CurrentMp,
-            MaxMp = character.MaxMp,
-            Movement = character.Movement,
-            MeleeAttackDamage = character.MeleeAttackDamage,
-            BowAttackDamage = character.BowAttackDamage,
-            MaxConsumableInventory = character.MaxConsumableInventory,
-            MaxEquippableInventory = character.MaxEquippableInventory,
+            MaxMp = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxMp, equipmentEffects.MaxMpModifier),
+            Movement = ScenePlaythroughEquipmentEffects.Apply(
+                character.Movement, equipmentEffects.MovementModifier),
+            MeleeAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
+                character.MeleeAttackDamage,
+                equipmentEffects.MeleeAttackDamageModifier),
+            BowAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
+                character.BowAttackDamage,
+                equipmentEffects.BowAttackDamageModifier),
+            MaxConsumableInventory = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxConsumableInventory,
+                equipmentEffects.MaxConsumableInventoryModifier),
+            MaxEquippableInventory = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxEquippableInventory,
+                equipmentEffects.MaxEquippableInventoryModifier),
             IsActive = character.IsActive,
             IsDown = character.IsDown,
             IsDead = false,
             IsInAlternateForm = character.IsInAlternateForm,
             Spells = character.Spells
-                .Select(link => link.PlaythroughSpell.ToPublicDto())
+                .Select(link => link.PlaythroughSpell)
+                .Concat(equipmentEffects.AddedSpells)
+                .GroupBy(spell => spell.Id)
+                .Select(group => group.First())
+                .Select(spell => spell.ToPublicDto(
+                    equipmentEffects.GetSpellDamageModifier(
+                        spell.PlaythroughSpellTypeId)))
                 .OrderBy(spell => spell.Name)
                 .ToList(),
             ConsumableItems = character.ConsumableItems
@@ -87,7 +105,7 @@ public static class PublicPlaythroughMappings
                 .OrderBy(item => item.Name)
                 .ToList(),
             EquippableItems = character.EquippableItems
-                .Select(link => link.PlaythroughEquippableItem.ToPublicDto(link.IsEquipped))
+                .Select(link => link.PlaythroughEquippableItem.ToPublicDto(true))
                 .OrderByDescending(item => item.IsEquipped)
                 .ThenBy(item => item.Name)
                 .ToList()
@@ -97,6 +115,7 @@ public static class PublicPlaythroughMappings
     private static PublicPlaythroughCharacterDto ToPublicCharacterDto(
         ScenePTCharacter character)
     {
+        var equipmentEffects = ScenePlaythroughEquipmentEffects.For(character);
         var displayedCharacter = character.IsInAlternateForm && character.AlternateForm is not null
             ? character.AlternateForm
             : character.PlaythroughCharacter;
@@ -111,20 +130,37 @@ public static class PublicPlaythroughMappings
             PhotoUrl = displayedCharacter.PhotoUrl,
             PortraitUrl = displayedCharacter.PortraitUrl,
             CurrentHp = character.CurrentHp,
-            MaxHp = character.MaxHp,
+            MaxHp = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxHp, equipmentEffects.MaxHpModifier, minimum: 1),
             CurrentMp = character.CurrentMp,
-            MaxMp = character.MaxMp,
-            Movement = character.Movement,
-            MeleeAttackDamage = character.MeleeAttackDamage,
-            BowAttackDamage = character.BowAttackDamage,
-            MaxConsumableInventory = character.MaxConsumableInventory,
-            MaxEquippableInventory = character.MaxEquippableInventory,
+            MaxMp = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxMp, equipmentEffects.MaxMpModifier),
+            Movement = ScenePlaythroughEquipmentEffects.Apply(
+                character.Movement, equipmentEffects.MovementModifier),
+            MeleeAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
+                character.MeleeAttackDamage,
+                equipmentEffects.MeleeAttackDamageModifier),
+            BowAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
+                character.BowAttackDamage,
+                equipmentEffects.BowAttackDamageModifier),
+            MaxConsumableInventory = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxConsumableInventory,
+                equipmentEffects.MaxConsumableInventoryModifier),
+            MaxEquippableInventory = ScenePlaythroughEquipmentEffects.Apply(
+                character.MaxEquippableInventory,
+                equipmentEffects.MaxEquippableInventoryModifier),
             IsActive = character.IsActive,
             IsDown = false,
             IsDead = character.IsDead,
             IsInAlternateForm = character.IsInAlternateForm,
             Spells = character.Spells
-                .Select(link => link.PlaythroughSpell.ToPublicDto())
+                .Select(link => link.PlaythroughSpell)
+                .Concat(equipmentEffects.AddedSpells)
+                .GroupBy(spell => spell.Id)
+                .Select(group => group.First())
+                .Select(spell => spell.ToPublicDto(
+                    equipmentEffects.GetSpellDamageModifier(
+                        spell.PlaythroughSpellTypeId)))
                 .OrderBy(spell => spell.Name)
                 .ToList(),
             ConsumableItems = character.ConsumableItems
@@ -132,14 +168,16 @@ public static class PublicPlaythroughMappings
                 .OrderBy(item => item.Name)
                 .ToList(),
             EquippableItems = character.EquippableItems
-                .Select(link => link.PlaythroughEquippableItem.ToPublicDto(link.IsEquipped))
+                .Select(link => link.PlaythroughEquippableItem.ToPublicDto(true))
                 .OrderByDescending(item => item.IsEquipped)
                 .ThenBy(item => item.Name)
                 .ToList()
         };
     }
 
-    private static PublicPlaythroughSpellDto ToPublicDto(this PlaythroughSpell spell)
+    private static PublicPlaythroughSpellDto ToPublicDto(
+        this PlaythroughSpell spell,
+        int damageModifier = 0)
     {
         return new PublicPlaythroughSpellDto
         {
@@ -151,7 +189,10 @@ public static class PublicPlaythroughMappings
             Range = spell.Range,
             IsRadius = spell.IsRadius,
             MpCost = spell.MpCost,
-            DamageEffect = spell.DamageEffect,
+            DamageEffect = spell.DamageEffect is int damageEffect
+                ? ScenePlaythroughEquipmentEffects.Apply(
+                    damageEffect, damageModifier)
+                : null,
             HealthEffect = spell.HealthEffect,
             MagicEffect = spell.MagicEffect
         };

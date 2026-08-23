@@ -99,6 +99,57 @@ public sealed class ScenePlaythroughCombatTests
     }
 
     [Fact]
+    public async Task MeleeAttack_AppliesDuplicateEquipmentBonusesAndReductionsOnce()
+    {
+        var repository = CreateRepository(out _);
+        var attacker = PlayerParticipant(
+            id: 1,
+            name: "Knight",
+            currentHp: 10,
+            currentMp: 5,
+            meleeDamage: 4);
+        var weapon = new PlaythroughEquippableItem
+        {
+            Id = 50,
+            Name = "Runed Sword",
+            MeleeAttackDamageModifier = 3
+        };
+        attacker.JourneyPlaythroughCharacter!.EquippableItems.Add(
+            EquippedJourneyItem(501, weapon));
+        attacker.JourneyPlaythroughCharacter.EquippableItems.Add(
+            EquippedJourneyItem(502, weapon));
+
+        var target = SceneParticipant(
+            id: 2,
+            name: "Guardian",
+            ParticipantType.Enemy,
+            currentHp: 20);
+        var armor = new PlaythroughEquippableItem
+        {
+            Id = 60,
+            Name = "Iron Armor",
+            MeleeDamageReduction = 2
+        };
+        target.ScenePlaythroughCharacter!.EquippableItems.Add(
+            EquippedSceneItem(601, armor));
+        target.ScenePlaythroughCharacter.EquippableItems.Add(
+            EquippedSceneItem(602, armor));
+
+        var scene = Scene(attacker, target);
+        repository.GetSceneForCharacterInstanceAddAsync(7, 8, 9, Ct)
+            .Returns(scene);
+        var service = new ScenePlaythroughService(repository);
+
+        var result = await service.AttackAsync(
+            7, 8, 9, attacker.Id, target.Id,
+            SceneAttackType.Melee, 1, null, Ct);
+
+        Assert.True(result.Success);
+        Assert.Equal(6, result.Value!.Damage);
+        Assert.Equal(14, target.ScenePlaythroughCharacter.CurrentHp);
+    }
+
+    [Fact]
     public async Task DownedPlayer_RecoversOnFifthScheduledTurn()
     {
         var repository = CreateRepository(out _);
@@ -253,6 +304,32 @@ public sealed class ScenePlaythroughCombatTests
             SortOrderWithinType = id,
             ScenePlaythroughCharacterId = character.Id,
             ScenePlaythroughCharacter = character
+        };
+    }
+
+    private static JourneyPTCharacterEquippableItem EquippedJourneyItem(
+        int linkId,
+        PlaythroughEquippableItem item)
+    {
+        return new JourneyPTCharacterEquippableItem
+        {
+            Id = linkId,
+            IsEquipped = true,
+            PlaythroughEquippableItemId = item.Id,
+            PlaythroughEquippableItem = item
+        };
+    }
+
+    private static ScenePTCharacterEquippableItem EquippedSceneItem(
+        int linkId,
+        PlaythroughEquippableItem item)
+    {
+        return new ScenePTCharacterEquippableItem
+        {
+            Id = linkId,
+            IsEquipped = true,
+            PlaythroughEquippableItemId = item.Id,
+            PlaythroughEquippableItem = item
         };
     }
 }

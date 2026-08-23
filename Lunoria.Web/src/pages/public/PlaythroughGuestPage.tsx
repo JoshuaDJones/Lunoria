@@ -138,15 +138,12 @@ export function PlaythroughGuestPage() {
   return (
     <AppLayout
       sidebar={<></>}
-      bottomPadding={false}
+      bottomPadding
       background={
         <div className="valley-village-image absolute inset-0 z-0 h-full w-full" />
       }
     >
-      <main
-        ref={scrollContainerRef}
-        className="h-full w-full overflow-y-auto scrollbar-hide"
-      >
+      <main className="flex h-full w-full flex-col overflow-hidden pb-14">
         {isLoading && (
           <div className="flex min-h-full items-center justify-center p-8">
             <p className="rounded-2xl bg-surface/75 p-6 text-xl text-content backdrop-blur-sm">
@@ -172,33 +169,33 @@ export function PlaythroughGuestPage() {
 
         {!isLoading && !error && !isClosed && snapshot && selectedEntry && (
           <>
-            <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface/85 px-5 py-4 backdrop-blur-md sm:px-10">
-              <div>
-                <h1 className="text-2xl font-semibold text-content sm:text-3xl">
+            <header className="z-20 flex flex-none items-center justify-between gap-2 border-b border-border bg-surface/85 px-3 py-1.5 backdrop-blur-md sm:px-4">
+              <div className="min-w-0">
+                <h1 className="truncate text-sm font-semibold leading-tight text-content sm:text-base">
                   {snapshot.name}
                 </h1>
                 {snapshot.activeSceneName && (
-                  <p className="text-sm text-content-muted">
+                  <p className="truncate text-[10px] leading-tight text-content-muted sm:text-xs">
                     Active scene: {snapshot.activeSceneName}
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <span
-                  className={`h-2.5 w-2.5 rounded-full ${
+                  className={`h-1.5 w-1.5 rounded-full ${
                     isRealtimeConnected ? "bg-add" : "bg-danger"
                   }`}
                 />
-                <span className="text-sm text-content-secondary">
+                <span className="text-[10px] text-content-secondary sm:text-xs">
                   {isRealtimeConnected ? "Live" : "Reconnecting"}
-                </span>
-                <span className="text-sm font-semibold text-content">
-                  {selectedIndex + 1} / {entries.length}
                 </span>
               </div>
             </header>
 
-            <div className="mx-auto min-h-[calc(100%-5rem)] w-full max-w-6xl px-16 py-6 sm:px-24 sm:py-10">
+            <div
+              ref={scrollContainerRef}
+              className="min-h-0 w-full flex-1 overflow-y-auto px-2 py-2 scrollbar-hide sm:px-4 sm:py-3"
+            >
               {selectedEntry.type === "character" ? (
                 <PublicCharacterView character={selectedEntry.character} />
               ) : (
@@ -206,22 +203,34 @@ export function PlaythroughGuestPage() {
               )}
             </div>
 
-            <Button
-              aria-label="Previous card"
-              className="fixed left-2 top-1/2 z-30 h-14 w-14 -translate-y-1/2 rounded-full p-0 shadow-xl sm:left-5"
-              disabled={selectedIndex === 0}
-              onClick={() => navigateDeck(selectedIndex - 1)}
+            <nav
+              aria-label="Playthrough cards"
+              className="fixed inset-x-0 bottom-0 z-30 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-border bg-surface/90 px-3 py-2 backdrop-blur-md sm:px-4"
             >
-              <FontAwesomeIcon icon={faChevronLeft} className="text-xl" />
-            </Button>
-            <Button
-              aria-label="Next card"
-              className="fixed right-2 top-1/2 z-30 h-14 w-14 -translate-y-1/2 rounded-full p-0 shadow-xl sm:right-5"
-              disabled={selectedIndex === entries.length - 1}
-              onClick={() => navigateDeck(selectedIndex + 1)}
-            >
-              <FontAwesomeIcon icon={faChevronRight} className="text-xl" />
-            </Button>
+              <Button
+                aria-label="Previous card"
+                size="sm"
+                className="h-10 w-12 justify-self-start gap-2 sm:w-32"
+                disabled={selectedIndex === 0}
+                onClick={() => navigateDeck(selectedIndex - 1)}
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+              <span className="text-xs font-semibold text-content">
+                {selectedIndex + 1} / {entries.length}
+              </span>
+              <Button
+                aria-label="Next card"
+                size="sm"
+                className="h-10 w-12 justify-self-end gap-2 sm:w-32"
+                disabled={selectedIndex === entries.length - 1}
+                onClick={() => navigateDeck(selectedIndex + 1)}
+              >
+                <span className="hidden sm:inline">Next</span>
+                <FontAwesomeIcon icon={faChevronRight} />
+              </Button>
+            </nav>
           </>
         )}
       </main>
@@ -235,9 +244,10 @@ function PublicCharacterView({
   character: PublicPlaythroughCharacter;
 }) {
   const imageUrl = character.portraitUrl?.trim() || character.photoUrl?.trim();
+  const consumableGroups = groupPublicConsumables(character.consumableItems);
 
   return (
-    <article className="overflow-hidden rounded-3xl bg-surface/75 backdrop-blur-[2px]">
+    <article className="w-full overflow-hidden rounded-3xl bg-surface/75 backdrop-blur-[2px]">
       <div className="grid lg:grid-cols-[minmax(17rem,2fr)_minmax(0,3fr)]">
         <div className="flex min-h-72 items-center justify-center bg-canvas/80 p-4 lg:min-h-[32rem]">
           {imageUrl ? (
@@ -315,10 +325,14 @@ function PublicCharacterView({
         </PublicSection>
 
         <PublicSection title={`Consumables (${character.consumableItems.length})`}>
-          {character.consumableItems.length > 0 ? (
+          {consumableGroups.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {character.consumableItems.map((item) => (
-                <ConsumableCard key={item.id} item={item} />
+              {consumableGroups.map(({ item, quantity }) => (
+                <ConsumableCard
+                  key={`${item.id}-${item.isUsed ? "used" : "available"}`}
+                  item={item}
+                  quantity={quantity}
+                />
               ))}
             </div>
           ) : (
@@ -336,7 +350,7 @@ function PublicEventLogView({
   snapshot: PublicPlaythroughSnapshot;
 }) {
   return (
-    <section className="min-h-[70vh] rounded-3xl bg-surface/75 p-6 backdrop-blur-[2px] sm:p-8">
+    <section className="min-h-full w-full rounded-3xl bg-surface/75 p-6 backdrop-blur-[2px] sm:p-8">
       <p className="text-sm font-semibold uppercase tracking-wider text-utility-hover">
         Live playthrough
       </p>
@@ -397,7 +411,7 @@ function EquipmentCard({ item }: { item: PublicPlaythroughEquippableItem }) {
   return (
     <ItemCard imageUrl={item.photoUrl} name={item.name} description={item.description}>
       <div className="flex flex-wrap gap-2 text-xs text-content-secondary">
-        <ItemValue label="Status" value={item.isEquipped ? "Equipped" : "Carried"} />
+        <ItemValue label="Status" value="Active" />
         {modifiers
           .filter(([, value]) => value !== 0)
           .map(([label, value]) => (
@@ -419,16 +433,42 @@ function EquipmentCard({ item }: { item: PublicPlaythroughEquippableItem }) {
   );
 }
 
-function ConsumableCard({ item }: { item: PublicPlaythroughConsumableItem }) {
+function ConsumableCard({
+  item,
+  quantity,
+}: {
+  item: PublicPlaythroughConsumableItem;
+  quantity: number;
+}) {
   return (
     <ItemCard imageUrl={item.photoUrl} name={item.name} description={item.description}>
       <div className="flex flex-wrap gap-2 text-xs text-content-secondary">
+        {quantity > 1 && <ItemValue label="Quantity" value={`×${quantity}`} />}
         <ItemValue label="Status" value={item.isUsed ? "Used" : "Available"} />
         {item.hpEffect !== 0 && <ItemValue label="HP" value={formatModifier(item.hpEffect)} />}
         {item.mpEffect !== 0 && <ItemValue label="MP" value={formatModifier(item.mpEffect)} />}
       </div>
     </ItemCard>
   );
+}
+
+function groupPublicConsumables(items: PublicPlaythroughConsumableItem[]) {
+  const groups = new Map<
+    string,
+    { item: PublicPlaythroughConsumableItem; quantity: number }
+  >();
+
+  for (const item of items) {
+    const key = `${item.id}:${item.isUsed}`;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      groups.set(key, { item, quantity: 1 });
+    }
+  }
+
+  return Array.from(groups.values());
 }
 
 function ItemCard({
