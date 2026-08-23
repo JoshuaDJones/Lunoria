@@ -1,11 +1,18 @@
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
+using Eldoria.Core.Enums;
 
 namespace Eldoria.Application.Services;
 
 public interface IScenePlaythroughService
 {
     Task<Result> StartAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CancellationToken ct);
+
+    Task<Result> EndAsync(
         int userId,
         int playthroughId,
         int sceneId,
@@ -52,6 +59,36 @@ public interface IScenePlaythroughService
         int sceneId,
         int participantId,
         int roll,
+        CancellationToken ct);
+
+    Task<Result<SceneAttackResultDto>> AttackAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int targetParticipantId,
+        SceneAttackType attackType,
+        int roll,
+        int? playthroughSpellId,
+        CancellationToken ct);
+
+    Task<Result<SceneOpenChestResultDto>> OpenChestAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int chestId,
+        int roll,
+        CancellationToken ct);
+
+    Task<Result> TradeItemAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int targetParticipantId,
+        int inventoryItemId,
+        bool isEquippable,
         CancellationToken ct);
 
     Task<Result> ForfeitActionAsync(

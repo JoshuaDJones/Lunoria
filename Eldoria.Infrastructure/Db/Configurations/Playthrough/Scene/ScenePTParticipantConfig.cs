@@ -14,6 +14,9 @@ public sealed class ScenePTParticipantConfig : IEntityTypeConfiguration<ScenePTP
                 "CK_ScenePTParticipants_Character",
                 "([JourneyPlaythroughCharacterId] IS NOT NULL AND [ScenePlaythroughCharacterId] IS NULL) OR " +
                 "([JourneyPlaythroughCharacterId] IS NULL AND [ScenePlaythroughCharacterId] IS NOT NULL)");
+            table.HasCheckConstraint(
+                "CK_ScenePTParticipants_DownedTurnsRemaining",
+                "[DownedTurnsRemaining] IS NULL OR [DownedTurnsRemaining] >= 0");
         });
         builder.HasKey(x => x.Id);
 

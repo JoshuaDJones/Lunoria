@@ -35,6 +35,12 @@ public interface IPlaythroughRepository
         int sceneId,
         CancellationToken ct);
 
+    Task<ScenePT?> GetSceneForEndAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CancellationToken ct);
+
     Task<ScenePT?> GetSceneDetailsAsync(
         int userId,
         int playthroughId,

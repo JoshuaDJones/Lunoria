@@ -9,6 +9,9 @@ import type {
   PlaythroughCreated,
   PlaythroughDetails,
   PlaythroughSummary,
+  SceneAttackResult,
+  SceneAttackType,
+  SceneOpenChestResult,
   ScenePlaythroughDetails,
 } from "@/features/journeys/types";
 import { SceneDialog } from "@/features/scenes/types";
@@ -75,6 +78,15 @@ export async function startScenePlaythrough(
 ): Promise<void> {
   await apiClient.post(
     `/playthroughs/${playthroughId}/scenes/${sceneId}/start`,
+  );
+}
+
+export async function endScenePlaythrough(
+  playthroughId: number,
+  sceneId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/end`,
   );
 }
 
@@ -164,6 +176,58 @@ export async function forfeitSceneParticipantAction(
 ): Promise<void> {
   await apiClient.post(
     `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/forfeit-action`,
+  );
+}
+
+export interface ResolveSceneAttackInput {
+  targetParticipantId: number;
+  attackType: SceneAttackType;
+  roll: number;
+  playthroughSpellId: number | null;
+}
+
+export async function resolveSceneParticipantAttack(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  input: ResolveSceneAttackInput,
+): Promise<SceneAttackResult> {
+  const { data } = await apiClient.post<SceneAttackResult>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/attack`,
+    input,
+  );
+  return data;
+}
+
+export async function openSceneParticipantChest(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  chestId: number,
+  roll: number,
+): Promise<SceneOpenChestResult> {
+  const { data } = await apiClient.post<SceneOpenChestResult>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/chests/${chestId}/open`,
+    { roll },
+  );
+  return data;
+}
+
+export interface TradeSceneParticipantItemInput {
+  targetParticipantId: number;
+  inventoryItemId: number;
+  isEquippable: boolean;
+}
+
+export async function tradeSceneParticipantItem(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  input: TradeSceneParticipantItemInput,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/trade`,
+    input,
   );
 }
 

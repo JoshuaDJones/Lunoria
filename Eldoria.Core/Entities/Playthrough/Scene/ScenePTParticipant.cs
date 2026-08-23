@@ -10,6 +10,7 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
         public bool IsActive { get; set; }
         public int? SortOrderWithinType { get; set; }
         public ParticipantType ParticipantType { get; set; }
+        public int? DownedTurnsRemaining { get; set; }
 
         public int ScenePlaythroughId { get; set; }
         public ScenePT ScenePlaythrough { get; set; } = null!;

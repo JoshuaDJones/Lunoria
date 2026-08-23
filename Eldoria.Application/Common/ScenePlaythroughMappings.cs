@@ -81,22 +81,10 @@ public static class ScenePlaythroughMappings
                             Quantity = entry.Quantity,
                             EquippableItem = entry.PlaythroughEquippableItem is null
                                 ? null
-                                : new ScenePlaythroughLootItemDto
-                                {
-                                    Id = entry.PlaythroughEquippableItem.Id,
-                                    Name = entry.PlaythroughEquippableItem.Name,
-                                    Description = entry.PlaythroughEquippableItem.Description,
-                                    PhotoUrl = entry.PlaythroughEquippableItem.PhotoUrl
-                                },
+                                : entry.PlaythroughEquippableItem.ToLootItemDto(),
                             ConsumableItem = entry.PlaythroughConsumableItem is null
                                 ? null
-                                : new ScenePlaythroughLootItemDto
-                                {
-                                    Id = entry.PlaythroughConsumableItem.Id,
-                                    Name = entry.PlaythroughConsumableItem.Name,
-                                    Description = entry.PlaythroughConsumableItem.Description,
-                                    PhotoUrl = entry.PlaythroughConsumableItem.PhotoUrl
-                                }
+                                : entry.PlaythroughConsumableItem.ToLootItemDto()
                         })
                         .ToList()
                 })
@@ -157,6 +145,56 @@ public static class ScenePlaythroughMappings
         };
     }
 
+    public static ScenePlaythroughLootItemDto ToLootItemDto(
+        this PlaythroughConsumableItem item)
+    {
+        return new ScenePlaythroughLootItemDto
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Description = item.Description,
+            PhotoUrl = item.PhotoUrl,
+            HpEffect = item.HpEffect,
+            MpEffect = item.MpEffect
+        };
+    }
+
+    public static ScenePlaythroughLootItemDto ToLootItemDto(
+        this PlaythroughEquippableItem item)
+    {
+        return new ScenePlaythroughLootItemDto
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Description = item.Description,
+            PhotoUrl = item.PhotoUrl,
+            MeleeAttackDamageModifier = item.MeleeAttackDamageModifier,
+            BowAttackDamageModifier = item.BowAttackDamageModifier,
+            MovementModifier = item.MovementModifier,
+            MaxHpModifier = item.MaxHpModifier,
+            MaxMpModifier = item.MaxMpModifier,
+            MaxConsumableInventoryModifier = item.MaxConsumableInventoryModifier,
+            MaxEquippableInventoryModifier = item.MaxEquippableInventoryModifier,
+            MeleeDamageReduction = item.MeleeDamageReduction,
+            BowDamageReduction = item.BowDamageReduction,
+            SpellDamageReduction = item.SpellDamageReduction,
+            AffectedSpellType = item.AffectedSpellType?.TypeName,
+            SpellDamageModifier = item.SpellDamageModifier,
+            AddedSpells = item.AddedSpells
+                .OrderBy(spell => spell.Name)
+                .ThenBy(spell => spell.Id)
+                .Select(spell => new ScenePlaythroughSpellDto
+                {
+                    Id = spell.Id,
+                    Name = spell.Name,
+                    Description = spell.Description,
+                    MpCost = spell.MpCost,
+                    DamageEffect = spell.DamageEffect
+                })
+                .ToList()
+        };
+    }
+
     private static ScenePlaythroughParticipantDto ToDto(
         this ScenePTParticipant participant,
         int? currentParticipantId)
@@ -203,7 +241,52 @@ public static class ScenePlaythroughMappings
                 ?? sceneCharacter!.BowAttackDamage,
             IsDown = journeyCharacter?.IsDown ?? false,
             IsDead = sceneCharacter?.IsDead ?? false,
-            IsInAlternateForm = isInAlternateForm
+            IsInAlternateForm = isInAlternateForm,
+            DownedTurnsRemaining = participant.DownedTurnsRemaining,
+            MaxConsumableInventory = journeyCharacter?.MaxConsumableInventory
+                ?? sceneCharacter!.MaxConsumableInventory,
+            MaxEquippableInventory = journeyCharacter?.MaxEquippableInventory
+                ?? sceneCharacter!.MaxEquippableInventory,
+            Spells = (journeyCharacter?.Spells
+                    .Select(link => link.PlaythroughSpell)
+                ?? sceneCharacter?.Spells
+                    .Select(link => link.PlaythroughSpell)
+                ?? [])
+                .OrderBy(spell => spell.Name)
+                .ThenBy(spell => spell.Id)
+                .Select(spell => new ScenePlaythroughSpellDto
+                {
+                    Id = spell.Id,
+                    Name = spell.Name,
+                    Description = spell.Description,
+                    MpCost = spell.MpCost,
+                    DamageEffect = spell.DamageEffect
+                })
+                .ToList(),
+            ConsumableItems = journeyCharacter?.ConsumableItems
+                .Where(link => !link.IsUsed)
+                .OrderBy(link => link.PlaythroughConsumableItem.Name)
+                .ThenBy(link => link.Id)
+                .Select(link => new ScenePlaythroughInventoryItemDto
+                {
+                    InventoryItemId = link.Id,
+                    IsEquippable = false,
+                    IsEquipped = false,
+                    Item = link.PlaythroughConsumableItem.ToLootItemDto()
+                })
+                .ToList() ?? [],
+            EquippableItems = journeyCharacter?.EquippableItems
+                .OrderByDescending(link => link.IsEquipped)
+                .ThenBy(link => link.PlaythroughEquippableItem.Name)
+                .ThenBy(link => link.Id)
+                .Select(link => new ScenePlaythroughInventoryItemDto
+                {
+                    InventoryItemId = link.Id,
+                    IsEquippable = true,
+                    IsEquipped = link.IsEquipped,
+                    Item = link.PlaythroughEquippableItem.ToLootItemDto()
+                })
+                .ToList() ?? []
         };
     }
 }

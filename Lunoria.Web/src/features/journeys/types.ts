@@ -177,6 +177,27 @@ export enum ParticipantType {
   Enemy = 3,
 }
 
+export enum SceneAttackType {
+  Melee = 1,
+  Range = 2,
+  Spell = 3,
+}
+
+export interface ScenePlaythroughSpell {
+  id: number;
+  name: string;
+  description: string;
+  mpCost: number;
+  damageEffect: number | null;
+}
+
+export interface ScenePlaythroughInventoryItem {
+  inventoryItemId: number;
+  isEquippable: boolean;
+  isEquipped: boolean;
+  item: ScenePlaythroughLootItem;
+}
+
 export interface ScenePlaythroughParticipant {
   id: number;
   participantType: ParticipantType;
@@ -201,6 +222,30 @@ export interface ScenePlaythroughParticipant {
   isDown: boolean;
   isDead: boolean;
   isInAlternateForm: boolean;
+  downedTurnsRemaining: number | null;
+  maxConsumableInventory: number;
+  maxEquippableInventory: number;
+  spells: ScenePlaythroughSpell[];
+  consumableItems: ScenePlaythroughInventoryItem[];
+  equippableItems: ScenePlaythroughInventoryItem[];
+}
+
+export interface SceneAttackResult {
+  damage: number;
+  targetCurrentHp: number;
+  targetDefeated: boolean;
+  rewardStat: string | null;
+  rewardAmount: number;
+}
+
+export interface SceneOpenChestResult {
+  chestId: number;
+  chestName: string;
+  roll: number;
+  quantity: number;
+  isEquippable: boolean;
+  awarded: boolean;
+  item: ScenePlaythroughLootItem;
 }
 
 export enum ChestStatus {
@@ -213,6 +258,21 @@ export interface ScenePlaythroughLootItem {
   name: string;
   description: string;
   photoUrl: string;
+  hpEffect: number | null;
+  mpEffect: number | null;
+  meleeAttackDamageModifier: number | null;
+  bowAttackDamageModifier: number | null;
+  movementModifier: number | null;
+  maxHpModifier: number | null;
+  maxMpModifier: number | null;
+  maxConsumableInventoryModifier: number | null;
+  maxEquippableInventoryModifier: number | null;
+  meleeDamageReduction: number | null;
+  bowDamageReduction: number | null;
+  spellDamageReduction: number | null;
+  affectedSpellType: string | null;
+  spellDamageModifier: number | null;
+  addedSpells: ScenePlaythroughSpell[];
 }
 
 export interface ScenePlaythroughChestLootEntry {

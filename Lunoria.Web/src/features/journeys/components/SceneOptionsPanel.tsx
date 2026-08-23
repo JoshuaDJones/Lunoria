@@ -17,6 +17,7 @@ interface SceneOptionsPanelProps {
     input: UpdateSceneParticipantStatsInput,
   ) => void;
   onViewDialog: (dialog: ScenePlaythroughDialog) => void;
+  onEndScene: () => void;
 }
 
 export function SceneOptionsPanel({
@@ -26,6 +27,7 @@ export function SceneOptionsPanel({
   onAddPlaythroughCharacter,
   onUpdateParticipant,
   onViewDialog,
+  onEndScene,
 }: SceneOptionsPanelProps) {
   const journeyCharacters = scene.journeyCharacters ?? [];
   const playthroughCharacters = scene.playthroughCharacters ?? [];
@@ -135,6 +137,23 @@ export function SceneOptionsPanel({
             ))}
           </div>
         )}
+      </OptionSection>
+
+      <OptionSection title="End Scene">
+        <div className="rounded-xl border border-danger/40 bg-danger/5 p-4">
+          <p className="text-sm text-content-secondary">
+            Complete this scene and return to the journey playthrough.
+          </p>
+          <Button
+            variant="danger"
+            inverted
+            className="mt-4 w-full"
+            disabled={busyAction !== undefined}
+            onClick={onEndScene}
+          >
+            End Scene
+          </Button>
+        </div>
       </OptionSection>
     </div>
   );

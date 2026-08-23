@@ -1,15 +1,19 @@
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities.Playthrough.Base;
+using Eldoria.Core.Entities.Playthrough.Journey;
 using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Enums;
 using Eldoria.Core.Interfaces;
+using System.Security.Cryptography;
 
 namespace Eldoria.Application.Services;
 
 public sealed class ScenePlaythroughService(
     IPlaythroughRepository playthroughRepository) : IScenePlaythroughService
 {
+    private const int DownedScheduledTurns = 5;
+
     public async Task<Result> StartAsync(
         int userId,
         int playthroughId,
@@ -90,6 +94,59 @@ public sealed class ScenePlaythroughService(
         {
             Message = $"Scene Started: {scene.Name}",
             EventTime = startedAt
+        });
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Result.Ok();
+    }
+
+    public async Task<Result> EndAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        CancellationToken ct)
+    {
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+
+        var scene = await playthroughRepository.GetSceneForEndAsync(
+            userId,
+            playthroughId,
+            sceneId,
+            ct);
+
+        if (scene is null)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.NotFound",
+                "Scene playthrough was not found."));
+        }
+
+        if (scene.Playthrough.CompletedAt is not null)
+        {
+            return Result.Fail(new Error(
+                "Playthrough.Completed",
+                "A scene cannot be ended in a completed playthrough."));
+        }
+
+        if (scene.Status != ScenePlaythroughStatus.InProgress)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.NotInProgress",
+                "Only an in-progress scene can be ended."));
+        }
+
+        var endedAt = DateTime.UtcNow;
+        scene.Status = ScenePlaythroughStatus.Completed;
+        scene.EndedAt = endedAt;
+        scene.CurrentParticipantId = null;
+        scene.CurrentParticipant = null;
+        scene.Playthrough.EventLogs.Add(new PlaythroughEventLog
+        {
+            Message = $"Scene Ended: {scene.Name}",
+            EventTime = endedAt
         });
 
         await playthroughRepository.SaveChangesAsync(ct);
@@ -346,6 +403,9 @@ public sealed class ScenePlaythroughService(
             journeyCharacter.MeleeAttackDamage = update.MeleeAttackDamage;
             journeyCharacter.BowAttackDamage = update.BowAttackDamage;
             journeyCharacter.IsDown = update.CurrentHp == 0;
+            participant.DownedTurnsRemaining = journeyCharacter.IsDown
+                ? DownedScheduledTurns
+                : null;
             AddEvent(scene, $"Adjusted stats for {journeyCharacter.PlaythroughCharacter.Name}");
         }
         else if (participant.ScenePlaythroughCharacter is { } sceneCharacter)
@@ -423,6 +483,557 @@ public sealed class ScenePlaythroughService(
         {
             Movement = movement
         });
+    }
+
+    public async Task<Result<SceneAttackResultDto>> AttackAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int targetParticipantId,
+        SceneAttackType attackType,
+        int roll,
+        int? playthroughSpellId,
+        CancellationToken ct)
+    {
+        if (roll is < 1 or > 6)
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.InvalidAttackRoll",
+                "The attack roll must be between 1 and 6."));
+        }
+
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId, playthroughId, sceneId, ct);
+        var stateError = ValidateManageableScene(scene);
+        if (stateError is not null)
+            return Result<SceneAttackResultDto>.Fail(stateError);
+
+        var attacker = scene!.SceneParticipants.SingleOrDefault(
+            participant => participant.Id == participantId);
+        if (attacker is null)
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.ParticipantNotFound",
+                "The attacking participant was not found."));
+        }
+
+        if (scene.CurrentParticipantId != attacker.Id || !attacker.IsActive)
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.NotCurrentTurn",
+                "Only the active current participant can attack."));
+        }
+
+        if (attacker.JourneyPlaythroughCharacter?.IsDown == true ||
+            attacker.ScenePlaythroughCharacter?.IsDead == true)
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.AttackUnavailable",
+                "A downed or defeated participant cannot attack."));
+        }
+
+        var target = scene.SceneParticipants.SingleOrDefault(
+            participant => participant.Id == targetParticipantId);
+        if (target is null)
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.ParticipantNotFound",
+                "The target participant was not found."));
+        }
+
+        if (!IsValidAttackTarget(attacker, target))
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.InvalidAttackTarget",
+                "The selected participant cannot be targeted by this attacker."));
+        }
+
+        var attackerJourneyCharacter = attacker.JourneyPlaythroughCharacter;
+        var attackerSceneCharacter = attacker.ScenePlaythroughCharacter;
+        var attackerName = attackerJourneyCharacter?.PlaythroughCharacter.Name
+            ?? attackerSceneCharacter?.PlaythroughCharacter.Name
+            ?? "Unknown character";
+        var targetJourneyCharacter = target.JourneyPlaythroughCharacter;
+        var targetSceneCharacter = target.ScenePlaythroughCharacter;
+        var targetName = targetJourneyCharacter?.PlaythroughCharacter.Name
+            ?? targetSceneCharacter?.PlaythroughCharacter.Name
+            ?? "Unknown character";
+
+        int baseDamage;
+        string attackLabel;
+
+        switch (attackType)
+        {
+            case SceneAttackType.Melee:
+                if (playthroughSpellId is not null)
+                    return InvalidAttackType("A melee attack cannot include a spell.");
+
+                var meleeDamage = attackerJourneyCharacter?.MeleeAttackDamage
+                    ?? attackerSceneCharacter?.MeleeAttackDamage;
+                if (meleeDamage is null)
+                    return AttackUnavailable("This participant has no melee attack.");
+
+                baseDamage = meleeDamage.Value;
+                attackLabel = "a melee attack";
+                break;
+
+            case SceneAttackType.Range:
+                if (playthroughSpellId is not null)
+                    return InvalidAttackType("A range attack cannot include a spell.");
+
+                var rangeDamage = attackerJourneyCharacter?.BowAttackDamage
+                    ?? attackerSceneCharacter?.BowAttackDamage;
+                if (rangeDamage is null)
+                    return AttackUnavailable("This participant has no range attack.");
+
+                baseDamage = rangeDamage.Value;
+                attackLabel = "a range attack";
+                break;
+
+            case SceneAttackType.Spell:
+                if (playthroughSpellId is null)
+                    return InvalidAttackType("A spell attack requires a spell.");
+
+                var spell = GetSpells(attacker).SingleOrDefault(
+                    candidate => candidate.Id == playthroughSpellId.Value);
+                if (spell is null || spell.DamageEffect is null)
+                {
+                    return Result<SceneAttackResultDto>.Fail(new Error(
+                        "ScenePlaythrough.SpellNotFound",
+                        "The selected damage spell is not available to this participant."));
+                }
+
+                var currentMp = attackerJourneyCharacter?.CurrentMp
+                    ?? attackerSceneCharacter?.CurrentMp
+                    ?? 0;
+                if (currentMp < spell.MpCost)
+                {
+                    return Result<SceneAttackResultDto>.Fail(new Error(
+                        "ScenePlaythrough.InsufficientMp",
+                        "The participant does not have enough MP to cast this spell."));
+                }
+
+                if (attackerJourneyCharacter is not null)
+                    attackerJourneyCharacter.CurrentMp -= spell.MpCost;
+                else
+                    attackerSceneCharacter!.CurrentMp -= spell.MpCost;
+
+                baseDamage = spell.DamageEffect.Value;
+                attackLabel = spell.Name;
+                break;
+
+            default:
+                return InvalidAttackType("The selected attack type is invalid.");
+        }
+
+        var damage = (int)Math.Min(int.MaxValue, (long)baseDamage + roll);
+        var targetCurrentHp = targetJourneyCharacter?.CurrentHp
+            ?? targetSceneCharacter?.CurrentHp
+            ?? 0;
+        var remainingHp = Math.Max(0, targetCurrentHp - damage);
+
+        if (targetJourneyCharacter is not null)
+            targetJourneyCharacter.CurrentHp = remainingHp;
+        else
+            targetSceneCharacter!.CurrentHp = remainingHp;
+
+        AddEvent(
+            scene,
+            $"{attackerName} hit {targetName} with {attackLabel} for {damage} damage");
+
+        var targetDefeated = remainingHp == 0;
+        if (targetDefeated && targetJourneyCharacter is not null)
+        {
+            targetJourneyCharacter.IsDown = true;
+            target.DownedTurnsRemaining = DownedScheduledTurns;
+            AddEvent(scene, $"{targetName} was downed");
+        }
+        else if (targetDefeated && targetSceneCharacter is not null)
+        {
+            targetSceneCharacter.IsDead = true;
+            targetSceneCharacter.IsActive = false;
+            scene.SceneParticipants.Remove(target);
+            AddEvent(scene, $"{targetName} was defeated");
+        }
+
+        string? rewardStat = null;
+        var rewardAmount = 0;
+        if (targetDefeated &&
+            attacker.ParticipantType == ParticipantType.Player &&
+            target.ParticipantType == ParticipantType.Enemy &&
+            attackerJourneyCharacter is not null)
+        {
+            var rewardHp = RandomNumberGenerator.GetInt32(2) == 0;
+            if (rewardHp)
+            {
+                rewardStat = "HP";
+                var previousHp = attackerJourneyCharacter.CurrentHp;
+                attackerJourneyCharacter.CurrentHp = (int)Math.Min(
+                    attackerJourneyCharacter.MaxHp,
+                    (long)previousHp + 4);
+                rewardAmount = attackerJourneyCharacter.CurrentHp - previousHp;
+            }
+            else
+            {
+                rewardStat = "MP";
+                var previousMp = attackerJourneyCharacter.CurrentMp;
+                attackerJourneyCharacter.CurrentMp = (int)Math.Min(
+                    attackerJourneyCharacter.MaxMp,
+                    (long)previousMp + 4);
+                rewardAmount = attackerJourneyCharacter.CurrentMp - previousMp;
+            }
+
+            AddEvent(
+                scene,
+                rewardAmount > 0
+                    ? $"{attackerName} gained {rewardAmount} {rewardStat}"
+                    : $"{attackerName} received an {rewardStat} reward but was already at maximum");
+        }
+
+        AdvanceTurn(scene, attacker);
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Result<SceneAttackResultDto>.Ok(new SceneAttackResultDto
+        {
+            Damage = damage,
+            TargetCurrentHp = remainingHp,
+            TargetDefeated = targetDefeated,
+            RewardStat = rewardStat,
+            RewardAmount = rewardAmount
+        });
+
+        static Result<SceneAttackResultDto> InvalidAttackType(string message) =>
+            Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.InvalidAttackType", message));
+
+        static Result<SceneAttackResultDto> AttackUnavailable(string message) =>
+            Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.AttackUnavailable", message));
+    }
+
+    public async Task<Result<SceneOpenChestResultDto>> OpenChestAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int chestId,
+        int roll,
+        CancellationToken ct)
+    {
+        if (roll is < 1 or > 6)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.InvalidChestRoll",
+                "The chest roll must be between 1 and 6."));
+        }
+
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId, playthroughId, sceneId, ct);
+        var stateError = ValidateManageableScene(scene);
+        if (stateError is not null)
+            return Result<SceneOpenChestResultDto>.Fail(stateError);
+
+        var participant = scene!.SceneParticipants.SingleOrDefault(
+            candidate => candidate.Id == participantId);
+        if (participant is null)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.ParticipantNotFound",
+                "The scene participant was not found."));
+        }
+
+        if (scene.CurrentParticipantId != participant.Id || !participant.IsActive)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.NotCurrentTurn",
+                "Only the active current participant can open a chest."));
+        }
+
+        var character = participant.JourneyPlaythroughCharacter;
+        if (participant.ParticipantType != ParticipantType.Player || character is null)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.ChestUnavailable",
+                "Only a player can open a chest."));
+        }
+
+        if (character.IsDown)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.ChestUnavailable",
+                "A downed player cannot open a chest."));
+        }
+
+        var chest = scene.SceneChests.SingleOrDefault(candidate => candidate.Id == chestId);
+        if (chest is null)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.ChestNotFound",
+                "The scene chest was not found."));
+        }
+
+        if (chest.Status != ChestStatus.Unopened)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.ChestAlreadyOpened",
+                "This chest has already been opened."));
+        }
+
+        if (roll > chest.DieSides)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.InvalidChestRoll",
+                $"The selected chest uses a d{chest.DieSides}."));
+        }
+
+        var lootEntry = chest.ChestLootEntries
+            .Where(entry => roll >= entry.RollMinimum && roll <= entry.RollMaximum)
+            .OrderBy(entry => entry.RollMinimum)
+            .ThenBy(entry => entry.Id)
+            .FirstOrDefault();
+        if (lootEntry is null)
+        {
+            return Result<SceneOpenChestResultDto>.Fail(new Error(
+                "ScenePlaythrough.ChestLootNotConfigured",
+                $"No loot is configured for a roll of {roll}."));
+        }
+
+        var isEquippable = lootEntry.PlaythroughEquippableItem is not null;
+        var item = isEquippable
+            ? lootEntry.PlaythroughEquippableItem!.ToLootItemDto()
+            : lootEntry.PlaythroughConsumableItem!.ToLootItemDto();
+
+        var currentInventoryCount = isEquippable
+            ? character.EquippableItems.Count
+            : character.ConsumableItems.Count(itemLink => !itemLink.IsUsed);
+        var inventoryLimit = isEquippable
+            ? character.MaxEquippableInventory
+            : character.MaxConsumableInventory;
+        if ((long)currentInventoryCount + lootEntry.Quantity > inventoryLimit)
+        {
+            var inventoryType = isEquippable ? "equippable" : "consumable";
+            AddEvent(
+                scene,
+                $"{character.PlaythroughCharacter.Name} rolled {lootEntry.Quantity} x {item.Name} from {chest.Name}, but their {inventoryType} inventory was full and they forfeited their action");
+            AdvanceTurn(scene, participant);
+
+            await playthroughRepository.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+
+            return Result<SceneOpenChestResultDto>.Ok(new SceneOpenChestResultDto
+            {
+                ChestId = chest.Id,
+                ChestName = chest.Name,
+                Roll = roll,
+                Quantity = lootEntry.Quantity,
+                IsEquippable = isEquippable,
+                Awarded = false,
+                Item = item
+            });
+        }
+
+        for (var quantity = 0; quantity < lootEntry.Quantity; quantity++)
+        {
+            if (isEquippable)
+            {
+                character.EquippableItems.Add(new JourneyPTCharacterEquippableItem
+                {
+                    IsEquipped = false,
+                    PlaythroughEquippableItemId = item.Id
+                });
+            }
+            else
+            {
+                character.ConsumableItems.Add(new JourneyPTCharacterConsumableItem
+                {
+                    IsUsed = false,
+                    PlaythroughConsumableItemId = item.Id
+                });
+            }
+        }
+
+        chest.Status = ChestStatus.Opened;
+        chest.RolledValue = roll;
+        chest.OpenedAt = DateTime.UtcNow;
+        chest.SelectedLootEntry = lootEntry;
+        chest.SelectedLootEntryId = lootEntry.Id;
+
+        var characterName = character.PlaythroughCharacter.Name;
+        AddEvent(
+            scene,
+            $"{characterName} opened {chest.Name} with a roll of {roll} and received {lootEntry.Quantity} x {item.Name}");
+        AdvanceTurn(scene, participant);
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Result<SceneOpenChestResultDto>.Ok(new SceneOpenChestResultDto
+        {
+            ChestId = chest.Id,
+            ChestName = chest.Name,
+            Roll = roll,
+            Quantity = lootEntry.Quantity,
+            IsEquippable = isEquippable,
+            Awarded = true,
+            Item = item
+        });
+    }
+
+    public async Task<Result> TradeItemAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int targetParticipantId,
+        int inventoryItemId,
+        bool isEquippable,
+        CancellationToken ct)
+    {
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId, playthroughId, sceneId, ct);
+        var stateError = ValidateManageableScene(scene);
+        if (stateError is not null)
+            return Result.Fail(stateError);
+
+        var participant = scene!.SceneParticipants.SingleOrDefault(
+            candidate => candidate.Id == participantId);
+        var targetParticipant = scene.SceneParticipants.SingleOrDefault(
+            candidate => candidate.Id == targetParticipantId);
+        if (participant is null || targetParticipant is null)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.ParticipantNotFound",
+                "A trade participant was not found."));
+        }
+
+        if (scene.CurrentParticipantId != participant.Id || !participant.IsActive)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.NotCurrentTurn",
+                "Only the active current participant can trade an item."));
+        }
+
+        var character = participant.JourneyPlaythroughCharacter;
+        var targetCharacter = targetParticipant.JourneyPlaythroughCharacter;
+        if (participant.ParticipantType != ParticipantType.Player ||
+            targetParticipant.ParticipantType != ParticipantType.Player ||
+            character is null ||
+            targetCharacter is null ||
+            targetParticipant.Id == participant.Id ||
+            !targetParticipant.IsActive ||
+            character.IsDown)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.TradeUnavailable",
+                "Items can only be traded between two active player participants."));
+        }
+
+        string itemName;
+        string sourceName;
+        string destinationName;
+
+        if (isEquippable)
+        {
+            var itemLink = character.EquippableItems.SingleOrDefault(
+                link => link.Id == inventoryItemId);
+            var sourceCharacter = character;
+            var destinationCharacter = targetCharacter;
+
+            if (itemLink is null)
+            {
+                itemLink = targetCharacter.EquippableItems.SingleOrDefault(
+                    link => link.Id == inventoryItemId);
+                sourceCharacter = targetCharacter;
+                destinationCharacter = character;
+            }
+
+            if (itemLink is null)
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.TradeItemNotFound",
+                    "The equippable inventory item was not found."));
+            }
+
+            if (itemLink.IsEquipped)
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.TradeItemEquipped",
+                    "An equipped item must be unequipped before it can be traded."));
+            }
+
+            if (destinationCharacter.EquippableItems.Count >=
+                destinationCharacter.MaxEquippableInventory)
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.TradeInventoryFull",
+                    "The receiving player's equippable inventory is full."));
+            }
+
+            sourceCharacter.EquippableItems.Remove(itemLink);
+            itemLink.JourneyPTCharacterId = destinationCharacter.Id;
+            itemLink.JourneyPTCharacter = destinationCharacter;
+            destinationCharacter.EquippableItems.Add(itemLink);
+
+            itemName = itemLink.PlaythroughEquippableItem.Name;
+            sourceName = sourceCharacter.PlaythroughCharacter.Name;
+            destinationName = destinationCharacter.PlaythroughCharacter.Name;
+        }
+        else
+        {
+            var itemLink = character.ConsumableItems.SingleOrDefault(
+                link => link.Id == inventoryItemId && !link.IsUsed);
+            var sourceCharacter = character;
+            var destinationCharacter = targetCharacter;
+
+            if (itemLink is null)
+            {
+                itemLink = targetCharacter.ConsumableItems.SingleOrDefault(
+                    link => link.Id == inventoryItemId && !link.IsUsed);
+                sourceCharacter = targetCharacter;
+                destinationCharacter = character;
+            }
+
+            if (itemLink is null)
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.TradeItemNotFound",
+                    "The consumable inventory item was not found."));
+            }
+
+            if (destinationCharacter.ConsumableItems.Count(link => !link.IsUsed) >=
+                destinationCharacter.MaxConsumableInventory)
+            {
+                return Result.Fail(new Error(
+                    "ScenePlaythrough.TradeInventoryFull",
+                    "The receiving player's consumable inventory is full."));
+            }
+
+            sourceCharacter.ConsumableItems.Remove(itemLink);
+            itemLink.JourneyPTCharacterId = destinationCharacter.Id;
+            itemLink.JourneyPTCharacter = destinationCharacter;
+            destinationCharacter.ConsumableItems.Add(itemLink);
+
+            itemName = itemLink.PlaythroughConsumableItem.Name;
+            sourceName = sourceCharacter.PlaythroughCharacter.Name;
+            destinationName = destinationCharacter.PlaythroughCharacter.Name;
+        }
+
+        AddEvent(scene, $"{sourceName} traded {itemName} to {destinationName}");
+        AdvanceTurn(scene, participant);
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Result.Ok();
     }
 
     public async Task<Result> ForfeitActionAsync(
@@ -632,10 +1243,74 @@ public sealed class ScenePlaythroughService(
             return;
         }
 
-        var nextIndex = (currentIndex + 1) % participants.Count;
-        if (nextIndex == 0)
-            scene.RoundNumber++;
+        for (var offset = 1; offset <= participants.Count; offset++)
+        {
+            var nextIndex = (currentIndex + offset) % participants.Count;
+            if (nextIndex == 0)
+                scene.RoundNumber++;
 
-        scene.CurrentParticipant = participants[nextIndex];
+            var candidate = participants[nextIndex];
+            if (!PrepareForScheduledTurn(scene, candidate))
+                continue;
+
+            scene.CurrentParticipant = candidate;
+            return;
+        }
+
+        scene.CurrentParticipant = null;
+    }
+
+    private static bool PrepareForScheduledTurn(
+        ScenePT scene,
+        ScenePTParticipant participant)
+    {
+        var journeyCharacter = participant.JourneyPlaythroughCharacter;
+        if (journeyCharacter?.IsDown != true)
+            return participant.ScenePlaythroughCharacter?.IsDead != true;
+
+        var turnsRemaining = participant.DownedTurnsRemaining
+            ?? DownedScheduledTurns;
+        turnsRemaining--;
+        participant.DownedTurnsRemaining = Math.Max(0, turnsRemaining);
+
+        if (turnsRemaining > 0)
+            return false;
+
+        journeyCharacter.CurrentHp = 1;
+        journeyCharacter.IsDown = false;
+        participant.DownedTurnsRemaining = null;
+        AddEvent(
+            scene,
+            $"{journeyCharacter.PlaythroughCharacter.Name} recovered with 1 HP");
+        return true;
+    }
+
+    private static bool IsValidAttackTarget(
+        ScenePTParticipant attacker,
+        ScenePTParticipant target)
+    {
+        if (attacker.Id == target.Id || !target.IsActive)
+            return false;
+
+        if (target.JourneyPlaythroughCharacter?.IsDown == true ||
+            target.ScenePlaythroughCharacter?.IsDead == true)
+        {
+            return false;
+        }
+
+        return attacker.ParticipantType == ParticipantType.Enemy
+            ? target.ParticipantType is ParticipantType.Player or ParticipantType.NPC
+            : target.ParticipantType == ParticipantType.Enemy;
+    }
+
+    private static IEnumerable<PlaythroughSpell> GetSpells(
+        ScenePTParticipant participant)
+    {
+        if (participant.JourneyPlaythroughCharacter is { } journeyCharacter)
+            return journeyCharacter.Spells.Select(link => link.PlaythroughSpell);
+
+        return participant.ScenePlaythroughCharacter?.Spells
+            .Select(link => link.PlaythroughSpell)
+            ?? [];
     }
 }

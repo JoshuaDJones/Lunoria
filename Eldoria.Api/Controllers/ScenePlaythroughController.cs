@@ -51,6 +51,21 @@ public sealed class ScenePlaythroughController(
         return await CompleteMutationAsync(result, playthroughId, "SceneStarted", ct);
     }
 
+    [HttpPost("end")]
+    public async Task<IActionResult> End(
+        int playthroughId,
+        int sceneId,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.EndAsync(
+            User.GetUserId(),
+            playthroughId,
+            sceneId,
+            ct);
+
+        return await CompleteMutationAsync(result, playthroughId, "SceneEnded", ct);
+    }
+
     [HttpPost("participants/scene-characters/{scenePlaythroughCharacterId:int}")]
     public async Task<IActionResult> AddSceneCharacterInstance(
         int playthroughId,
@@ -154,6 +169,87 @@ public sealed class ScenePlaythroughController(
             result, playthroughId, "ActionForfeited", ct);
     }
 
+    [HttpPost("participants/{participantId:int}/attack")]
+    public async Task<ActionResult<SceneAttackResultDto>> Attack(
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        [FromBody] ResolveSceneAttackRequest request,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.AttackAsync(
+            User.GetUserId(),
+            playthroughId,
+            sceneId,
+            participantId,
+            request.TargetParticipantId,
+            request.AttackType,
+            request.Roll,
+            request.PlaythroughSpellId,
+            ct);
+
+        if (result.Success)
+        {
+            await realtimeNotifier.NotifyUpdatedAsync(
+                playthroughId, "AttackResolved", ct);
+            return Ok(result.Value);
+        }
+
+        return ToError(result.Error);
+    }
+
+    [HttpPost("participants/{participantId:int}/chests/{chestId:int}/open")]
+    public async Task<ActionResult<SceneOpenChestResultDto>> OpenChest(
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        int chestId,
+        [FromBody] OpenSceneChestRequest request,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.OpenChestAsync(
+            User.GetUserId(),
+            playthroughId,
+            sceneId,
+            participantId,
+            chestId,
+            request.Roll,
+            ct);
+
+        if (result.Success)
+        {
+            var chestResult = result.Value!;
+            await realtimeNotifier.NotifyUpdatedAsync(
+                playthroughId,
+                chestResult.Awarded ? "ChestOpened" : "ActionForfeited",
+                ct);
+            return Ok(chestResult);
+        }
+
+        return ToError(result.Error);
+    }
+
+    [HttpPost("participants/{participantId:int}/trade")]
+    public async Task<IActionResult> TradeItem(
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        [FromBody] TradeSceneItemRequest request,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.TradeItemAsync(
+            User.GetUserId(),
+            playthroughId,
+            sceneId,
+            participantId,
+            request.TargetParticipantId,
+            request.InventoryItemId,
+            request.IsEquippable,
+            ct);
+
+        return await CompleteMutationAsync(result, playthroughId, "ItemTraded", ct);
+    }
+
     private async Task<IActionResult> CompleteMutationAsync(
         Result result,
         int playthroughId,
@@ -167,7 +263,7 @@ public sealed class ScenePlaythroughController(
         return NoContent();
     }
 
-    private IActionResult ToError(Error error) => error.Code switch
+    private ActionResult ToError(Error error) => error.Code switch
     {
         "ScenePlaythrough.NotFound" => NotFound(error),
         "ScenePlaythrough.AlreadyStarted" => Conflict(error),
@@ -179,6 +275,22 @@ public sealed class ScenePlaythroughController(
         "ScenePlaythrough.InvalidCharacterType" => BadRequest(error),
         "ScenePlaythrough.InvalidStats" => BadRequest(error),
         "ScenePlaythrough.InvalidMovementRoll" => BadRequest(error),
+        "ScenePlaythrough.InvalidAttackRoll" => BadRequest(error),
+        "ScenePlaythrough.InvalidAttackType" => BadRequest(error),
+        "ScenePlaythrough.InvalidAttackTarget" => BadRequest(error),
+        "ScenePlaythrough.AttackUnavailable" => Conflict(error),
+        "ScenePlaythrough.SpellNotFound" => NotFound(error),
+        "ScenePlaythrough.InsufficientMp" => Conflict(error),
+        "ScenePlaythrough.InvalidChestRoll" => BadRequest(error),
+        "ScenePlaythrough.ChestNotFound" => NotFound(error),
+        "ScenePlaythrough.ChestAlreadyOpened" => Conflict(error),
+        "ScenePlaythrough.ChestUnavailable" => Conflict(error),
+        "ScenePlaythrough.ChestLootNotConfigured" => Conflict(error),
+        "ScenePlaythrough.InventoryFull" => Conflict(error),
+        "ScenePlaythrough.TradeUnavailable" => Conflict(error),
+        "ScenePlaythrough.TradeItemNotFound" => NotFound(error),
+        "ScenePlaythrough.TradeItemEquipped" => Conflict(error),
+        "ScenePlaythrough.TradeInventoryFull" => Conflict(error),
         "ScenePlaythrough.NotCurrentTurn" => Conflict(error),
         "Playthrough.Completed" => Conflict(error),
         _ => BadRequest(error)

@@ -24,6 +24,152 @@
   }
 }
 
+@keyframes attack-overlay-life {
+  0% {
+    opacity: 0;
+  }
+
+  8%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes attack-target-impact {
+  0% {
+    transform: scale(0.92);
+  }
+
+  10%,
+  78% {
+    transform: scale(1);
+  }
+
+  84% {
+    transform: scale(0.98);
+  }
+
+  100% {
+    transform: scale(0.9);
+  }
+}
+
+@keyframes attack-slash-first {
+  0%,
+  8% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  9% {
+    opacity: 1;
+  }
+
+  36%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+}
+
+@keyframes attack-slash-second {
+  0%,
+  35% {
+    opacity: 0;
+    clip-path: inset(0 0 0 100%);
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  36% {
+    opacity: 1;
+  }
+
+  64%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+}
+
+@keyframes chest-loot-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.55);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+
+  70%,
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.attack-animation-overlay {
+  animation: attack-overlay-life 2s ease-in-out both;
+}
+
+.attack-animation-target {
+  animation: attack-target-impact 2s ease-in-out both;
+}
+
+.attack-animation-slash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  height: clamp(0.45rem, 2vw, 0.8rem);
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(127 29 29) 8%,
+    rgb(248 113 113) 38%,
+    rgb(254 226 226) 50%,
+    rgb(248 113 113) 62%,
+    rgb(127 29 29) 92%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 0.4rem rgb(254 202 202 / 90%),
+    0 0 1.1rem rgb(239 68 68 / 95%),
+    0 0 2rem rgb(127 29 29 / 80%);
+  transform-origin: center;
+}
+
+.attack-animation-slash-first {
+  animation: attack-slash-first 2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.attack-animation-slash-second {
+  animation: attack-slash-second 2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.chest-loot-reveal {
+  animation: chest-loot-reveal 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attack-animation-overlay,
+  .attack-animation-target,
+  .attack-animation-slash-first,
+  .attack-animation-slash-second,
+  .chest-loot-reveal {
+    animation-timing-function: linear;
+  }
+}
+
 @theme {
   --font-cinzel: "Cinzel", serif;
 
