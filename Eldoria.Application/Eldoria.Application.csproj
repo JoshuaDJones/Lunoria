@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.25.1" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
 

@@ -3,6 +3,8 @@ using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace Eldoria.Application.Services
 {
@@ -81,7 +83,17 @@ namespace Eldoria.Application.Services
             };
 
             await _seriesRepository.AddAsync(series, ct);
-            await _seriesRepository.SaveChangesAsync(ct);
+
+            try
+            {
+                await _seriesRepository.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException exception) when (IsDuplicateSeriesNameException(exception))
+            {
+                return Result<SeriesDto>.Fail(new Error(
+                    "Series.NameExists",
+                    "A series with that name already exists."));
+            }
 
             var dto = new SeriesDto
             {
@@ -105,36 +117,53 @@ namespace Eldoria.Application.Services
             IFormFile? photo,
             CancellationToken ct)
         {
-            var series = await _seriesRepository.GetForUserAsync(userId, id, ct);
+            name = name.Trim();
 
-            if (series is null)
+            var existingSeries = await _seriesRepository.GetForUserAsync(userId, id, ct);
+
+            if (existingSeries is null)
                 return Result<SeriesDto>.Fail(new Error("Series.NotFound", "Series was not found."));
 
-            series.Name = name;
-            series.Description = description;
-            series.UpdatedAt = DateTime.UtcNow;
+            var seriesWithRequestName = await _seriesRepository.GetSeriesByNameAsync(userId, name, ct);
+
+            if (seriesWithRequestName is not null && seriesWithRequestName.Id != id)
+                return Result<SeriesDto>.Fail(new Error("Series.NameExists", "A series with that name already exists."));
+
+            existingSeries.Name = name;
+            existingSeries.Description = description;
+            existingSeries.UpdatedAt = DateTime.UtcNow;
 
             if (photo is not null)
             {
-                if (!string.IsNullOrWhiteSpace(series.PhotoUrl))
-                    await _azureStorageBlob.DeletePhotoFromUrl(series.PhotoUrl);
+                if (!string.IsNullOrWhiteSpace(existingSeries.PhotoUrl))
+                    await _azureStorageBlob.DeletePhotoFromUrl(existingSeries.PhotoUrl);
 
-                (series.PhotoUrl, series.FileName) = await _azureStorageBlob.UploadPhoto(photo);
+                (existingSeries.PhotoUrl, existingSeries.FileName) = await _azureStorageBlob.UploadPhoto(photo);
             }
 
-            _seriesRepository.Update(series);
-            await _seriesRepository.SaveChangesAsync(ct);
+            _seriesRepository.Update(existingSeries);
+
+            try
+            {
+                await _seriesRepository.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException exception) when (IsDuplicateSeriesNameException(exception))
+            {
+                return Result<SeriesDto>.Fail(new Error(
+                    "Series.NameExists",
+                    "A series with that name already exists."));
+            }
 
             return Result<SeriesDto>.Ok(new SeriesDto
             {
-                Id = series.Id,
-                Name = series.Name,
-                Description = series.Description,
-                PhotoUrl = series.PhotoUrl,
-                FileName = series.FileName,
-                CreatedAt = series.CreatedAt,
-                UpdatedAt = series.UpdatedAt,
-                Journeys = [.. series.Journeys.Select(j => j.ToDto())]
+                Id = existingSeries.Id,
+                Name = existingSeries.Name,
+                Description = existingSeries.Description,
+                PhotoUrl = existingSeries.PhotoUrl,
+                FileName = existingSeries.FileName,
+                CreatedAt = existingSeries.CreatedAt,
+                UpdatedAt = existingSeries.UpdatedAt,
+                Journeys = [.. existingSeries.Journeys.Select(j => j.ToDto())]
             });
         }
 
@@ -153,5 +182,9 @@ namespace Eldoria.Application.Services
 
             return Result.Ok();
         }
+
+        private static bool IsDuplicateSeriesNameException(DbUpdateException exception) =>
+            exception.InnerException is SqlException { Number: 2601 or 2627 } sqlException &&
+            sqlException.Message.Contains("IX_Series_UserId_Name", StringComparison.Ordinal);
     }
 }
