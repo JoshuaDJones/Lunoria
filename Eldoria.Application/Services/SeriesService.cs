@@ -56,6 +56,12 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<SeriesDto>> CreateAsync(int userId, string name, string? description, IFormFile? photo, CancellationToken ct)
         {
+            name = name.Trim();
+
+            var existing = await _seriesRepository.GetSeriesByNameAsync(userId, name, ct);
+
+            if(existing is not null)
+                return Result<SeriesDto>.Fail(new Error("Series.NameExists", $"Series with name {name} already exists."));
 
             string? photoUrl  = null;
             string? fileName = null;

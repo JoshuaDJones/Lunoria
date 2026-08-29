@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { Sidebar } from ".";
 import BreakpointIndicator from "@/components/ui";
 
-const SHOW_BREAKPOINT_INDICATOR = false;
+const SHOW_BREAKPOINT_INDICATOR = true;
 
 interface AppLayoutProps {
   sidebar?: ReactNode;

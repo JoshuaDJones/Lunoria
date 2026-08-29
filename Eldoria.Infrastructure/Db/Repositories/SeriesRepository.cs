@@ -9,6 +9,10 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
+        public Task<Series?> GetSeriesByNameAsync(int userId, string name, CancellationToken ct) =>
+            _dbContext.Series.AsNoTracking().SingleOrDefaultAsync(series => series.UserId == userId && series.Name == name, ct);
+                
+
         public Task<List<Series>> ListForUserAsync(int userId, int skip, int take, CancellationToken ct) =>
             _dbContext.Series.AsNoTracking().Where(series => series.UserId == userId)
                 .OrderBy(series => series.Name).Skip(skip).Take(take).ToListAsync(ct);

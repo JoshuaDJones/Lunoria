@@ -43,7 +43,7 @@ export function HomePage() {
   const openConfirmDelete = async (series: Series) => {
     const confirmed = await confirm({
       title: `Delete series "${series.name}"?`,
-      message: "This action cannot be undone.",
+      message: "Deleting this series will delete all journeys, scenes, playthroughs and all related content. Are you sure you want to proceed? This action cannot be undone.",
       confirmLabel: "Delete",
       variant: "danger",
     });
