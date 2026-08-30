@@ -32,7 +32,7 @@ builder.Services.AddCors(options =>
                 "http://127.0.0.1:5174",
                 "http://192.168.0.153:5173",
                 "https://localhost:7121",
-                "https://ambitious-mud-06f2ad40f.6.azurestaticapps.net"])
+                "https://mango-hill-056fbd20f.7.azurestaticapps.net"])
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
