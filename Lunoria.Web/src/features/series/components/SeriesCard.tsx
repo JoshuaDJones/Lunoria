@@ -28,7 +28,7 @@ export function SeriesCard({
           value={new Intl.DateTimeFormat().format(new Date(series.createdAt))}
         />
       </StatGrid>
-      <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end">
+      <div className="mt-auto border-t border-border px-4 py-3 flex gap-2 justify-end flex-wrap">
         <Button
           onClick={(event) => {
             event.stopPropagation();
