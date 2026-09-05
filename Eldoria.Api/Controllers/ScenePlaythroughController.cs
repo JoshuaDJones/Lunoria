@@ -333,6 +333,7 @@ public sealed class ScenePlaythroughController(
         "ScenePlaythrough.TradeItemNotFound" => NotFound(error),
         "ScenePlaythrough.TradeInventoryFull" => Conflict(error),
         "ScenePlaythrough.NotCurrentTurn" => Conflict(error),
+        "ScenePlaythrough.EventExecutionFailed" => Conflict(error),
         "Playthrough.Completed" => Conflict(error),
         _ => BadRequest(error)
     };

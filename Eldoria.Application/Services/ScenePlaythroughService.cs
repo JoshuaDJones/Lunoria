@@ -57,6 +57,30 @@ public sealed class ScenePlaythroughService(
                 "The unstarted scene already has participants."));
         }
 
+        foreach (var sceneEvent in scene.SceneEvents.OrderBy(item => item.SortOrder))
+        {
+            sceneEvent.ExecutionStatus = SceneEventExecutionStatus.InProgress;
+            sceneEvent.StartedAt = DateTime.UtcNow;
+            sceneEvent.CompletedAt = null;
+            sceneEvent.ErrorMessage = null;
+
+            foreach (var action in sceneEvent.ScenePTActionEvents
+                .OrderBy(item => item.SortOrder))
+            {
+                var executionError = ExecuteSceneEventAction(scene, action);
+
+                if (executionError is not null)
+                {
+                    sceneEvent.ExecutionStatus = SceneEventExecutionStatus.Failed;
+                    sceneEvent.ErrorMessage = executionError.Message;
+                    return Result.Fail(executionError);
+                }
+            }
+
+            sceneEvent.ExecutionStatus = SceneEventExecutionStatus.Completed;
+            sceneEvent.CompletedAt = DateTime.UtcNow;
+        }
+
         var journeyParticipants = scene.Playthrough.JourneyCharacters
             .Where(character => character.IsActive)
             .OrderBy(character => character.SourceJourneyCharacterId)
@@ -73,10 +97,12 @@ public sealed class ScenePlaythroughService(
             scene,
             CharacterType.NPC,
             ParticipantType.NPC);
+
         var enemyParticipants = CreateSceneCharacterParticipants(
             scene,
             CharacterType.Enemy,
             ParticipantType.Enemy);
+
         var participants = journeyParticipants
             .Concat(npcParticipants)
             .Concat(enemyParticipants)
@@ -1341,6 +1367,338 @@ public sealed class ScenePlaythroughService(
             })
             .ToList();
     }
+
+    private static Error? ExecuteSceneEventAction(
+        ScenePT scene,
+        ScenePTActionEvent action)
+    {
+        return action.EventActionType switch
+        {
+            EventActionType.CharacterStatAdjustment =>
+                ExecuteCharacterStatAdjustment(scene, action),
+            EventActionType.CharacterAddSpell =>
+                ExecuteCharacterAddSpell(scene, action),
+            _ => EventExecutionError(
+                action,
+                $"Action type '{action.EventActionType}' is not supported.")
+        };
+    }
+
+    private static Error? ExecuteCharacterStatAdjustment(
+        ScenePT scene,
+        ScenePTActionEvent action)
+    {
+        var adjustment = action.CharacterStatAdjustmentAction;
+
+        if (adjustment is null)
+        {
+            return EventExecutionError(
+                action,
+                "The character-stat adjustment payload is missing.");
+        }
+
+        if (!Enum.IsDefined(adjustment.CharacterStatType) ||
+            !Enum.IsDefined(adjustment.AdjustmentOperation))
+        {
+            return EventExecutionError(
+                action,
+                "The character-stat adjustment contains an invalid type or operation.");
+        }
+
+        return ApplyToEventTargets(
+            scene,
+            action,
+            adjustment.PlaythroughCharacterId,
+            character => ApplyStatAdjustment(character, adjustment),
+            character => ApplyStatAdjustment(character, adjustment));
+    }
+
+    private static Error? ExecuteCharacterAddSpell(
+        ScenePT scene,
+        ScenePTActionEvent action)
+    {
+        var addSpell = action.CharacterAddSpellAction;
+
+        if (addSpell is null)
+        {
+            return EventExecutionError(
+                action,
+                "The character-add-spell payload is missing.");
+        }
+
+        if (addSpell.PlaythroughSpellId <= 0)
+        {
+            return EventExecutionError(
+                action,
+                "The spell target is invalid.");
+        }
+
+        return ApplyToEventTargets(
+            scene,
+            action,
+            addSpell.PlaythroughCharacterId,
+            character =>
+            {
+                if (character.Spells.All(item =>
+                    item.PlaythroughSpellId != addSpell.PlaythroughSpellId))
+                {
+                    character.Spells.Add(new JourneyPTCharacterSpell
+                    {
+                        SourceJourneyCharacterSpellId = null,
+                        PlaythroughSpellId = addSpell.PlaythroughSpellId
+                    });
+                }
+            },
+            character =>
+            {
+                if (character.Spells.All(item =>
+                    item.PlaythroughSpellId != addSpell.PlaythroughSpellId))
+                {
+                    character.Spells.Add(new ScenePTCharacterSpell
+                    {
+                        SourceSceneCharacterSpellId = null,
+                        PlaythroughSpellId = addSpell.PlaythroughSpellId
+                    });
+                }
+            });
+    }
+
+    private static Error? ApplyToEventTargets(
+        ScenePT scene,
+        ScenePTActionEvent action,
+        int? playthroughCharacterId,
+        Action<JourneyPTCharacter> applyToJourneyCharacter,
+        Action<ScenePTCharacter> applyToSceneCharacter)
+    {
+        switch (action.ActionTargetType)
+        {
+            case ActionTargetType.AllJourneyCharacters:
+                if (playthroughCharacterId is not null)
+                {
+                    return EventExecutionError(
+                        action,
+                        "An all-journey-characters action cannot specify a character.");
+                }
+
+                foreach (var character in scene.Playthrough.JourneyCharacters)
+                    applyToJourneyCharacter(character);
+                return null;
+
+            case ActionTargetType.SingleJourneyCharacter:
+            {
+                var targets = playthroughCharacterId is int characterId
+                    ? scene.Playthrough.JourneyCharacters.Where(character =>
+                        character.PlaythroughCharacterId == characterId).ToList()
+                    : [];
+
+                if (targets.Count != 1)
+                {
+                    return EventExecutionError(
+                        action,
+                        "The targeted journey character is missing or ambiguous.");
+                }
+
+                applyToJourneyCharacter(targets[0]);
+                return null;
+            }
+
+            case ActionTargetType.AllSceneCharacters:
+                if (playthroughCharacterId is not null)
+                {
+                    return EventExecutionError(
+                        action,
+                        "An all-scene-characters action cannot specify a character.");
+                }
+
+                foreach (var character in scene.SceneCharacters)
+                    applyToSceneCharacter(character);
+                return null;
+
+            case ActionTargetType.SingleSceneCharacter:
+            {
+                var targets = playthroughCharacterId is int characterId
+                    ? scene.SceneCharacters.Where(character =>
+                        character.PlaythroughCharacterId == characterId).ToList()
+                    : [];
+
+                if (targets.Count != 1)
+                {
+                    return EventExecutionError(
+                        action,
+                        "The targeted scene character is missing or ambiguous.");
+                }
+
+                applyToSceneCharacter(targets[0]);
+                return null;
+            }
+
+            default:
+                return EventExecutionError(
+                    action,
+                    $"Target type '{action.ActionTargetType}' is not supported.");
+        }
+    }
+
+    private static void ApplyStatAdjustment(
+        JourneyPTCharacter character,
+        PTCharacterStatAdjustmentAction adjustment)
+    {
+        switch (adjustment.CharacterStatType)
+        {
+            case CharacterStatType.CurrentHp:
+                character.CurrentHp = ApplyBoundedAdjustment(
+                    character.CurrentHp,
+                    adjustment,
+                    0,
+                    character.MaxHp);
+                character.IsDown = character.CurrentHp == 0;
+                break;
+            case CharacterStatType.CurrentMp:
+                character.CurrentMp = ApplyBoundedAdjustment(
+                    character.CurrentMp,
+                    adjustment,
+                    0,
+                    character.MaxMp);
+                break;
+            case CharacterStatType.MaxHp:
+                character.MaxHp = ApplyBoundedAdjustment(
+                    character.MaxHp,
+                    adjustment,
+                    1,
+                    int.MaxValue);
+                character.CurrentHp = Math.Min(character.CurrentHp, character.MaxHp);
+                character.IsDown = character.CurrentHp == 0;
+                break;
+            case CharacterStatType.MaxMp:
+                character.MaxMp = ApplyBoundedAdjustment(
+                    character.MaxMp,
+                    adjustment,
+                    0,
+                    int.MaxValue);
+                character.CurrentMp = Math.Min(character.CurrentMp, character.MaxMp);
+                break;
+            case CharacterStatType.Movement:
+                character.Movement = ApplyBoundedAdjustment(
+                    character.Movement,
+                    adjustment,
+                    0,
+                    int.MaxValue);
+                break;
+            case CharacterStatType.MeleeAttackDamage:
+                character.MeleeAttackDamage = ApplyNullableAttackAdjustment(
+                    character.MeleeAttackDamage,
+                    adjustment);
+                break;
+            case CharacterStatType.BowAttackDamage:
+                character.BowAttackDamage = ApplyNullableAttackAdjustment(
+                    character.BowAttackDamage,
+                    adjustment);
+                break;
+        }
+    }
+
+    private static void ApplyStatAdjustment(
+        ScenePTCharacter character,
+        PTCharacterStatAdjustmentAction adjustment)
+    {
+        switch (adjustment.CharacterStatType)
+        {
+            case CharacterStatType.CurrentHp:
+                character.CurrentHp = ApplyBoundedAdjustment(
+                    character.CurrentHp,
+                    adjustment,
+                    0,
+                    character.MaxHp);
+                character.IsDead = character.CurrentHp == 0;
+                break;
+            case CharacterStatType.CurrentMp:
+                character.CurrentMp = ApplyBoundedAdjustment(
+                    character.CurrentMp,
+                    adjustment,
+                    0,
+                    character.MaxMp);
+                break;
+            case CharacterStatType.MaxHp:
+                character.MaxHp = ApplyBoundedAdjustment(
+                    character.MaxHp,
+                    adjustment,
+                    1,
+                    int.MaxValue);
+                character.CurrentHp = Math.Min(character.CurrentHp, character.MaxHp);
+                character.IsDead = character.CurrentHp == 0;
+                break;
+            case CharacterStatType.MaxMp:
+                character.MaxMp = ApplyBoundedAdjustment(
+                    character.MaxMp,
+                    adjustment,
+                    0,
+                    int.MaxValue);
+                character.CurrentMp = Math.Min(character.CurrentMp, character.MaxMp);
+                break;
+            case CharacterStatType.Movement:
+                character.Movement = ApplyBoundedAdjustment(
+                    character.Movement,
+                    adjustment,
+                    0,
+                    int.MaxValue);
+                break;
+            case CharacterStatType.MeleeAttackDamage:
+                character.MeleeAttackDamage = ApplyNullableAttackAdjustment(
+                    character.MeleeAttackDamage,
+                    adjustment);
+                break;
+            case CharacterStatType.BowAttackDamage:
+                character.BowAttackDamage = ApplyNullableAttackAdjustment(
+                    character.BowAttackDamage,
+                    adjustment);
+                break;
+        }
+    }
+
+    private static int? ApplyNullableAttackAdjustment(
+        int? currentValue,
+        PTCharacterStatAdjustmentAction adjustment)
+    {
+        if (currentValue is null &&
+            adjustment.AdjustmentOperation != AdjustmentOperation.Set)
+        {
+            return null;
+        }
+
+        return ApplyBoundedAdjustment(
+            currentValue ?? 0,
+            adjustment,
+            0,
+            int.MaxValue);
+    }
+
+    private static int ApplyBoundedAdjustment(
+        int currentValue,
+        PTCharacterStatAdjustmentAction adjustment,
+        int minimum,
+        int maximum)
+    {
+        var adjusted = adjustment.AdjustmentOperation switch
+        {
+            AdjustmentOperation.Add =>
+                (long)currentValue + adjustment.Value,
+            AdjustmentOperation.Subtract =>
+                (long)currentValue - adjustment.Value,
+            AdjustmentOperation.Set => adjustment.Value,
+            AdjustmentOperation.Multiply =>
+                (long)currentValue * adjustment.Value,
+            _ => currentValue
+        };
+
+        return (int)Math.Clamp(adjusted, minimum, maximum);
+    }
+
+    private static Error EventExecutionError(
+        ScenePTActionEvent action,
+        string reason) =>
+        new(
+            "ScenePlaythrough.EventExecutionFailed",
+            $"Scene event action '{action.Name}' could not be executed. {reason}");
 
     private static ScenePTCharacter CloneSceneCharacter(
         ScenePTCharacter sourceCharacter)
