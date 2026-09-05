@@ -14,6 +14,11 @@ import {
 } from "@/components/forms/ResourceForm";
 import { ApiLoadError, Button, Drawer } from "@/components/ui";
 import {
+  CharacterSelectionField,
+  CharacterType,
+  listCharacters,
+} from "@/features/characters";
+import {
   createDialogPage,
   createDialogPageSection,
   createSceneDialog,
@@ -48,8 +53,11 @@ const sectionFields: ResourceFormField[] = [
     type: "textarea",
     required: true,
   },
-  { name: "characterId", label: "Character ID", type: "number" },
   { name: "isNarrator", label: "Narrator", type: "checkbox" },
+  {
+    name: "characterId",
+    label: "Character",
+  },
 ];
 
 interface EditorColumnProps {
@@ -499,12 +507,41 @@ export function SceneDialogsPage() {
               characterId: String(editingSection?.character?.id ?? ""),
               isNarrator: editingSection?.isNarrator ?? false,
             }}
+            customFields={{
+              characterId: ({ field, value, values, setValue }) => {
+                const selectedId = Number(value);
+
+                return (
+                  <CharacterSelectionField
+                    id={field.name}
+                    selectedId={
+                      Number.isInteger(selectedId) && selectedId > 0
+                        ? selectedId
+                        : null
+                    }
+                    initialSelectedCharacter={editingSection?.character}
+                    pickerTitle="Choose dialog character"
+                    disabled={Boolean(values.isNarrator)}
+                    disabledMessage="Narrator sections do not use a character."
+                    loadCharacters={() =>
+                      listCharacters({ typeFilter: CharacterType.Any })
+                    }
+                    onChange={(characterId) =>
+                      setValue(characterId === null ? "" : String(characterId))
+                    }
+                  />
+                );
+              },
+            }}
             onSubmit={async (values) => {
+              const isNarrator = booleanValue(values, "isNarrator");
               const request = {
                 orderNum: numberValue(values, "orderNum"),
                 readingText: textValue(values, "readingText"),
-                characterId: nullableNumberValue(values, "characterId"),
-                isNarrator: booleanValue(values, "isNarrator"),
+                characterId: isNarrator
+                  ? null
+                  : nullableNumberValue(values, "characterId"),
+                isNarrator,
               };
 
               if (editingSection) {

@@ -11,9 +11,26 @@ const controlClasses =
 
 export function Input({
   className,
+  onWheel,
   ...props
 }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={twMerge(controlClasses, className)} {...props} />;
+  return (
+    <input
+      className={twMerge(controlClasses, className)}
+      onWheel={(event) => {
+        onWheel?.(event);
+
+        if (
+          !event.defaultPrevented &&
+          props.type === "number" &&
+          document.activeElement === event.currentTarget
+        ) {
+          event.currentTarget.blur();
+        }
+      }}
+      {...props}
+    />
+  );
 }
 
 export function Textarea({

@@ -118,5 +118,27 @@ namespace Eldoria.Api.Controllers
                 _ => BadRequest(result.Error)
             };
         }
+
+        [HttpGet("alternates")]
+        public async Task<ActionResult<List<CharacterDto>>> GetPossibleAlternateCharacters(
+            [FromQuery] CharacterType characterType,
+            [FromQuery] int? excludeCharacterId,
+            CancellationToken ct)
+        {
+            var result = await _characterService.GetAlternateCharactersList(
+                User.GetUserId(),
+                characterType,
+                excludeCharacterId,
+                ct);
+
+            if (result.Success)
+                return Ok(result.Value);
+
+            return result.Error?.Code switch
+            {
+                "Character.NotFound" => NotFound(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
     }
 }

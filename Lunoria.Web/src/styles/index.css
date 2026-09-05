@@ -208,6 +208,17 @@
     color-scheme: dark;
   }
 
+  input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+  }
+
   body {
     @apply m-0 min-w-80 bg-canvas font-cinzel text-content antialiased;
   }

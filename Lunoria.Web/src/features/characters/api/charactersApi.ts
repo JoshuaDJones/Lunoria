@@ -13,6 +13,11 @@ export interface ListCharactersParams {
   typeFilter?: CharacterType;
 }
 
+export interface ListAlternateCharactersParams {
+  characterType: CharacterType;
+  excludeCharacterId?: number;
+}
+
 export async function listCharacters(
   params: ListCharactersParams = {},
 ): Promise<Character[]> {
@@ -32,6 +37,15 @@ export async function listCharacters(
 
 export async function getCharacter(id: number): Promise<Character> {
   const { data } = await apiClient.get<Character>(`/Character/${id}`);
+  return data;
+}
+
+export async function listAlternateCharacters(
+  params: ListAlternateCharactersParams,
+): Promise<Character[]> {
+  const { data } = await apiClient.get<Character[]>("/Character/alternates", {
+    params,
+  });
   return data;
 }
 

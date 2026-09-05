@@ -22,9 +22,21 @@ export interface ResourceFormField {
   visibleWhen?: { field: string; value: FormValue };
 }
 
+export interface ResourceFormCustomFieldProps {
+  field: ResourceFormField;
+  value: FormValue | undefined;
+  values: FormValues;
+  setValue: (value: FormValue) => void;
+}
+
+export type ResourceFormCustomField = (
+  props: ResourceFormCustomFieldProps,
+) => ReactNode;
+
 interface ResourceFormProps {
   fields: ResourceFormField[];
   initialValues: FormValues;
+  customFields?: Record<string, ResourceFormCustomField | undefined>;
   existingPhotoUrl?: string;
   fallbackPhotoUrl?: string;
   requirePhoto?: boolean;
@@ -43,6 +55,7 @@ interface ResourceFormProps {
 export function ResourceForm({
   fields,
   initialValues,
+  customFields,
   existingPhotoUrl,
   fallbackPhotoUrl,
   requirePhoto,
@@ -119,6 +132,30 @@ export function ResourceForm({
         }
 
         const value = values[field.name];
+        const customField = customFields?.[field.name];
+
+        if (customField) {
+          return (
+            <div key={field.name}>
+              <span
+                id={`${field.name}-label`}
+                className="mb-2 block text-sm font-medium text-content-secondary"
+              >
+                {field.label}
+              </span>
+              {customField({
+                field,
+                value,
+                values,
+                setValue: (nextValue) =>
+                  setValues((current) => ({
+                    ...current,
+                    [field.name]: nextValue,
+                  })),
+              })}
+            </div>
+          );
+        }
 
         if (field.type === "checkbox") {
           return (
@@ -207,7 +244,15 @@ export function ResourceForm({
                 ))}
               </Select>
             ) : (
-              <Input {...commonProps} type={field.type ?? "text"} />
+              <Input
+                {...commonProps}
+                type={field.type ?? "text"}
+                className={
+                  field.type === "color"
+                    ? "h-12 cursor-pointer p-1 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0"
+                    : "bg-surface"
+                }
+              />
             )}
           </FormField>
         );

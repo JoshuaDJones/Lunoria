@@ -32,7 +32,7 @@ namespace Eldoria.Application.Services
             string dialogInActiveColor,
             CancellationToken ct)
         {
-            var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, ct);
+            var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, characterType, ct);
             if (alternateFormId.HasValue && alternateForm is null)
                 return InvalidAlternateForm();
 
@@ -139,7 +139,7 @@ namespace Eldoria.Application.Services
             if (alternateFormId == id)
                 return InvalidAlternateForm();
 
-            var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, ct);
+            var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, characterType, ct);
             if (alternateFormId.HasValue && alternateForm is null)
                 return InvalidAlternateForm();
 
@@ -179,21 +179,60 @@ namespace Eldoria.Application.Services
             return Result<CharacterDto>.Ok(character.ToDto());
         }
 
-        private Task<Character?> ResolveAlternateFormAsync(
+        public async Task<Result<List<CharacterDto>>> GetAlternateCharactersList(
             int userId,
-            int? alternateFormId,
+            CharacterType characterType,
+            int? excludeCharacterId,
             CancellationToken ct)
         {
-            return alternateFormId.HasValue
-                ? _characterRepository.GetByIdForUserAsync(userId, alternateFormId.Value, ct)
-                : Task.FromResult<Character?>(null);
+            if (!IsAlternateCharacterType(characterType))
+                return InvalidCharacterType();
+
+            var characters = await _characterRepository.GetCharactersForUserAsync(userId, null, null, characterType, ct);
+
+            return Result<List<CharacterDto>>.Ok([
+                .. characters
+                    .Where(c => !excludeCharacterId.HasValue || c.Id != excludeCharacterId.Value)
+                    .Select(c => c.ToDto())
+            ]);
+        }
+
+        private async Task<Character?> ResolveAlternateFormAsync(
+            int userId,
+            int? alternateFormId,
+            CharacterType characterType,
+            CancellationToken ct)
+        {
+            if (!alternateFormId.HasValue)
+                return null;
+
+            var alternateForm = await _characterRepository.GetByIdForUserAsync(
+                userId,
+                alternateFormId.Value,
+                ct);
+
+            return alternateForm?.CharacterType == characterType
+                ? alternateForm
+                : null;
+        }
+
+        private static bool IsAlternateCharacterType(CharacterType characterType)
+        {
+            return characterType is CharacterType.Player or CharacterType.NPC or CharacterType.Enemy;
         }
 
         private static Result<CharacterDto> InvalidAlternateForm()
         {
             return Result<CharacterDto>.Fail(new Error(
                 "Character.InvalidAlternateForm",
-                "The alternate form was not found or is not owned by the current user."));
+                "The alternate form was not found, is not owned by the current user, or has a different character type."));
+        }
+
+        private static Result<List<CharacterDto>> InvalidCharacterType()
+        {
+            return Result<List<CharacterDto>>.Fail(new Error(
+                "Character.InvalidType",
+                "Alternate characters must be players, NPCs, or enemies."));
         }
     }
 }

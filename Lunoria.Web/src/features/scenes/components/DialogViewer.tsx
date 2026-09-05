@@ -97,8 +97,8 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
           )}
 
           {sections.length > 0 && (
-            <div className="scrollbar-hide absolute inset-x-4 bottom-4 h-full py-10 space-y-3 overflow-y-auto sm:inset-x-[10%] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-5 w-[60%]">
+            <div className="scrollbar-hide absolute inset-4 overflow-y-auto py-10 sm:inset-x-[10%]">
+              <div className="mx-auto flex w-full flex-col items-center gap-5 sm:w-[80%] lg:w-[60%]">
                 {sections.map((section) => {
                   const speaker = section.isNarrator
                     ? "Narrator"

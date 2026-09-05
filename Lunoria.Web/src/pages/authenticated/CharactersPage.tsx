@@ -15,6 +15,7 @@ import { Stat, StatGrid } from "@/components/ui/StatGrid";
 import { useConfirmDialog, useModalStack, useToast } from "@/app/providers";
 import { getApiError } from "@/lib/apiClient";
 import {
+  AlternateCharacterField,
   CharacterGrid,
   CharacterSpellDrawer,
   CharacterType,
@@ -50,7 +51,18 @@ const fields: ResourceFormField[] = [
     type: "number",
     required: true,
   },
-  { name: "alternateFormId", label: "Alternate form ID", type: "number" },
+  {
+    name: "characterType",
+    label: "Character type",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Playable character", value: String(CharacterType.Player) },
+      { label: "NPC", value: String(CharacterType.NPC) },
+      { label: "Enemy", value: String(CharacterType.Enemy) },
+    ],
+  },
+  { name: "alternateFormId", label: "Alternate character" },
   {
     name: "dialogActiveColor",
     label: "Active dialog color",
@@ -62,17 +74,6 @@ const fields: ResourceFormField[] = [
     label: "Inactive dialog color",
     type: "color",
     required: true,
-  },
-  {
-    name: "characterType",
-    label: "Character type",
-    type: "radio",
-    required: true,
-    options: [
-      { label: "Playable character", value: String(CharacterType.Player) },
-      { label: "NPC", value: String(CharacterType.NPC) },
-      { label: "Enemy", value: String(CharacterType.Enemy) },
-    ],
   },
 ];
 
@@ -264,6 +265,28 @@ export function CharactersPage() {
               characterType: String(
                 editing?.characterType ?? CharacterType.Player,
               ),
+            }}
+            customFields={{
+              alternateFormId: ({ field, value, values, setValue }) => {
+                const selectedId = Number(value);
+
+                return (
+                  <AlternateCharacterField
+                    id={field.name}
+                    characterType={Number(values.characterType) as CharacterType}
+                    excludeCharacterId={editing?.id}
+                    selectedId={
+                      Number.isInteger(selectedId) && selectedId > 0
+                        ? selectedId
+                        : null
+                    }
+                    initialSelectedCharacter={editing?.alternateForm}
+                    onChange={(characterId) =>
+                      setValue(characterId === null ? "" : String(characterId))
+                    }
+                  />
+                );
+              },
             }}
             existingPhotoUrl={editing?.photoUrl}
             requirePhoto={!editing}

@@ -45,5 +45,11 @@ namespace Eldoria.Application.Services
             string dialogActiveColor,
             string dialogInActiveColor,
             CancellationToken ct);
+
+        Task<Result<List<CharacterDto>>> GetAlternateCharactersList(
+            int userId,
+            CharacterType characterType,
+            int? excludeCharacterId,
+            CancellationToken ct);
     }
 }
