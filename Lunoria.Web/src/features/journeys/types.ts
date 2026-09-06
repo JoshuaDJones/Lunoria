@@ -1,7 +1,6 @@
 import type { Character } from "@/features/characters/types";
-import type { EquippableItem } from "@/features/equipment/types";
 import type { Item } from "@/features/items/types";
-import type { Scene } from "@/features/scenes/types";
+import type { DialogPageType, Scene } from "@/features/scenes/types";
 import type { Spell } from "@/features/spells/types";
 
 export enum IntroPageType {
@@ -27,14 +26,6 @@ export interface JourneyCharacterItem {
   isUsed: boolean;
   itemId: number;
   item: Item;
-}
-
-export interface JourneyCharacterEquippableItem {
-  id: number;
-  journeyCharacterId: number;
-  equippableItemId: number;
-  isEquipped: boolean;
-  equippableItem: EquippableItem;
 }
 
 export interface JourneyCharacterSpell {
@@ -70,7 +61,6 @@ export interface JourneyCharacter {
   alternateForm: Character | null;
   character: Character;
   journeyCharacterItems: JourneyCharacterItem[];
-  journeyCharacterEquippableItems: JourneyCharacterEquippableItem[];
   journeyCharacterSpells: JourneyCharacterSpell[];
   effectiveMaxHp: number;
   effectiveMaxMp: number;
@@ -204,6 +194,8 @@ export interface ScenePlaythroughParticipant {
   sortOrderWithinType: number | null;
   isActive: boolean;
   isCurrentParticipant: boolean;
+  attacksPerTurn: number;
+  attacksRemaining: number;
   journeyPlaythroughCharacterId: number | null;
   scenePlaythroughCharacterId: number | null;
   playthroughCharacterId: number;
@@ -282,6 +274,7 @@ export interface ScenePlaythroughLootItem {
   maxMpModifier: number | null;
   maxConsumableInventoryModifier: number | null;
   maxEquippableInventoryModifier: number | null;
+  additionalAttacksPerTurn: number | null;
   meleeDamageReduction: number | null;
   bowDamageReduction: number | null;
   spellDamageReduction: number | null;
@@ -330,7 +323,9 @@ export interface ScenePlaythroughDialogSection {
 export interface ScenePlaythroughDialogPage {
   id: number;
   orderNum: number;
-  photoUrl: string | null;
+  pageType: DialogPageType;
+  mediaUrl: string;
+  mediaContentType: string;
   dialogPageSections: ScenePlaythroughDialogSection[];
 }
 

@@ -1,5 +1,6 @@
 using Eldoria.Application.Common;
 using Eldoria.Core.Entities;
+using Eldoria.Core.Enums;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
@@ -19,6 +20,13 @@ namespace Eldoria.Application.Services
 
             if (dialogPage is null)
                 return Result.Fail(new Error("DialogPage.NotFound", "Dialog page does not exist."));
+
+            if (dialogPage.PageType == DialogPageType.Video)
+            {
+                return Result.Fail(new Error(
+                    "DialogPage.VideoDoesNotSupportSections",
+                    "Video pages cannot contain dialog sections."));
+            }
 
             var character = characterId is not null
                 ? await _characterRepository.GetByIdForUserAsync(userId, characterId.Value, ct)

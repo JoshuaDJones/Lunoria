@@ -44,7 +44,7 @@ namespace Eldoria.Application.Services
             int mpEffect,
             CancellationToken ct)
         {
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+            var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
             var now = DateTime.UtcNow;
             var item = new ConsumableItem
             {
@@ -81,7 +81,7 @@ namespace Eldoria.Application.Services
             var oldPhotoUrl = item.PhotoUrl;
             if (photo is not null)
             {
-                var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
                 item.PhotoUrl = photoUrl;
                 item.FileName = fileName;
             }

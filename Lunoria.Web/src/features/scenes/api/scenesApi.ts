@@ -13,6 +13,7 @@ import type {
   SceneChestLootEntryInput,
   SceneDashboard,
   SceneDialog,
+  DialogPageType,
   SceneInput,
   SceneGridConfiguration,
   SceneGridInput,
@@ -407,17 +408,22 @@ export async function deleteSceneDialog(sceneDialogId: number): Promise<void> {
 export async function createDialogPage(
   sceneDialogId: number,
   orderNum: number,
-  photo: File,
+  pageType: DialogPageType,
+  media: File,
 ): Promise<void> {
   await apiClient.post(
     `/DialogPage/${sceneDialogId}`,
-    toFormData({ orderNum, photo }),
+    toFormData({ orderNum, pageType, media }),
   );
 }
 
 export async function updateDialogPage(
   dialogPageId: number,
-  input: { orderNum?: number | null; photo?: File },
+  input: {
+    orderNum?: number | null;
+    pageType?: DialogPageType;
+    media?: File;
+  },
 ): Promise<void> {
   await apiClient.put(`/DialogPage/${dialogPageId}`, toFormData(input));
 }

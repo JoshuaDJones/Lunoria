@@ -36,7 +36,7 @@ namespace Eldoria.Application.Services
             if (alternateFormId.HasValue && alternateForm is null)
                 return InvalidAlternateForm();
 
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+            var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
             var now = DateTime.UtcNow;
             var character = new Character
             {
@@ -146,7 +146,7 @@ namespace Eldoria.Application.Services
             var oldPhotoUrl = character.PhotoUrl;
             if (photo is not null)
             {
-                var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
                 character.PhotoUrl = photoUrl;
                 character.FileName = fileName;
             }

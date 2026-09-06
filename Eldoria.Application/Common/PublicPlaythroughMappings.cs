@@ -232,6 +232,7 @@ public static class PublicPlaythroughMappings
             MaxMpModifier = item.MaxMpModifier,
             MaxConsumableInventoryModifier = item.MaxConsumableInventoryModifier,
             MaxEquippableInventoryModifier = item.MaxEquippableInventoryModifier,
+            AdditionalAttacksPerTurn = item.AdditionalAttacksPerTurn,
             MeleeDamageReduction = item.MeleeDamageReduction,
             BowDamageReduction = item.BowDamageReduction,
             SpellDamageReduction = item.SpellDamageReduction,

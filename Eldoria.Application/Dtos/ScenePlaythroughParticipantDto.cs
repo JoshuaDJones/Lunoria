@@ -9,6 +9,8 @@ public sealed class ScenePlaythroughParticipantDto
     public int? SortOrderWithinType { get; set; }
     public bool IsActive { get; set; }
     public bool IsCurrentParticipant { get; set; }
+    public int AttacksPerTurn { get; set; }
+    public int AttacksRemaining { get; set; }
     public int? JourneyPlaythroughCharacterId { get; set; }
     public int? ScenePlaythroughCharacterId { get; set; }
     public int PlaythroughCharacterId { get; set; }

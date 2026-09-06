@@ -403,6 +403,7 @@ function EquipmentCard({ item }: { item: PublicPlaythroughEquippableItem }) {
     ["Max MP", item.maxMpModifier],
     ["Consumable slots", item.maxConsumableInventoryModifier],
     ["Equipment slots", item.maxEquippableInventoryModifier],
+    ["Additional attacks", item.additionalAttacksPerTurn],
     ["Melee reduction", item.meleeDamageReduction],
     ["Bow reduction", item.bowDamageReduction],
     ["Spell reduction", item.spellDamageReduction],

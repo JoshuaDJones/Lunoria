@@ -18,6 +18,8 @@ export interface ResourceFormField {
   type?:
     "text" | "textarea" | "number" | "color" | "checkbox" | "radio" | "select";
   required?: boolean;
+  min?: number;
+  max?: number;
   options?: { label: string; value: string }[];
   visibleWhen?: { field: string; value: FormValue };
 }
@@ -247,6 +249,8 @@ export function ResourceForm({
               <Input
                 {...commonProps}
                 type={field.type ?? "text"}
+                min={field.min}
+                max={field.max}
                 className={
                   field.type === "color"
                     ? "h-12 cursor-pointer p-1 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0"

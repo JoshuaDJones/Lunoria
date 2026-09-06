@@ -13,6 +13,7 @@ export interface EquippableItem {
   maxMpModifier: number;
   maxConsumableInventoryModifier: number;
   maxEquippableInventoryModifier: number;
+  additionalAttacksPerTurn: number;
   addedSpells: Spell[] | null;
   meleeDamageReduction: number;
   bowDamageReduction: number;
@@ -33,6 +34,7 @@ export interface EquippableItemInput {
   maxMpModifier: number;
   maxConsumableInventoryModifier: number;
   maxEquippableInventoryModifier: number;
+  additionalAttacksPerTurn: number;
   meleeDamageReduction: number;
   bowDamageReduction: number;
   spellDamageReduction: number;

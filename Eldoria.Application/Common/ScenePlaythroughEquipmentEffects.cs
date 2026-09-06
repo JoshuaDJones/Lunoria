@@ -15,6 +15,7 @@ public sealed class ScenePlaythroughEquipmentEffects
     public int MaxMpModifier { get; private set; }
     public int MaxConsumableInventoryModifier { get; private set; }
     public int MaxEquippableInventoryModifier { get; private set; }
+    public int AdditionalAttacksPerTurn { get; private set; }
     public int MeleeDamageReduction { get; private set; }
     public int BowDamageReduction { get; private set; }
     public int SpellDamageReduction { get; private set; }
@@ -25,6 +26,11 @@ public sealed class ScenePlaythroughEquipmentEffects
     {
         return AllSpellDamageModifier +
             spellDamageModifiersByType.GetValueOrDefault(spellTypeId);
+    }
+
+    public int GetAttacksPerTurn()
+    {
+        return Apply(1, AdditionalAttacksPerTurn, minimum: 1);
     }
 
     public static ScenePlaythroughEquipmentEffects For(
@@ -83,6 +89,7 @@ public sealed class ScenePlaythroughEquipmentEffects
                 item.MaxConsumableInventoryModifier;
             effects.MaxEquippableInventoryModifier +=
                 item.MaxEquippableInventoryModifier;
+            effects.AdditionalAttacksPerTurn += item.AdditionalAttacksPerTurn;
             effects.MeleeDamageReduction += item.MeleeDamageReduction;
             effects.BowDamageReduction += item.BowDamageReduction;
             effects.SpellDamageReduction += item.SpellDamageReduction;

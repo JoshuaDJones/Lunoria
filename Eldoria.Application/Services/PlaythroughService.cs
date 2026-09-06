@@ -271,6 +271,7 @@ public sealed class PlaythroughService(
                     equippable.MaxConsumableInventoryModifier,
                 MaxEquippableInventoryModifier =
                     equippable.MaxEquippableInventoryModifier,
+                AdditionalAttacksPerTurn = equippable.AdditionalAttacksPerTurn,
                 MeleeDamageReduction = equippable.MeleeDamageReduction,
                 BowDamageReduction = equippable.BowDamageReduction,
                 SpellDamageReduction = equippable.SpellDamageReduction,
@@ -451,21 +452,25 @@ public sealed class PlaythroughService(
                         {
                             SourceDialogPageId = page.Id,
                             OrderNum = page.OrderNum,
-                            PhotoUrl = page.PhotoUrl,
-                            FileName = page.FileName,
-                            DialogPageSections = [.. page.DialogPageSections
-                                .Select(section => new ScenePTDialogSection
-                                {
-                                    SourceDialogSectionId = section.Id,
-                                    OrderNum = section.OrderNum,
-                                    ReadingText = section.ReadingText,
-                                    IsNarrator = section.IsNarrator,
-                                    CreatedAt = section.CreatedAt,
-                                    UpdatedAt = section.UpdatedAt,
-                                    Character = section.CharacterId is int characterId
-                                        ? playthroughCharactersBySourceId[characterId]
-                                        : null
-                                })]
+                            PageType = page.PageType,
+                            MediaUrl = page.MediaUrl,
+                            MediaBlobName = page.MediaBlobName,
+                            MediaContentType = page.MediaContentType,
+                            DialogPageSections = page.PageType == DialogPageType.Image
+                                ? [.. page.DialogPageSections
+                                    .Select(section => new ScenePTDialogSection
+                                    {
+                                        SourceDialogSectionId = section.Id,
+                                        OrderNum = section.OrderNum,
+                                        ReadingText = section.ReadingText,
+                                        IsNarrator = section.IsNarrator,
+                                        CreatedAt = section.CreatedAt,
+                                        UpdatedAt = section.UpdatedAt,
+                                        Character = section.CharacterId is int characterId
+                                            ? playthroughCharactersBySourceId[characterId]
+                                            : null
+                                    })]
+                                : []
                         })]
                 })];
 
@@ -677,6 +682,30 @@ public sealed class PlaythroughService(
 
         foreach (var scene in journey.Scenes)
         {
+            foreach (var page in scene.SceneDialogs
+                .SelectMany(dialog => dialog.DialogPages))
+            {
+                if (!Enum.IsDefined(page.PageType))
+                    return Missing("dialog page type", (int)page.PageType);
+
+                if (string.IsNullOrWhiteSpace(page.MediaUrl) ||
+                    string.IsNullOrWhiteSpace(page.MediaBlobName) ||
+                    string.IsNullOrWhiteSpace(page.MediaContentType))
+                {
+                    return new Error(
+                        "Playthrough.InvalidSourceGraph",
+                        $"Dialog page {page.Id} does not have valid media.");
+                }
+
+                if (page.PageType == DialogPageType.Video &&
+                    page.DialogPageSections.Count > 0)
+                {
+                    return new Error(
+                        "Playthrough.InvalidSourceGraph",
+                        $"Video dialog page {page.Id} cannot contain dialog sections.");
+                }
+            }
+
             foreach (var sceneCharacter in scene.SceneCharacters)
             {
                 if (!characterIds.Contains(sceneCharacter.CharacterId))

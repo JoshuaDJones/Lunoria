@@ -116,6 +116,8 @@ public sealed class ScenePlaythroughService(
         scene.StartedAt = startedAt;
         scene.RoundNumber = 1;
         scene.CurrentParticipant = journeyParticipants.FirstOrDefault();
+        if (scene.CurrentParticipant is not null)
+            ResetAttacksForTurn(scene.CurrentParticipant);
         scene.Playthrough.EventLogs.Add(new PlaythroughEventLog
         {
             Message = $"Scene Started: {scene.Name}",
@@ -631,6 +633,13 @@ public sealed class ScenePlaythroughService(
                 "Only the active current participant can attack."));
         }
 
+        if (attacker.AttacksRemaining <= 0)
+        {
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.NoAttacksRemaining",
+                "This participant has no attacks remaining this turn."));
+        }
+
         if (attacker.JourneyPlaythroughCharacter?.IsDown == true ||
             attacker.ScenePlaythroughCharacter?.IsDead == true)
         {
@@ -822,7 +831,9 @@ public sealed class ScenePlaythroughService(
                     : $"{attackerName} received an {rewardStat} reward but was already at maximum");
         }
 
-        AdvanceTurn(scene, attacker);
+        attacker.AttacksRemaining--;
+        if (attacker.AttacksRemaining == 0)
+            AdvanceTurn(scene, attacker);
 
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
@@ -1905,6 +1916,7 @@ public sealed class ScenePlaythroughService(
         ScenePT scene,
         ScenePTParticipant currentParticipant)
     {
+        currentParticipant.AttacksRemaining = 0;
         var participants = scene.SceneParticipants
             .Where(participant => participant.IsActive)
             .OrderBy(participant => participant.ParticipantType)
@@ -1930,11 +1942,18 @@ public sealed class ScenePlaythroughService(
             if (!PrepareForScheduledTurn(scene, candidate))
                 continue;
 
+            ResetAttacksForTurn(candidate);
             scene.CurrentParticipant = candidate;
             return;
         }
 
         scene.CurrentParticipant = null;
+    }
+
+    private static void ResetAttacksForTurn(ScenePTParticipant participant)
+    {
+        participant.AttacksRemaining =
+            ScenePlaythroughEquipmentEffects.For(participant).GetAttacksPerTurn();
     }
 
     private static bool PrepareForScheduledTurn(

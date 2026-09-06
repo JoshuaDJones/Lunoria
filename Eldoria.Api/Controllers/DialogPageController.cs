@@ -8,13 +8,21 @@ namespace Eldoria.Api.Controllers
     [ApiController]
     public class DialogPageController(IDialogPageService dialogPageService) : ControllerBase
     {
+        private const long MaximumRequestBytes = 110 * 1024 * 1024;
         private readonly IDialogPageService _dialogPageService = dialogPageService;
 
         [HttpPost("{sceneDialogId:int}")]
         [Consumes("multipart/form-data")]
+        [RequestSizeLimit(MaximumRequestBytes)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaximumRequestBytes)]
         public async Task<IActionResult> Create(int sceneDialogId, [FromForm] CreateDialogPageRequest req, CancellationToken ct)
         {
-            var result = await _dialogPageService.CreateDialogPageAsync(sceneDialogId, req.OrderNum!.Value, req.Photo, ct);
+            var result = await _dialogPageService.CreateDialogPageAsync(
+                sceneDialogId,
+                req.OrderNum!.Value,
+                req.PageType!.Value,
+                req.Media,
+                ct);
 
             if (result.Success)
                 return Ok();
@@ -28,9 +36,16 @@ namespace Eldoria.Api.Controllers
 
         [HttpPut("{dialogPageId:int}")]
         [Consumes("multipart/form-data")]
+        [RequestSizeLimit(MaximumRequestBytes)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaximumRequestBytes)]
         public async Task<IActionResult> Update(int dialogPageId, [FromForm] UpdateDialogPageRequest req, CancellationToken ct)
         {
-            var result = await _dialogPageService.EditDialogPageAsync(dialogPageId, req.OrderNum, req.Photo, ct);
+            var result = await _dialogPageService.EditDialogPageAsync(
+                dialogPageId,
+                req.OrderNum,
+                req.PageType,
+                req.Media,
+                ct);
 
             if (result.Success)
                 return Ok();

@@ -17,6 +17,7 @@ public sealed class PlaythroughEquippableItemConfig : IEntityTypeConfiguration<P
         builder.Property(x => x.Description).IsRequired().HasMaxLength(250);
         builder.Property(x => x.PhotoUrl).IsRequired().HasMaxLength(2048);
         builder.Property(x => x.FileName).IsRequired().HasMaxLength(250);
+        builder.Property(x => x.AdditionalAttacksPerTurn).IsRequired();
 
         builder.HasOne(x => x.Playthrough)
             .WithMany(x => x.EquippableItems)

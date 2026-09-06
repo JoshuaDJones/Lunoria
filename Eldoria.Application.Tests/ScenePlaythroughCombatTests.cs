@@ -150,6 +150,54 @@ public sealed class ScenePlaythroughCombatTests
     }
 
     [Fact]
+    public async Task AdditionalAttack_KeepsTurnUntilAllowanceIsSpent()
+    {
+        var repository = CreateRepository(out _);
+        var attacker = PlayerParticipant(
+            id: 1,
+            name: "Rogue",
+            currentHp: 10,
+            currentMp: 5,
+            meleeDamage: 2);
+        var dagger = new PlaythroughEquippableItem
+        {
+            Id = 50,
+            Name = "Dagger",
+            AdditionalAttacksPerTurn = 1
+        };
+        attacker.JourneyPlaythroughCharacter!.EquippableItems.Add(
+            EquippedJourneyItem(501, dagger));
+        attacker.AttacksRemaining = 2;
+
+        var target = SceneParticipant(
+            id: 2,
+            name: "Training Dummy",
+            ParticipantType.Enemy,
+            currentHp: 20);
+        var scene = Scene(attacker, target);
+        repository.GetSceneForCharacterInstanceAddAsync(7, 8, 9, Ct)
+            .Returns(scene);
+        var service = new ScenePlaythroughService(repository);
+
+        var firstAttack = await service.AttackAsync(
+            7, 8, 9, attacker.Id, target.Id,
+            SceneAttackType.Melee, 1, null, Ct);
+
+        Assert.True(firstAttack.Success);
+        Assert.Equal(1, attacker.AttacksRemaining);
+        Assert.Same(attacker, scene.CurrentParticipant);
+
+        var secondAttack = await service.AttackAsync(
+            7, 8, 9, attacker.Id, target.Id,
+            SceneAttackType.Melee, 1, null, Ct);
+
+        Assert.True(secondAttack.Success);
+        Assert.Equal(0, attacker.AttacksRemaining);
+        Assert.Same(target, scene.CurrentParticipant);
+        Assert.Equal(1, target.AttacksRemaining);
+    }
+
+    [Fact]
     public async Task DownedPlayer_RecoversOnFifthScheduledTurn()
     {
         var repository = CreateRepository(out _);

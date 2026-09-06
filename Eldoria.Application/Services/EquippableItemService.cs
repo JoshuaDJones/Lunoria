@@ -59,7 +59,7 @@ namespace Eldoria.Application.Services
             if (references.Error is not null)
                 return Result<EquippableItemDto>.Fail(references.Error);
 
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(input.Photo);
+            var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(input.Photo);
             var now = DateTime.UtcNow;
 
             var item = new EquippableItem
@@ -101,7 +101,7 @@ namespace Eldoria.Application.Services
 
             if (input.Photo is not null)
             {
-                var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(input.Photo);
+                var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(input.Photo);
                 item.PhotoUrl = photoUrl;
                 item.FileName = fileName;
             }
@@ -195,6 +195,7 @@ namespace Eldoria.Application.Services
             item.MaxMpModifier = input.MaxMpModifier;
             item.MaxConsumableInventoryModifier = input.MaxConsumableInventoryModifier;
             item.MaxEquippableInventoryModifier = input.MaxEquippableInventoryModifier;
+            item.AdditionalAttacksPerTurn = input.AdditionalAttacksPerTurn;
             item.MeleeDamageReduction = input.MeleeDamageReduction;
             item.BowDamageReduction = input.BowDamageReduction;
             item.SpellDamageReduction = input.SpellDamageReduction;

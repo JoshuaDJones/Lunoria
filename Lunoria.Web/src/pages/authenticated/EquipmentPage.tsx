@@ -62,6 +62,13 @@ const fields: ResourceFormField[] = [
     type: "number",
   },
   {
+    name: "additionalAttacksPerTurn",
+    label: "Additional attacks per turn",
+    type: "number",
+    min: 0,
+    max: 4,
+  },
+  {
     name: "meleeDamageReduction",
     label: "Melee damage reduction",
     type: "number",
@@ -270,6 +277,9 @@ export function EquipmentPage() {
               maxEquippableInventoryModifier: String(
                 editing?.maxEquippableInventoryModifier ?? 0,
               ),
+              additionalAttacksPerTurn: String(
+                editing?.additionalAttacksPerTurn ?? 0,
+              ),
               meleeDamageReduction: String(editing?.meleeDamageReduction ?? 0),
               bowDamageReduction: String(editing?.bowDamageReduction ?? 0),
               spellDamageReduction: String(editing?.spellDamageReduction ?? 0),
@@ -300,6 +310,10 @@ export function EquipmentPage() {
                 maxEquippableInventoryModifier: numberValue(
                   values,
                   "maxEquippableInventoryModifier",
+                ),
+                additionalAttacksPerTurn: numberValue(
+                  values,
+                  "additionalAttacksPerTurn",
                 ),
                 meleeDamageReduction: numberValue(
                   values,

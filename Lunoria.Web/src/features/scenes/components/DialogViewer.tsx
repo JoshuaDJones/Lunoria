@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui";
+import { DialogPageType } from "@/features/scenes/types";
 
 export interface DialogViewerDialog {
   title: string;
   dialogPages: Array<{
     id: number;
     orderNum: number;
-    photoUrl: string | null;
+    pageType: DialogPageType;
+    mediaUrl: string;
+    mediaContentType: string;
     dialogPageSections: Array<{
       id: number;
       orderNum: number;
@@ -46,7 +49,19 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
-      } else if (event.key === "ArrowLeft") {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.closest("video") ||
+          target.closest("input, textarea, select, button"))
+      ) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
         setPageIndex((current) => Math.max(0, current - 1));
       } else if (event.key === "ArrowRight" && pages.length > 0) {
         setPageIndex((current) => Math.min(pages.length - 1, current + 1));
@@ -86,17 +101,27 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
         </header>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-canvas">
-          {page?.photoUrl ? (
+          {page?.pageType === DialogPageType.Video && page.mediaUrl ? (
+            <video
+              src={page.mediaUrl}
+              controls
+              playsInline
+              preload="metadata"
+              className="h-full max-h-full w-full max-w-full object-contain"
+            >
+              Your browser does not support video playback.
+            </video>
+          ) : page?.mediaUrl ? (
             <img
-              src={page.photoUrl}
+              src={page.mediaUrl}
               alt=""
               className="h-full max-h-full w-full max-w-full object-contain"
             />
           ) : (
-            <p className="text-content-muted">This page has no image.</p>
+            <p className="text-content-muted">This page has no media.</p>
           )}
 
-          {sections.length > 0 && (
+          {page?.pageType === DialogPageType.Image && sections.length > 0 && (
             <div className="scrollbar-hide absolute inset-4 overflow-y-auto py-10 sm:inset-x-[10%]">
               <div className="mx-auto flex w-full flex-col items-center gap-5 sm:w-[80%] lg:w-[60%]">
                 {sections.map((section) => {

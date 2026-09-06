@@ -147,9 +147,22 @@ export function ScenePlaythroughPage() {
       stopAttackSounds();
       setAttackAnimation(undefined);
 
-      setScene(await getScenePlaythrough(playthroughId, sceneId));
-      setBegunTurnKey("");
-      setAwaitingActionTurnKey("");
+      const loadedScene = await getScenePlaythrough(playthroughId, sceneId);
+      setScene(loadedScene);
+      const refreshedAttacker = loadedScene.participants.find(
+        (candidate) => candidate.id === participant.id,
+      );
+      if (
+        refreshedAttacker?.isCurrentParticipant &&
+        refreshedAttacker.attacksRemaining > 0
+      ) {
+        const turnKey = `${loadedScene.roundNumber}:${participant.id}`;
+        setBegunTurnKey(turnKey);
+        setAwaitingActionTurnKey(turnKey);
+      } else {
+        setBegunTurnKey("");
+        setAwaitingActionTurnKey("");
+      }
       modalStack.dismissAll();
       toast.success(getAttackResultMessage(result), "Attack complete");
     } catch (requestError: unknown) {
@@ -842,7 +855,7 @@ function ParticipantCard({
             )}
           </div>
 
-          <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
+          <dl className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
             <div className="rounded-lg bg-surface/75 p-2">
               <dt className="text-content-muted">HP</dt>
               <dd className="font-semibold text-content">
@@ -859,6 +872,12 @@ function ParticipantCard({
               <dt className="text-content-muted">Move</dt>
               <dd className="font-semibold text-content">
                 {participant.movement}
+              </dd>
+            </div>
+            <div className="rounded-lg bg-surface/75 p-2">
+              <dt className="text-content-muted">Attacks</dt>
+              <dd className="font-semibold text-content">
+                {participant.attacksRemaining} / {participant.attacksPerTurn}
               </dd>
             </div>
           </dl>
@@ -1768,6 +1787,7 @@ function ChestLootResult({
     ["Maximum MP", item.maxMpModifier],
     ["Consumable slots", item.maxConsumableInventoryModifier],
     ["Equipment slots", item.maxEquippableInventoryModifier],
+    ["Additional attacks", item.additionalAttacksPerTurn],
     ["Melee reduction", item.meleeDamageReduction],
     ["Bow reduction", item.bowDamageReduction],
     ["Spell reduction", item.spellDamageReduction],

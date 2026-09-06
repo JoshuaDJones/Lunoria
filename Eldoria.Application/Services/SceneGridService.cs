@@ -55,7 +55,7 @@ namespace Eldoria.Application.Services
             string? backgroundUrl = null;
             string? backgroundFileName = null;
             if (background is not null)
-                (backgroundUrl, backgroundFileName) = await _azureStorageBlob.UploadPhoto(background);
+                (backgroundUrl, backgroundFileName) = await _azureStorageBlob.UploadMedia(background);
 
             var now = DateTime.UtcNow;
             var grid = new SceneGrid
@@ -111,7 +111,7 @@ namespace Eldoria.Application.Services
             string? newBackgroundUrl = null;
             string? newBackgroundFileName = null;
             if (background is not null)
-                (newBackgroundUrl, newBackgroundFileName) = await _azureStorageBlob.UploadPhoto(background);
+                (newBackgroundUrl, newBackgroundFileName) = await _azureStorageBlob.UploadMedia(background);
 
             var previousBackgroundUrl = grid.BackgroundImageUrl;
             grid.Rows = rows;

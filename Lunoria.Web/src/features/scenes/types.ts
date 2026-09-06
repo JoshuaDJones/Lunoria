@@ -112,10 +112,17 @@ export interface DialogPageSection {
   character: Character | null;
 }
 
+export enum DialogPageType {
+  Image = 1,
+  Video = 2,
+}
+
 export interface DialogPage {
   id: number;
   orderNum: number;
-  photoUrl: string | null;
+  pageType: DialogPageType;
+  mediaUrl: string;
+  mediaContentType: string;
   dialogPageSections: DialogPageSection[] | null;
 }
 

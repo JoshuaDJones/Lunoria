@@ -43,7 +43,7 @@ namespace Eldoria.Application.Services
             if (ownershipError is not null)
                 return Result<JourneyIntroPageDto>.Fail(ownershipError);
 
-            var (imageUrl, _) = await _azureStorageBlob.UploadPhoto(image);
+            var (imageUrl, _) = await _azureStorageBlob.UploadMedia(image);
             var page = new JourneyIntroPage
             {
                 JourneyId = journeyId,
@@ -87,7 +87,7 @@ namespace Eldoria.Application.Services
 
             string? newImageUrl = null;
             if (image is not null)
-                (newImageUrl, _) = await _azureStorageBlob.UploadPhoto(image);
+                (newImageUrl, _) = await _azureStorageBlob.UploadMedia(image);
 
             var previousImageUrl = page.PreviewPhotoUrl;
             page.Type = type;

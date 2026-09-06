@@ -3,10 +3,11 @@ import { Navigate, useParams } from "react-router-dom";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import { Card } from "@/components/ui";
 import { tempGetAllDialogs } from "@/features/journeys/api/journeysApi";
-import type {
-  DialogPage,
-  DialogPageSection,
-  SceneDialog,
+import {
+  DialogPageType,
+  type DialogPage,
+  type DialogPageSection,
+  type SceneDialog,
 } from "@/features/scenes/types";
 
 function sortByOrder<T extends { orderNum: number }>(items: T[] | null): T[] {
@@ -52,6 +53,7 @@ function DialogSectionRow({ section }: { section: DialogPageSection }) {
 
 function DialogPageBlock({ page }: { page: DialogPage }) {
   const sections = sortByOrder(page.dialogPageSections);
+  const isVideo = page.pageType === DialogPageType.Video;
 
   return (
     <div className="rounded-xl border border-border bg-surface/80 p-4">
@@ -59,16 +61,26 @@ function DialogPageBlock({ page }: { page: DialogPage }) {
         <h3 className="text-lg font-semibold text-content">
           Page {page.orderNum}
         </h3>
-        {page.photoUrl && (
+        {isVideo ? (
+          <video
+            src={page.mediaUrl}
+            controls
+            playsInline
+            preload="metadata"
+            className="h-24 w-40 shrink-0 rounded-lg bg-black object-contain"
+          />
+        ) : (
           <img
-            src={page.photoUrl}
+            src={page.mediaUrl}
             alt=""
             className="h-16 w-24 shrink-0 rounded-lg object-cover"
           />
         )}
       </div>
 
-      {sections.length > 0 ? (
+      {isVideo ? (
+        <p className="text-sm text-content-muted">Video page</p>
+      ) : sections.length > 0 ? (
         <div className="space-y-2">
           {sections.map((section) => (
             <DialogSectionRow key={section.id} section={section} />

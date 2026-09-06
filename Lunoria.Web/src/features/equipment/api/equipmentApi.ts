@@ -5,7 +5,6 @@ import type {
   EquippableItem,
   EquippableItemInput,
 } from "@/features/equipment/types";
-import type { JourneyCharacterEquippableItem } from "@/features/journeys/types";
 
 export interface ListEquipmentParams {
   skip?: number;
@@ -49,32 +48,4 @@ export async function updateEquipment(
 
 export async function deleteEquipment(id: number): Promise<void> {
   await apiClient.delete(`/EquippableItem/${id}`);
-}
-
-export async function addJourneyCharacterEquipment(
-  journeyCharacterId: number,
-  equippableItemId: number,
-): Promise<JourneyCharacterEquippableItem> {
-  const { data } = await apiClient.post<JourneyCharacterEquippableItem>(
-    "/JourneyCharacterEquipment",
-    { journeyCharacterId, equippableItemId },
-  );
-  return data;
-}
-
-export async function setJourneyCharacterEquipmentState(
-  assignmentId: number,
-  isEquipped: boolean,
-): Promise<JourneyCharacterEquippableItem> {
-  const { data } = await apiClient.patch<JourneyCharacterEquippableItem>(
-    `/JourneyCharacterEquipment/${assignmentId}`,
-    { isEquipped },
-  );
-  return data;
-}
-
-export async function removeJourneyCharacterEquipment(
-  assignmentId: number,
-): Promise<void> {
-  await apiClient.delete(`/JourneyCharacterEquipment/${assignmentId}`);
 }

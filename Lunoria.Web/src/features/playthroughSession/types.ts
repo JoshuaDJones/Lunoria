@@ -42,6 +42,7 @@ export interface PublicPlaythroughEquippableItem {
   maxMpModifier: number;
   maxConsumableInventoryModifier: number;
   maxEquippableInventoryModifier: number;
+  additionalAttacksPerTurn: number;
   meleeDamageReduction: number;
   bowDamageReduction: number;
   spellDamageReduction: number;

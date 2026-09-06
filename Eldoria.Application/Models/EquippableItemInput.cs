@@ -14,6 +14,7 @@ namespace Eldoria.Application.Models
         public int MaxMpModifier { get; set; }
         public int MaxConsumableInventoryModifier { get; set; }
         public int MaxEquippableInventoryModifier { get; set; }
+        public int AdditionalAttacksPerTurn { get; set; }
         public int MeleeDamageReduction { get; set; }
         public int BowDamageReduction { get; set; }
         public int SpellDamageReduction { get; set; }

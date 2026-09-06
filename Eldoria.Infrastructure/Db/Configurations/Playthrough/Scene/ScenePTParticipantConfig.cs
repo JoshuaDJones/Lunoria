@@ -17,8 +17,14 @@ public sealed class ScenePTParticipantConfig : IEntityTypeConfiguration<ScenePTP
             table.HasCheckConstraint(
                 "CK_ScenePTParticipants_DownedTurnsRemaining",
                 "[DownedTurnsRemaining] IS NULL OR [DownedTurnsRemaining] >= 0");
+            table.HasCheckConstraint(
+                "CK_ScenePTParticipants_AttacksRemaining",
+                "[AttacksRemaining] >= 0");
         });
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.AttacksRemaining)
+            .IsRequired()
+            .HasDefaultValue(1);
 
         builder.HasIndex(x => new { x.ScenePlaythroughId, x.JourneyPlaythroughCharacterId })
             .IsUnique()

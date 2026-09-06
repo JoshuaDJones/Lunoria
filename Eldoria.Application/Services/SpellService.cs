@@ -56,7 +56,7 @@ namespace Eldoria.Application.Services
             string? fileName = null;
             if (photo is not null)
             {
-                (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
             }
             var now = DateTime.UtcNow;
             var spell = new Spell
@@ -110,7 +110,7 @@ namespace Eldoria.Application.Services
             var oldPhotoUrl = spell.PhotoUrl;
             if (photo is not null)
             {
-                var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
                 spell.PhotoUrl = photoUrl;
                 spell.FileName = fileName;
             }

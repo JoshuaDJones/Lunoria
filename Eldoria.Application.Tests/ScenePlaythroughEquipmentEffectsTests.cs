@@ -38,6 +38,8 @@ public sealed class ScenePlaythroughEquipmentEffectsTests
         Assert.Equal(3, effects.MaxMpModifier);
         Assert.Equal(3, effects.MaxConsumableInventoryModifier);
         Assert.Equal(3, effects.MaxEquippableInventoryModifier);
+        Assert.Equal(3, effects.AdditionalAttacksPerTurn);
+        Assert.Equal(4, effects.GetAttacksPerTurn());
         Assert.Equal(3, effects.MeleeDamageReduction);
         Assert.Equal(3, effects.BowDamageReduction);
         Assert.Equal(3, effects.SpellDamageReduction);
@@ -62,6 +64,7 @@ public sealed class ScenePlaythroughEquipmentEffectsTests
             MaxMpModifier = modifier,
             MaxConsumableInventoryModifier = modifier,
             MaxEquippableInventoryModifier = modifier,
+            AdditionalAttacksPerTurn = modifier,
             MeleeDamageReduction = modifier,
             BowDamageReduction = modifier,
             SpellDamageReduction = modifier,

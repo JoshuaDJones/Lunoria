@@ -26,7 +26,7 @@ namespace Eldoria.Application.Services
                 return Result<SpellTypeDto>.Fail(
                     new Error("SpellType.NameExists", "A spell type with that name already exists."));
 
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+            var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
 
             var spellType = new SpellType
             {
@@ -118,7 +118,7 @@ namespace Eldoria.Application.Services
 
             if (photo is not null)
             {
-                var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
                 spellType.PhotoUrl = photoUrl;
                 spellType.FileName = fileName;
             }

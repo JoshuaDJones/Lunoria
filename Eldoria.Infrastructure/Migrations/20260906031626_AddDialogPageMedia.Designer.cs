@@ -4,6 +4,7 @@ using Eldoria.Infrastructure.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Eldoria.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260906031626_AddDialogPageMedia")]
+    partial class AddDialogPageMedia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -286,9 +289,6 @@ namespace Eldoria.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AdditionalAttacksPerTurn")
-                        .HasColumnType("int");
 
                     b.Property<int?>("AffectedSpellTypeId")
                         .HasColumnType("int");
@@ -752,9 +752,6 @@ namespace Eldoria.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AdditionalAttacksPerTurn")
-                        .HasColumnType("int");
 
                     b.Property<int?>("AffectedSpellTypeId")
                         .HasColumnType("int");
@@ -1930,11 +1927,6 @@ namespace Eldoria.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AttacksRemaining")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
                     b.Property<int?>("DownedTurnsRemaining")
                         .HasColumnType("int");
 
@@ -1972,8 +1964,6 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.ToTable("ScenePTParticipants", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ScenePTParticipants_AttacksRemaining", "[AttacksRemaining] >= 0");
-
                             t.HasCheckConstraint("CK_ScenePTParticipants_Character", "([JourneyPlaythroughCharacterId] IS NOT NULL AND [ScenePlaythroughCharacterId] IS NULL) OR ([JourneyPlaythroughCharacterId] IS NULL AND [ScenePlaythroughCharacterId] IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_ScenePTParticipants_DownedTurnsRemaining", "[DownedTurnsRemaining] IS NULL OR [DownedTurnsRemaining] >= 0");

@@ -11,7 +11,9 @@ namespace Eldoria.Application.Common
             {
                 Id = dialogPage.Id,
                 OrderNum = dialogPage.OrderNum,
-                PhotoUrl = dialogPage.PhotoUrl,
+                PageType = dialogPage.PageType,
+                MediaUrl = dialogPage.MediaUrl,
+                MediaContentType = dialogPage.MediaContentType,
                 DialogPageSections = [.. dialogPage.DialogPageSections.Select(s => s.ToDto())]
             };
         }

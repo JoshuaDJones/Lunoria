@@ -69,7 +69,7 @@ namespace Eldoria.Application.Services
             string? fileName = null;
 
             if (photo is not null)
-                (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
 
             var series = new Series
             {
@@ -138,7 +138,7 @@ namespace Eldoria.Application.Services
                 if (!string.IsNullOrWhiteSpace(existingSeries.PhotoUrl))
                     await _azureStorageBlob.DeletePhotoFromUrl(existingSeries.PhotoUrl);
 
-                (existingSeries.PhotoUrl, existingSeries.FileName) = await _azureStorageBlob.UploadPhoto(photo);
+                (existingSeries.PhotoUrl, existingSeries.FileName) = await _azureStorageBlob.UploadMedia(photo);
             }
 
             _seriesRepository.Update(existingSeries);

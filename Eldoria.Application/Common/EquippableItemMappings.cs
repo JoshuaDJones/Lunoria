@@ -21,6 +21,7 @@ namespace Eldoria.Application.Common
                 MaxMpModifier = item.MaxMpModifier,
                 MaxConsumableInventoryModifier = item.MaxConsumableInventoryModifier,
                 MaxEquippableInventoryModifier = item.MaxEquippableInventoryModifier,
+                AdditionalAttacksPerTurn = item.AdditionalAttacksPerTurn,
                 AddedSpells = item.AddedSpells.Select(spell => spell.ToDto()).ToList(),
                 MeleeDamageReduction = item.MeleeDamageReduction,
                 BowDamageReduction = item.BowDamageReduction,

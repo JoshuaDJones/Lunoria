@@ -32,7 +32,7 @@ namespace Eldoria.Application.Services
                 return Result<SceneDto>.Fail(new Error("Auth.Forbidden", "You do have the permission to this journey you are trying to add a scene to."));
 
 
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+            var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
 
             var scene = new Scene
             {
@@ -170,7 +170,7 @@ namespace Eldoria.Application.Services
                 if (!string.IsNullOrEmpty(journey.FileName))
                     await _azureStorageBlob.DeletePhotoFromUrl(scene.FileName);
 
-                var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(photo);
+                var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
 
                 scene.PhotoUrl = photoUrl;
                 scene.FileName = fileName;

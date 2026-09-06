@@ -113,8 +113,11 @@ public static class ScenePlaythroughMappings
                         {
                             Id = page.Id,
                             OrderNum = page.OrderNum,
-                            PhotoUrl = page.PhotoUrl,
-                            DialogPageSections = page.DialogPageSections
+                            PageType = page.PageType,
+                            MediaUrl = page.MediaUrl,
+                            MediaContentType = page.MediaContentType,
+                            DialogPageSections = page.PageType == DialogPageType.Image
+                                ? page.DialogPageSections
                                 .OrderBy(section => section.OrderNum)
                                 .ThenBy(section => section.Id)
                                 .Select(section => new ScenePlaythroughDialogSectionDto
@@ -138,6 +141,7 @@ public static class ScenePlaythroughMappings
                                         }
                                 })
                                 .ToList()
+                                : []
                         })
                         .ToList()
                 })
@@ -185,6 +189,7 @@ public static class ScenePlaythroughMappings
             MaxMpModifier = item.MaxMpModifier,
             MaxConsumableInventoryModifier = item.MaxConsumableInventoryModifier,
             MaxEquippableInventoryModifier = item.MaxEquippableInventoryModifier,
+            AdditionalAttacksPerTurn = item.AdditionalAttacksPerTurn,
             MeleeDamageReduction = item.MeleeDamageReduction,
             BowDamageReduction = item.BowDamageReduction,
             SpellDamageReduction = item.SpellDamageReduction,
@@ -233,6 +238,12 @@ public static class ScenePlaythroughMappings
             SortOrderWithinType = participant.SortOrderWithinType,
             IsActive = participant.IsActive,
             IsCurrentParticipant = participant.Id == currentParticipantId,
+            AttacksPerTurn = equipmentEffects.GetAttacksPerTurn(),
+            AttacksRemaining = participant.Id == currentParticipantId
+                ? Math.Min(
+                    participant.AttacksRemaining,
+                    equipmentEffects.GetAttacksPerTurn())
+                : 0,
             JourneyPlaythroughCharacterId = participant.JourneyPlaythroughCharacterId,
             ScenePlaythroughCharacterId = participant.ScenePlaythroughCharacterId,
             PlaythroughCharacterId = baseCharacter.Id,

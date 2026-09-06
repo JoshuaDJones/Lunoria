@@ -1,3 +1,5 @@
+using Eldoria.Core.Enums;
+
 namespace Eldoria.Core.Entities
 {
     public class ScenePTDialogPage
@@ -5,8 +7,10 @@ namespace Eldoria.Core.Entities
 
         public int Id { get; set; }
         public int OrderNum { get; set; }
-        public string? PhotoUrl { get; set; } = string.Empty;
-        public string? FileName { get; set; } = string.Empty;
+        public DialogPageType PageType { get; set; } = DialogPageType.Image;
+        public string MediaUrl { get; set; } = string.Empty;
+        public string MediaBlobName { get; set; } = string.Empty;
+        public string MediaContentType { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

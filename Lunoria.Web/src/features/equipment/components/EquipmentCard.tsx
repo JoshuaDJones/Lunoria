@@ -49,6 +49,10 @@ export function EquipmentCard({
           value={signed(item.maxEquippableInventoryModifier)}
         />
         <Stat
+          label="Additional attacks per turn"
+          value={signed(item.additionalAttacksPerTurn)}
+        />
+        <Stat
           label="Melee damage reduction"
           value={item.meleeDamageReduction}
         />

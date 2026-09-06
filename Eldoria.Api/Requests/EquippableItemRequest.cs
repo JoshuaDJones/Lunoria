@@ -20,6 +20,10 @@ namespace Eldoria.Api.Requests
         public int MaxMpModifier { get; set; }
         public int MaxConsumableInventoryModifier { get; set; }
         public int MaxEquippableInventoryModifier { get; set; }
+
+        [Range(0, 4)]
+        public int AdditionalAttacksPerTurn { get; set; }
+
         public int MeleeDamageReduction { get; set; }
         public int BowDamageReduction { get; set; }
         public int SpellDamageReduction { get; set; }
@@ -41,6 +45,7 @@ namespace Eldoria.Api.Requests
                 MaxMpModifier = MaxMpModifier,
                 MaxConsumableInventoryModifier = MaxConsumableInventoryModifier,
                 MaxEquippableInventoryModifier = MaxEquippableInventoryModifier,
+                AdditionalAttacksPerTurn = AdditionalAttacksPerTurn,
                 MeleeDamageReduction = MeleeDamageReduction,
                 BowDamageReduction = BowDamageReduction,
                 SpellDamageReduction = SpellDamageReduction,

@@ -11,6 +11,7 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
         public int? SortOrderWithinType { get; set; }
         public ParticipantType ParticipantType { get; set; }
         public int? DownedTurnsRemaining { get; set; }
+        public int AttacksRemaining { get; set; } = 1;
 
         public int ScenePlaythroughId { get; set; }
         public ScenePT ScenePlaythrough { get; set; } = null!;

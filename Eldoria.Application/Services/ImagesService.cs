@@ -16,7 +16,7 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<ImageUploadResultDto>> SaveImageAsync(IFormFile image, CancellationToken ct)
         {
-            var (photoUrl, fileName) = await _azureStorageBlob.UploadPhoto(image);
+            var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(image);
 
             var result = new ImageUploadResultDto
             {

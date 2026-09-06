@@ -50,6 +50,9 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(e => e.MaxEquippableInventoryModifier)
                    .IsRequired();
 
+            builder.Property(e => e.AdditionalAttacksPerTurn)
+                   .IsRequired();
+
             builder.Property(e => e.MeleeDamageReduction)
                    .IsRequired();
 

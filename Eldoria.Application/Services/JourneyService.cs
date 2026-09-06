@@ -75,7 +75,7 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<JourneyDto>> CreateAsync(int userId, int seriesId, string name, string description, IFormFile photo, CancellationToken ct)
         {
-            var (photoUrl, filename) = await _azureStorageBlob.UploadPhoto(photo);
+            var (photoUrl, filename) = await _azureStorageBlob.UploadMedia(photo);
 
             var journey = new Journey
             {
@@ -123,7 +123,7 @@ namespace Eldoria.Application.Services
                 if (!string.IsNullOrEmpty(journey.FileName))
                     await _azureStorageBlob.DeletePhotoFromUrl(journey.FileName);
 
-                var (photoUrl, filename) = await _azureStorageBlob.UploadPhoto(photo);
+                var (photoUrl, filename) = await _azureStorageBlob.UploadMedia(photo);
                 journey.PhotoUrl = photoUrl;
                 journey.FileName = filename;
             }
