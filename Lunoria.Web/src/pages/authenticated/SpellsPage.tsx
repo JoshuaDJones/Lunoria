@@ -110,10 +110,10 @@ export function SpellsPage() {
 
   const openConfirmDelete = async (spell: Spell) => {
     const confirmed = await confirm({
-      title: `Delete spell "${spell.name}"?`,
+      title: `Archive spell "${spell.name}"?`,
       message:
-        "This will remove the spell from all characters, journeys, and equipment. This action cannot be undone.",
-      confirmLabel: "Delete",
+        "This hides the spell from the library and new selections. Existing characters, journeys, equipment, and playthroughs keep their spell assignments.",
+      confirmLabel: "Archive",
       variant: "danger",
     });
 
@@ -122,9 +122,9 @@ export function SpellsPage() {
     try {
       await deleteSpell(spell.id);
       setReloadKey((value) => value + 1);
-      toast.success(`Spell "${spell.name}" was deleted.`);
+      toast.success(`Spell "${spell.name}" was archived.`);
     } catch (requestError) {
-      toast.error(getApiError(requestError).message, "Unable to delete spell");
+      toast.error(getApiError(requestError).message, "Unable to archive spell");
     }
   };
 

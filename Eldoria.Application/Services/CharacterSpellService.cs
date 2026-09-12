@@ -33,6 +33,10 @@ namespace Eldoria.Application.Services
                     "Spell.NotFound",
                     "One or more spells were not found or are not owned by the current user."));
 
+            if (spells.Any(spell => spell.IsDeleted &&
+                !character.CharacterSpells.Any(link => link.SpellId == spell.Id)))
+                return Result.Fail(new Error("Spell.Archived", "Archived spells cannot be newly assigned."));
+
             await _characterSpellRepository.RemoveCharacterSpells(characterId, ct);
             await _characterSpellRepository.AddCharacterSpells(distinctSpellIds, characterId, ct);
             return Result.Ok();

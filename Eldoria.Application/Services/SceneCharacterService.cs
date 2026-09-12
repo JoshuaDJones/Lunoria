@@ -136,6 +136,10 @@ namespace Eldoria.Application.Services
             if (spells.Count != distinctIds.Count)
                 return Result<SceneCharacterDto>.Fail(new Error("Spell.NotFound", "One or more spells were not found or are not owned by the current user."));
 
+            if (spells.Any(spell => spell.IsDeleted &&
+                !sceneCharacter.SceneCharacterSpells.Any(link => link.SpellId == spell.Id)))
+                return Result<SceneCharacterDto>.Fail(new Error("Spell.Archived", "Archived spells cannot be newly assigned."));
+
             foreach (var assignment in sceneCharacter.SceneCharacterSpells.ToList())
                 _sceneCharacterSpellRepository.Remove(assignment);
 

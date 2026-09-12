@@ -147,11 +147,11 @@ namespace Eldoria.Application.Services
             if (spell is null)
                 return Result.Fail(new Error("Spell.NotFound", "The spell was not found."));
 
-            _spellRepository.Remove(spell);
+            spell.IsDeleted = true;
+            spell.DeletedAt = DateTime.UtcNow;
+            spell.UpdatedAt = spell.DeletedAt.Value;
+            _spellRepository.Update(spell);
             await _spellRepository.SaveChangesAsync(ct);
-
-            if (!string.IsNullOrWhiteSpace(spell.PhotoUrl))
-                await _azureStorageBlob.DeletePhotoFromUrl(spell.PhotoUrl);
 
             return Result.Ok();
         }

@@ -11,7 +11,12 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.HasKey(s => s.Id);
 
             builder.HasIndex(s => new { s.UserId, s.Name })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
+
+            builder.Property(s => s.IsDeleted).IsRequired().HasDefaultValue(false);
+            builder.Property(s => s.DeletedAt).IsRequired(false);
+            // Filter catalog queries explicitly so existing assignments still load archived spells.
 
             builder.Property(s => s.Name)
                 .IsRequired()

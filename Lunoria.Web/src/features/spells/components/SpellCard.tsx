@@ -38,7 +38,7 @@ export function SpellCard({ spell, onSelect, onDelete }: SpellCardProps) {
           size="md"
           leftIcon={<FontAwesomeIcon icon={faTrash} />}
         >
-          Delete
+          Archive
         </Button>
         <Button
           onClick={(event) => {

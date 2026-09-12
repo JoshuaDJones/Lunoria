@@ -93,7 +93,7 @@ namespace Eldoria.Application.Services
                 return Result<EquippableItemDto>.Fail(
                     new Error("EquippableItem.NotFound", "The equipment item was not found."));
 
-            var references = await ResolveReferencesAsync(userId, input, ct);
+            var references = await ResolveReferencesAsync(userId, input, ct, item.AddedSpells);
             if (references.Error is not null)
                 return Result<EquippableItemDto>.Fail(references.Error);
 
@@ -150,7 +150,8 @@ namespace Eldoria.Application.Services
         private async Task<ReferenceResolution> ResolveReferencesAsync(
             int userId,
             EquippableItemInput input,
-            CancellationToken ct)
+            CancellationToken ct,
+            ICollection<Spell>? existingSpells = null)
         {
             SpellType? spellType = null;
 
@@ -172,6 +173,11 @@ namespace Eldoria.Application.Services
 
             var spellIds = input.AddedSpellIds.Distinct().ToArray();
             var spells = await _spellRepository.GetSpellsByIdsForUserAsync(userId, spellIds, ct);
+
+            if (spells.Any(spell => spell.IsDeleted &&
+                existingSpells?.Any(existing => existing.Id == spell.Id) != true))
+                return new ReferenceResolution([], null,
+                    new Error("Spell.Archived", "Archived spells cannot be newly assigned."));
 
             if (spells.Count != spellIds.Length)
                 return new ReferenceResolution(

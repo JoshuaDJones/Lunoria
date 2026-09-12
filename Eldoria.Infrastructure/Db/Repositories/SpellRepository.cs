@@ -28,7 +28,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
         {
             var query = _dbContext.Spells
                 .AsNoTracking()
-                .Where(spell => spell.UserId == userId)
+                .Where(spell => spell.UserId == userId && !spell.IsDeleted)
                 .Include(spell => spell.SpellType)
                 .AsQueryable();
 
@@ -47,7 +47,7 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return _dbContext.Spells
                 .Include(spell => spell.SpellType)
                 .SingleOrDefaultAsync(
-                    spell => spell.Id == id && spell.UserId == userId,
+                    spell => spell.Id == id && spell.UserId == userId && !spell.IsDeleted,
                     ct);
         }
     }
