@@ -512,6 +512,17 @@ public sealed class PlaythroughService(
                                                         adjustmentCharacterId]
                                                     : null
                                     },
+                            CharacterChangeAlternateFormAction =
+                                action.CharacterChangeAlternateFormAction is { } change
+                                    ? new PTCharacterChangeAlternateFormAction
+                                    {
+                                        SourceCharacterChangeAlternateFormActionId = change.Id,
+                                        PlaythroughCharacter = change.CharacterId is int targetId
+                                            ? playthroughCharactersBySourceId[targetId]
+                                            : null,
+                                        AlternateForm = playthroughCharactersBySourceId[change.AlternateFormId]
+                                    }
+                                    : null,
                             CharacterAddSpellAction =
                                 action.CharacterAddSpellAction is null
                                     ? null
@@ -603,6 +614,8 @@ public sealed class PlaythroughService(
                 AddIfPresent(
                     characterIds,
                     action.CharacterAddSpellAction?.CharacterId);
+                AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.CharacterId);
+                AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.AlternateFormId);
             }
         }
 
@@ -773,6 +786,11 @@ public sealed class PlaythroughService(
                 }
 
                 var addSpell = action.CharacterAddSpellAction;
+                var change = action.CharacterChangeAlternateFormAction;
+                if (change?.CharacterId is int targetId && !characterIds.Contains(targetId))
+                    return Missing("event alternate-form target", targetId);
+                if (change is not null && !characterIds.Contains(change.AlternateFormId))
+                    return Missing("event alternate form", change.AlternateFormId);
 
                 if (addSpell?.CharacterId is int addSpellCharacterId &&
                     !characterIds.Contains(addSpellCharacterId))

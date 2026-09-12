@@ -12,6 +12,8 @@ import {
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { Button, FormField, Input, Select, Textarea } from "@/components/ui";
 import type { JourneyCharacter } from "@/features/journeys";
+import { listCharacters } from "@/features/characters/api/charactersApi";
+import { CharacterType, type Character } from "@/features/characters/types";
 import {
   createSceneEvent,
   createSceneEventAction,
@@ -542,6 +544,36 @@ function ActionForm({
   onCancel: () => void;
 }) {
   const adjustment = action?.characterStatAdjustmentAction;
+  const change = action?.characterChangeAlternateFormAction;
+  const [actionType, setActionType] = useState(
+    action?.eventActionType ?? EventActionType.CharacterStatAdjustment,
+  );
+  const [alternateFormId, setAlternateFormId] = useState(
+    change ? String(change.alternateFormId) : "",
+  );
+  const [alternateCharacters, setAlternateCharacters] = useState<Character[]>(
+    [],
+  );
+  const [alternateError, setAlternateError] = useState("");
+  const changesAlternateForm =
+    actionType === EventActionType.CharacterChangeAlternateForm;
+  useEffect(() => {
+    if (!changesAlternateForm) return;
+    let isCurrent = true;
+    void listCharacters({ typeFilter: CharacterType.Any })
+      .then((characters) => {
+        if (isCurrent) {
+          setAlternateCharacters(characters);
+          setAlternateError("");
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (isCurrent) setAlternateError(getApiError(requestError).message);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [changesAlternateForm]);
   const [name, setName] = useState(action?.name ?? "");
   const [targetType, setTargetType] = useState(
     action?.actionTargetType ?? ActionTargetType.AllJourneyCharacters,
@@ -554,7 +586,7 @@ function ActionForm({
   );
   const [value, setValue] = useState(String(adjustment?.value ?? 0));
   const [characterId, setCharacterId] = useState(
-    adjustment?.characterId ? String(adjustment.characterId) : "",
+    String(change?.characterId ?? adjustment?.characterId ?? ""),
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -567,10 +599,14 @@ function ActionForm({
       await onSave({
         name,
         actionTargetType: targetType,
-        eventActionType: EventActionType.CharacterStatAdjustment,
-        characterStatType: statType,
-        adjustmentOperation: operation,
-        value: Number(value),
+        eventActionType: actionType,
+        ...(changesAlternateForm
+          ? { alternateFormId: Number(alternateFormId) }
+          : {
+              characterStatType: statType,
+              adjustmentOperation: operation,
+              value: Number(value),
+            }),
         characterId:
           targetType === ActionTargetType.SingleJourneyCharacter
             ? Number(characterId)
@@ -598,6 +634,22 @@ function ActionForm({
           maxLength={200}
           required
         />
+      </FormField>
+      <FormField htmlFor="action-type" label="Action type">
+        <Select
+          id="action-type"
+          value={actionType}
+          onChange={(e) =>
+            setActionType(Number(e.target.value) as EventActionType)
+          }
+        >
+          <option value={EventActionType.CharacterStatAdjustment}>
+            Adjust stat
+          </option>
+          <option value={EventActionType.CharacterChangeAlternateForm}>
+            Change alternate form
+          </option>
+        </Select>
       </FormField>
       <FormField htmlFor="action-target" label="Target">
         <Select
@@ -634,47 +686,89 @@ function ActionForm({
           </Select>
         </FormField>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField htmlFor="action-stat" label="Stat">
+      {changesAlternateForm ? (
+        <FormField
+          htmlFor="action-alternate-form"
+          label="New alternate character"
+        >
           <Select
-            id="action-stat"
-            value={statType}
-            onChange={(e) =>
-              setStatType(Number(e.target.value) as CharacterStatType)
-            }
+            id="action-alternate-form"
+            value={alternateFormId}
+            onChange={(e) => setAlternateFormId(e.target.value)}
+            required
           >
-            {enumEntries(statLabels).map(([id, label]) => (
-              <option key={id} value={id}>
-                {label}
-              </option>
-            ))}
+            <option value="" disabled>
+              Select an alternate character
+            </option>
+            {alternateCharacters
+              .filter((candidate) =>
+                targetType === ActionTargetType.SingleJourneyCharacter
+                  ? candidate.id !== Number(characterId)
+                  : !journeyCharacters.some(
+                      (target) => target.characterId === candidate.id,
+                    ),
+              )
+              .map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.name}
+                </option>
+              ))}
           </Select>
+          <p className="mt-2 text-sm text-content-secondary">
+            Changes the alternate form at scene start. Stats and the current
+            transformation state are preserved.
+          </p>
+          {alternateError && (
+            <p className="mt-2 text-sm text-danger" role="alert">
+              {alternateError}
+            </p>
+          )}
         </FormField>
-        <FormField htmlFor="action-operation" label="Operation">
-          <Select
-            id="action-operation"
-            value={operation}
-            onChange={(e) =>
-              setOperation(Number(e.target.value) as AdjustmentOperation)
-            }
-          >
-            {enumEntries(operationLabels).map(([id, label]) => (
-              <option key={id} value={id}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-      </div>
-      <FormField htmlFor="action-value" label="Value">
-        <Input
-          id="action-value"
-          type="number"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          required
-        />
-      </FormField>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField htmlFor="action-stat" label="Stat">
+              <Select
+                id="action-stat"
+                value={statType}
+                onChange={(e) =>
+                  setStatType(Number(e.target.value) as CharacterStatType)
+                }
+              >
+                {enumEntries(statLabels).map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField htmlFor="action-operation" label="Operation">
+              <Select
+                id="action-operation"
+                value={operation}
+                onChange={(e) =>
+                  setOperation(Number(e.target.value) as AdjustmentOperation)
+                }
+              >
+                {enumEntries(operationLabels).map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+          </div>
+          <FormField htmlFor="action-value" label="Value">
+            <Input
+              id="action-value"
+              type="number"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              required
+            />
+          </FormField>
+        </>
+      )}
       <FormActions isSaving={isSaving} error={error} onCancel={onCancel} />
     </form>
   );
@@ -690,14 +784,22 @@ function ActionCard({
   onDelete: () => void;
 }) {
   const adjustment = action.characterStatAdjustmentAction;
+  const change = action.characterChangeAlternateFormAction;
   const target =
     action.actionTargetType === ActionTargetType.AllJourneyCharacters
       ? "All journey characters"
-      : (adjustment?.character?.name ?? "Selected character");
+      : (change?.characterName ??
+        adjustment?.character?.name ??
+        "Selected character");
 
   return (
     <article className="rounded-xl border border-border bg-surface p-4">
       <h4 className="font-semibold text-content">{action.name}</h4>
+      {change && (
+        <p className="mt-1 text-sm text-content-secondary">
+          {target}: change alternate form to {change.alternateFormName}
+        </p>
+      )}
       {adjustment && (
         <p className="mt-1 text-sm text-content-secondary">
           {operationLabels[adjustment.adjustmentOperation]} {adjustment.value}{" "}

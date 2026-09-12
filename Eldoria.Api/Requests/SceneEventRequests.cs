@@ -34,7 +34,7 @@ namespace Eldoria.Api.Requests
         public int SortOrder { get; set; }
     }
 
-    public class SceneEventActionRequest
+    public class SceneEventActionRequest : IValidatableObject
     {
         [Required, MaxLength(200)]
         public string Name { get; set; } = string.Empty;
@@ -42,12 +42,25 @@ namespace Eldoria.Api.Requests
         public ActionTargetType? ActionTargetType { get; set; }
         [Required]
         public EventActionType? EventActionType { get; set; }
-        [Required]
         public CharacterStatType? CharacterStatType { get; set; }
-        [Required]
         public AdjustmentOperation? AdjustmentOperation { get; set; }
         public int Value { get; set; }
         [Range(1, int.MaxValue)]
         public int? CharacterId { get; set; }
+        [Range(1, int.MaxValue)]
+        public int? AlternateFormId { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (EventActionType == Eldoria.Core.Enums.EventActionType.CharacterStatAdjustment)
+            {
+                if (CharacterStatType is null)
+                    yield return new ValidationResult("A stat is required.", [nameof(CharacterStatType)]);
+                if (AdjustmentOperation is null)
+                    yield return new ValidationResult("An operation is required.", [nameof(AdjustmentOperation)]);
+            }
+            if (EventActionType == Eldoria.Core.Enums.EventActionType.CharacterChangeAlternateForm && AlternateFormId is null)
+                yield return new ValidationResult("An alternate character is required.", [nameof(AlternateFormId)]);
+        }
     }
 }

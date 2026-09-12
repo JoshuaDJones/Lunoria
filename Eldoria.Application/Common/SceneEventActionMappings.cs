@@ -13,6 +13,15 @@ public static class SceneEventActionMappings
         ActionTargetType = action.ActionTargetType,
         EventActionType = action.EventActionType,
         SceneEventId = action.SceneEventId,
-        CharacterStatAdjustmentAction = action.CharacterStatAdjustmentAction?.ToDto()
+        CharacterStatAdjustmentAction = action.CharacterStatAdjustmentAction?.ToDto(),
+        CharacterChangeAlternateFormAction = action.CharacterChangeAlternateFormAction is { } change
+            ? new CharacterChangeAlternateFormActionDto
+            {
+                CharacterId = change.CharacterId,
+                CharacterName = change.Character?.Name,
+                AlternateFormId = change.AlternateFormId,
+                AlternateFormName = change.AlternateForm.Name
+            }
+            : null
     };
 }

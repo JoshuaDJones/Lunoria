@@ -11,6 +11,7 @@ export enum ActionTargetType {
 
 export enum EventActionType {
   CharacterStatAdjustment = 1,
+  CharacterChangeAlternateForm = 3,
 }
 
 export enum CharacterStatType {
@@ -47,6 +48,12 @@ export interface SceneEventAction {
   eventActionType: EventActionType;
   sceneEventId: number;
   characterStatAdjustmentAction: CharacterStatAdjustmentAction | null;
+  characterChangeAlternateFormAction: {
+    characterId: number | null;
+    characterName: string | null;
+    alternateFormId: number;
+    alternateFormName: string;
+  } | null;
 }
 
 export interface SceneEvent {
@@ -98,10 +105,11 @@ export interface SceneEventActionInput {
   name: string;
   actionTargetType: ActionTargetType;
   eventActionType: EventActionType;
-  characterStatType: CharacterStatType;
-  adjustmentOperation: AdjustmentOperation;
-  value: number;
+  characterStatType?: CharacterStatType;
+  adjustmentOperation?: AdjustmentOperation;
+  value?: number;
   characterId?: number | null;
+  alternateFormId?: number | null;
 }
 
 export interface DialogPageSection {

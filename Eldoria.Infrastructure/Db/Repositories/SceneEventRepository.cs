@@ -13,7 +13,13 @@ namespace Eldoria.Infrastructure.Db.Repositories
         private IQueryable<SceneEvent> Query() =>
             dbContext.SceneEvents
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
-                .ThenInclude(action => action.CharacterStatAdjustmentAction);
+                .ThenInclude(action => action.CharacterStatAdjustmentAction)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterChangeAlternateFormAction)
+                        .ThenInclude(change => change!.Character)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterChangeAlternateFormAction)
+                        .ThenInclude(change => change!.AlternateForm);
 
         public Task<List<SceneEvent>> ListForSceneAsync(
             int userId,
@@ -48,6 +54,10 @@ namespace Eldoria.Infrastructure.Db.Repositories
         public Task<SceneEventAction?> GetActionForUserAsync(int userId, int actionId, CancellationToken ct) =>
             _dbContext.SceneEventActions
                 .Include(action => action.CharacterStatAdjustmentAction)
+                .Include(action => action.CharacterChangeAlternateFormAction)
+                    .ThenInclude(change => change!.Character)
+                .Include(action => action.CharacterChangeAlternateFormAction)
+                    .ThenInclude(change => change!.AlternateForm)
                 .SingleOrDefaultAsync(action => action.Id == actionId && action.SceneEvent.Scene.Journey.UserId == userId, ct);
 
         public async Task AddActionWithNextSortOrderAsync(SceneEventAction action, CancellationToken ct)

@@ -11,7 +11,8 @@ namespace Eldoria.Application.Services
         IRepository<Scene> sceneRepository,
         IRepository<Journey> journeyRepository,
         IRepository<SceneEventAction> sceneEventActionRepository,
-        IJourneyCharacterRepository journeyCharacterRepository) : ISceneEventService
+        IJourneyCharacterRepository journeyCharacterRepository,
+        ICharacterRepository characterRepository) : ISceneEventService
     {
         private readonly ISceneEventRepository _sceneEventRepository = sceneEventRepository;
         private readonly IRepository<Scene> _sceneRepository = sceneRepository;
@@ -129,19 +130,20 @@ namespace Eldoria.Application.Services
             AdjustmentOperation operation,
             int value,
             int? characterId,
-            CancellationToken ct)
+            CancellationToken ct,
+            int? alternateFormId = null)
         {
             var sceneEvent = await GetOwnedEventAsync(userId, sceneId, eventId, ct);
 
             if (sceneEvent is null)
                 return Result<SceneEventActionDto>.Fail(NotFoundEvent);
 
-            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct);
+            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId);
 
             if (validationError is not null)
                 return Result<SceneEventActionDto>.Fail(validationError);
 
-            var action = BuildAction(eventId, name, targetType, actionType, statType, operation, value, characterId);
+            var action = BuildAction(eventId, name, targetType, actionType, statType, operation, value, characterId, alternateFormId);
 
             await _sceneEventRepository.AddActionWithNextSortOrderAsync(action, ct);
 
@@ -160,7 +162,8 @@ namespace Eldoria.Application.Services
             AdjustmentOperation operation,
             int value,
             int? characterId,
-            CancellationToken ct)
+            CancellationToken ct,
+            int? alternateFormId = null)
         {
             var sceneEvent = await GetOwnedEventAsync(userId, sceneId, eventId, ct);
 
@@ -172,7 +175,7 @@ namespace Eldoria.Application.Services
             if (action is null || action.SceneEventId != eventId)
                 return Result<SceneEventActionDto>.Fail(NotFoundAction);
 
-            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct);
+            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId);
 
             if (validationError is not null)
                 return Result<SceneEventActionDto>.Fail(validationError);
@@ -180,8 +183,7 @@ namespace Eldoria.Application.Services
             action.Name = name.Trim();
             action.ActionTargetType = targetType;
             action.EventActionType = actionType;
-            action.CharacterStatAdjustmentAction ??= new CharacterStatAdjustmentAction();
-            SetAdjustment(action.CharacterStatAdjustmentAction, statType, operation, value, characterId);
+            SetActionPayload(action, statType, operation, value, characterId, alternateFormId);
 
             await _sceneEventRepository.SaveChangesAsync(ct);
 
@@ -250,12 +252,28 @@ namespace Eldoria.Application.Services
             return sceneEvent?.SceneId == sceneId ? sceneEvent : null;
         }
 
-        private async Task<Error?> ValidateActionAsync(int userId, int sceneId, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int? characterId, CancellationToken ct)
+        private async Task<Error?> ValidateActionAsync(int userId, int sceneId, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int? characterId, CancellationToken ct, int? alternateFormId)
         {
             if (!Enum.IsDefined(targetType) || !Enum.IsDefined(actionType) || !Enum.IsDefined(statType) || !Enum.IsDefined(operation))
                 return new Error("SceneEventAction.InvalidType", "One or more action values are invalid.");
-            if (actionType != EventActionType.CharacterStatAdjustment)
+            if (actionType is not (EventActionType.CharacterStatAdjustment or EventActionType.CharacterChangeAlternateForm))
                 return new Error("SceneEventAction.UnsupportedType", "The action type is not supported.");
+            if (actionType == EventActionType.CharacterChangeAlternateForm)
+            {
+                if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
+                    return new Error("SceneEventAction.InvalidTarget", "Alternate forms can only be changed for journey characters.");
+                var alternate = alternateFormId is int id
+                    ? await characterRepository.GetByIdForUserAsync(userId, id, ct)
+                    : null;
+                if (alternate is null || alternate.IsDeleted)
+                    return new Error("SceneEventAction.InvalidAlternateForm", "Select an available alternate character that you own.");
+                var (ownedScene, sceneError) = await GetOwnedSceneAsync(userId, sceneId, ct);
+                if (sceneError is not null) return sceneError;
+                var targets = await _journeyCharacterRepository.GetJourneyCharacters(ownedScene!.JourneyId, ct);
+                if (targets.Any(item => item.CharacterId == alternateFormId &&
+                    (targetType == ActionTargetType.AllJourneyCharacters || item.CharacterId == characterId)))
+                    return new Error("SceneEventAction.InvalidAlternateForm", "A character cannot be its own alternate form.");
+            }
             if (targetType == ActionTargetType.AllJourneyCharacters && characterId is not null)
                 return new Error("SceneEventAction.InvalidTarget", "A character cannot be supplied when targeting all journey characters.");
             if (targetType == ActionTargetType.SingleJourneyCharacter && characterId is null)
@@ -271,12 +289,28 @@ namespace Eldoria.Application.Services
             return null;
         }
 
-        private static SceneEventAction BuildAction(int eventId, string name, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId)
+        private static SceneEventAction BuildAction(int eventId, string name, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId)
         {
             var action = new SceneEventAction { SceneEventId = eventId, Name = name.Trim(), ActionTargetType = targetType, EventActionType = actionType };
-            action.CharacterStatAdjustmentAction = new CharacterStatAdjustmentAction();
-            SetAdjustment(action.CharacterStatAdjustmentAction, statType, operation, value, characterId);
+            SetActionPayload(action, statType, operation, value, characterId, alternateFormId);
             return action;
+        }
+
+        private static void SetActionPayload(SceneEventAction action, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId)
+        {
+            if (action.EventActionType == EventActionType.CharacterChangeAlternateForm)
+            {
+                action.CharacterStatAdjustmentAction = null;
+                action.CharacterChangeAlternateFormAction ??= new CharacterChangeAlternateFormAction();
+                action.CharacterChangeAlternateFormAction.CharacterId = characterId;
+                action.CharacterChangeAlternateFormAction.AlternateFormId = alternateFormId!.Value;
+            }
+            else
+            {
+                action.CharacterChangeAlternateFormAction = null;
+                action.CharacterStatAdjustmentAction ??= new CharacterStatAdjustmentAction();
+                SetAdjustment(action.CharacterStatAdjustmentAction, statType, operation, value, characterId);
+            }
         }
 
         private static void SetAdjustment(CharacterStatAdjustmentAction adjustment, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId)

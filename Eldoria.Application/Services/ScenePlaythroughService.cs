@@ -1450,10 +1450,42 @@ public sealed class ScenePlaythroughService(
                 ExecuteCharacterStatAdjustment(scene, action),
             EventActionType.CharacterAddSpell =>
                 ExecuteCharacterAddSpell(scene, action),
+            EventActionType.CharacterChangeAlternateForm =>
+                ExecuteCharacterChangeAlternateForm(scene, action),
             _ => EventExecutionError(
                 action,
                 $"Action type '{action.EventActionType}' is not supported.")
         };
+    }
+
+    private static Error? ExecuteCharacterChangeAlternateForm(
+        ScenePT scene,
+        ScenePTActionEvent action)
+    {
+        var change = action.CharacterChangeAlternateFormAction;
+        if (change?.AlternateForm is null || change.AlternateFormId <= 0)
+            return EventExecutionError(action, "The alternate form is missing.");
+        if (action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
+            return EventExecutionError(action, "Alternate forms can only be changed for journey characters.");
+
+        var targets = scene.Playthrough.JourneyCharacters
+            .Where(character => action.ActionTargetType == ActionTargetType.AllJourneyCharacters ||
+                character.PlaythroughCharacterId == change.PlaythroughCharacterId)
+            .ToList();
+        if (action.ActionTargetType == ActionTargetType.AllJourneyCharacters && change.PlaythroughCharacterId is not null)
+            return EventExecutionError(action, "An all-journey-characters action cannot specify a character.");
+        if (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && targets.Count != 1)
+            return EventExecutionError(action, "The targeted journey character is missing or ambiguous.");
+        if (targets.Any(character => character.PlaythroughCharacterId == change.AlternateFormId))
+            return EventExecutionError(action, "A character cannot be its own alternate form.");
+
+        foreach (var character in targets)
+        {
+            character.AlternateFormId = change.AlternateFormId;
+            character.AlternateForm = change.AlternateForm;
+            AddEvent(scene, $"{character.PlaythroughCharacter.Name}'s alternate form changed to {change.AlternateForm.Name}");
+        }
+        return null;
     }
 
     private static Error? ExecuteCharacterStatAdjustment(

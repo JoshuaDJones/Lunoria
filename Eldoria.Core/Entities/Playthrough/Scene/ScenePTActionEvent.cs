@@ -16,5 +16,6 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
 
         public PTCharacterStatAdjustmentAction? CharacterStatAdjustmentAction { get; set; }
         public PTCharacterAddSpellAction? CharacterAddSpellAction { get; set; }
+        public PTCharacterChangeAlternateFormAction? CharacterChangeAlternateFormAction { get; set; }
     }
 }

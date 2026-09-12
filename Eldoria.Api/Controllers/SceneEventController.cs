@@ -97,11 +97,12 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.ActionTargetType!.Value,
                 req.EventActionType!.Value,
-                req.CharacterStatType!.Value,
-                req.AdjustmentOperation!.Value,
+                req.CharacterStatType ?? Eldoria.Core.Enums.CharacterStatType.CurrentHp,
+                req.AdjustmentOperation ?? Eldoria.Core.Enums.AdjustmentOperation.Set,
                 req.Value,
                 req.CharacterId,
-                ct);
+                ct,
+                req.AlternateFormId);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -125,11 +126,12 @@ namespace Eldoria.Api.Controllers
                 req.Name,
                 req.ActionTargetType!.Value,
                 req.EventActionType!.Value,
-                req.CharacterStatType!.Value,
-                req.AdjustmentOperation!.Value,
+                req.CharacterStatType ?? Eldoria.Core.Enums.CharacterStatType.CurrentHp,
+                req.AdjustmentOperation ?? Eldoria.Core.Enums.AdjustmentOperation.Set,
                 req.Value,
                 req.CharacterId,
-                ct);
+                ct,
+                req.AlternateFormId);
 
             if (result.Success)
                 return Ok(result.Value);

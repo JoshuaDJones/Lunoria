@@ -15,5 +15,6 @@ namespace Eldoria.Core.Entities
 
         public CharacterStatAdjustmentAction? CharacterStatAdjustmentAction { get; set; }
         public CharacterAddSpellAction? CharacterAddSpellAction { get; set; }
+        public CharacterChangeAlternateFormAction? CharacterChangeAlternateFormAction { get; set; }
     }
 }
