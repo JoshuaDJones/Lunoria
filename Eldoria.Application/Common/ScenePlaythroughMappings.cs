@@ -281,6 +281,7 @@ public static class ScenePlaythroughMappings
             IsDown = journeyCharacter?.IsDown ?? false,
             IsDead = sceneCharacter?.IsDead ?? false,
             IsInAlternateForm = isInAlternateForm,
+            CanTransform = alternateForm is not null,
             DownedTurnsRemaining = participant.DownedTurnsRemaining,
             MaxConsumableInventory = ScenePlaythroughEquipmentEffects.Apply(
                 journeyCharacter?.MaxConsumableInventory

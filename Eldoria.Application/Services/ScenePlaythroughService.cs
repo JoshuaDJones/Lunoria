@@ -1316,6 +1316,67 @@ public sealed class ScenePlaythroughService(
         return Result.Ok();
     }
 
+    public async Task<Result> TransformAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        CancellationToken ct)
+    {
+        await using var transaction =
+            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
+        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+            userId, playthroughId, sceneId, ct);
+        var stateError = ValidateManageableScene(scene);
+        if (stateError is not null)
+            return Result.Fail(stateError);
+
+        var participant = scene!.SceneParticipants.SingleOrDefault(
+            candidate => candidate.Id == participantId);
+        if (participant is null)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.ParticipantNotFound",
+                "The scene participant was not found."));
+        }
+
+        if (scene.CurrentParticipantId != participant.Id || !participant.IsActive)
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.NotCurrentTurn",
+                "Only the active current participant can transform."));
+        }
+
+        var journeyCharacter = participant.JourneyPlaythroughCharacter;
+        var sceneCharacter = participant.ScenePlaythroughCharacter;
+        var alternateForm = journeyCharacter?.AlternateForm ?? sceneCharacter?.AlternateForm;
+        var alternateFormId = journeyCharacter?.AlternateFormId ?? sceneCharacter?.AlternateFormId;
+        var baseCharacter = journeyCharacter?.PlaythroughCharacter ?? sceneCharacter?.PlaythroughCharacter;
+        if (baseCharacter is null || alternateForm is null || alternateFormId is null ||
+            journeyCharacter is { IsDown: true } || sceneCharacter is { IsDead: true })
+        {
+            return Result.Fail(new Error(
+                "ScenePlaythrough.TransformUnavailable",
+                "This participant does not have an available alternate form."));
+        }
+
+        var wasInAlternateForm = journeyCharacter?.IsInAlternateForm
+            ?? sceneCharacter!.IsInAlternateForm;
+        if (journeyCharacter is not null)
+            journeyCharacter.IsInAlternateForm = !wasInAlternateForm;
+        else
+            sceneCharacter!.IsInAlternateForm = !wasInAlternateForm;
+
+        AddEvent(scene, wasInAlternateForm
+            ? $"{alternateForm.Name} returned to {baseCharacter.Name}"
+            : $"{baseCharacter.Name} transformed into {alternateForm.Name}");
+        AdvanceTurn(scene, participant);
+
+        await playthroughRepository.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return Result.Ok();
+    }
+
     public async Task<Result> ForfeitActionAsync(
         int userId,
         int playthroughId,

@@ -106,6 +106,13 @@ public interface IScenePlaythroughService
         bool isEquippable,
         CancellationToken ct);
 
+    Task<Result> TransformAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        CancellationToken ct);
+
     Task<Result> ForfeitActionAsync(
         int userId,
         int playthroughId,

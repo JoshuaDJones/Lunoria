@@ -169,6 +169,19 @@ public sealed class ScenePlaythroughController(
         };
     }
 
+    [HttpPost("participants/{participantId:int}/transform")]
+    public async Task<IActionResult> Transform(
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.TransformAsync(
+            User.GetUserId(), playthroughId, sceneId, participantId, ct);
+        return await CompleteMutationAsync(
+            result, playthroughId, "ParticipantTransformed", ct);
+    }
+
     [HttpPost("participants/{participantId:int}/forfeit-action")]
     public async Task<IActionResult> ForfeitAction(
         int playthroughId,
@@ -330,6 +343,7 @@ public sealed class ScenePlaythroughController(
         "ScenePlaythrough.UseConsumableUnavailable" => Conflict(error),
         "ScenePlaythrough.InventoryFull" => Conflict(error),
         "ScenePlaythrough.TradeUnavailable" => Conflict(error),
+        "ScenePlaythrough.TransformUnavailable" => Conflict(error),
         "ScenePlaythrough.TradeItemNotFound" => NotFound(error),
         "ScenePlaythrough.TradeInventoryFull" => Conflict(error),
         "ScenePlaythrough.NotCurrentTurn" => Conflict(error),

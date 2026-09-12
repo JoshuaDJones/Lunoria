@@ -217,6 +217,7 @@ export interface ScenePlaythroughParticipant {
   isDown: boolean;
   isDead: boolean;
   isInAlternateForm: boolean;
+  canTransform: boolean;
   downedTurnsRemaining: number | null;
   maxConsumableInventory: number;
   maxEquippableInventory: number;

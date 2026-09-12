@@ -32,6 +32,7 @@ public sealed class ScenePlaythroughParticipantDto
     public bool IsDown { get; set; }
     public bool IsDead { get; set; }
     public bool IsInAlternateForm { get; set; }
+    public bool CanTransform { get; set; }
     public int? DownedTurnsRemaining { get; set; }
     public int MaxConsumableInventory { get; set; }
     public int MaxEquippableInventory { get; set; }

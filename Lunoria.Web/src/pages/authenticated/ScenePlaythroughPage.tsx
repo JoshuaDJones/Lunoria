@@ -19,6 +19,7 @@ import {
   SceneAttackType,
   SceneOptionsPanel,
   tradeSceneParticipantItem,
+  transformSceneParticipant,
   updateSceneParticipantStats,
   useSceneParticipantConsumable,
   type SceneAttackResult,
@@ -62,6 +63,7 @@ export function ScenePlaythroughPage() {
   const [begunTurnKey, setBegunTurnKey] = useState("");
   const [awaitingActionTurnKey, setAwaitingActionTurnKey] = useState("");
   const [optionAction, setOptionAction] = useState<string>();
+  const transformPending = useRef(false);
   const [viewingDialog, setViewingDialog] =
     useState<ScenePlaythroughDialog>();
   const [attackAnimation, setAttackAnimation] =
@@ -85,6 +87,28 @@ export function ScenePlaythroughPage() {
         />
       ),
     });
+  };
+
+  const transform = async (participant: ScenePlaythroughParticipant) => {
+    if (transformPending.current) return;
+    transformPending.current = true;
+    try {
+      await transformSceneParticipant(playthroughId, sceneId, participant.id);
+      setScene(await getScenePlaythrough(playthroughId, sceneId));
+      setBegunTurnKey("");
+      setAwaitingActionTurnKey("");
+      modalStack.dismissAll();
+      toast.success(
+        participant.isInAlternateForm
+          ? `${participant.name} returned to their base form.`
+          : `${participant.name} transformed into their alternate form.`,
+        participant.isInAlternateForm ? "Form reverted" : "Transformed",
+      );
+    } catch (requestError: unknown) {
+      toast.error(getApiError(requestError).message, "Unable to transform");
+    } finally {
+      transformPending.current = false;
+    }
   };
 
   const forfeitAction = async (
@@ -288,9 +312,16 @@ export function ScenePlaythroughPage() {
       content: (
         <TurnActionOptions
           participantType={participant.participantType}
+          canTransform={participant.canTransform}
+          isInAlternateForm={participant.isInAlternateForm}
           hasUnopenedChests={unopenedChests.length > 0}
           hasConsumables={participant.consumableItems.length > 0}
           onSelect={(title) => {
+            if (title === "Transform") {
+              void transform(participant);
+              return;
+            }
+
             if (title === "Attack") {
               modalStack.push({
                 title: "Attack Type",
@@ -1039,16 +1070,20 @@ function MovementRollOptions({
 
 function TurnActionOptions({
   participantType,
+  canTransform,
+  isInAlternateForm,
   hasUnopenedChests,
   hasConsumables,
   onSelect,
   onForfeit,
 }: {
   participantType: ParticipantType;
+  canTransform: boolean;
+  isInAlternateForm: boolean;
   hasUnopenedChests: boolean;
   hasConsumables: boolean;
   onSelect: (
-    title: "Attack" | "Open Chest" | "Use Potion" | "Trade Item",
+    title: "Attack" | "Open Chest" | "Use Potion" | "Trade Item" | "Transform",
   ) => void;
   onForfeit: () => void;
 }) {
@@ -1061,6 +1096,13 @@ function TurnActionOptions({
         imageSrc="/Attack_Action.png"
         onClick={() => onSelect("Attack")}
       />
+      {canTransform && (
+        <TurnActionButton
+          label={isInAlternateForm ? "Revert" : "Transform"}
+          imageSrc="/Transform_Action.png"
+          onClick={() => onSelect("Transform")}
+        />
+      )}
       {hasConsumables && (
         <TurnActionButton
           label="Use Potion"

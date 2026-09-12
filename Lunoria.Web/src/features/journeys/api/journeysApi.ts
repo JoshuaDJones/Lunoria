@@ -195,6 +195,16 @@ export async function recordSceneParticipantMovement(
   return data;
 }
 
+export async function transformSceneParticipant(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/transform`,
+  );
+}
+
 export async function forfeitSceneParticipantAction(
   playthroughId: number,
   sceneId: number,
