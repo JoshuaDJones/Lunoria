@@ -313,7 +313,19 @@ export function ScenePlaythroughPage() {
           hasConsumables={participant.consumableItems.length > 0}
           onSelect={(title) => {
             if (title === "Transform") {
-              void transform(participant);
+              modalStack.push({
+                title: participant.isInAlternateForm
+                  ? "Confirm revert"
+                  : "Confirm transformation",
+                placement: "center",
+                content: (
+                  <TransformConfirmation
+                    participant={participant}
+                    onConfirm={() => transform(participant)}
+                    onCancel={() => modalStack.pop()}
+                  />
+                ),
+              });
               return;
             }
 
@@ -880,12 +892,12 @@ function ParticipantCard({
           isWaitingForTurn ? "pointer-events-none select-none blur-[1.5px]" : ""
         }`}
       >
-        <div className="flex w-2/5 shrink-0 items-center justify-center bg-canvas">
+        <div className="flex w-2/5 shrink-0 items-start justify-center p-2">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              className="h-full max-h-56 w-full object-contain"
+              className="h-auto max-h-56 w-full rounded-xl object-contain object-top"
             />
           ) : (
             <span className="text-content-muted">No image</span>
@@ -927,11 +939,19 @@ function ParticipantCard({
               </dd>
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
-              <dt className="text-content-muted">Attacks</dt>
+              <dt className="text-content-muted">Melee</dt>
               <dd className="font-semibold text-content">
-                {participant.attacksRemaining} / {participant.attacksPerTurn}
+                {participant.meleeAttackDamage ?? "Unavailable"}
               </dd>
             </div>
+            {participant.bowAttackDamage !== null && (
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
+                <dt className="text-content-muted">Bow</dt>
+                <dd className="font-semibold text-content">
+                  {participant.bowAttackDamage}
+                </dd>
+              </div>
+            )}
           </dl>
 
           {(participant.isDown ||
@@ -1041,7 +1061,7 @@ function MovementRollOptions({
 }) {
   const [selectedRoll, setSelectedRoll] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const totalMovement = defaultMovement + (selectedRoll ?? 0);
+  const totalMovement = Math.max(0, defaultMovement + (selectedRoll ?? 0));
 
   return (
     <div>
@@ -1404,6 +1424,11 @@ function TradeInventoryOptions({
   onTrade: (item: ScenePlaythroughInventoryItem) => Promise<void>;
 }) {
   const [selection, setSelection] = useState<TradeSelection>();
+  const [pendingTrade, setPendingTrade] = useState<{
+    selection: TradeSelection;
+    destinationId: number;
+  }>();
+  const submitPending = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const transferTo = async (
@@ -1419,11 +1444,19 @@ function TradeInventoryOptions({
       return;
     }
 
+    setPendingTrade({ selection, destinationId: destinationParticipantId });
+  };
+
+  const confirmTrade = async () => {
+    if (!pendingTrade || submitPending.current) return;
+    submitPending.current = true;
     setIsSubmitting(true);
     try {
-      await onTrade(selection.inventoryItem);
+      await onTrade(pendingTrade.selection.inventoryItem);
     } catch {
       setIsSubmitting(false);
+    } finally {
+      submitPending.current = false;
     }
   };
 
@@ -1432,13 +1465,14 @@ function TradeInventoryOptions({
       <p className="mb-5 text-sm text-content-secondary">
         Drag one item into the matching inventory on the other side. You can
         also select an item and use the Move Here button. A successful trade
-        completes the current turn.
+        completes the current turn. Dropping an item only selects the trade;
+        press Confirm trade to complete it.
       </p>
       <div className="grid gap-5 lg:grid-cols-2">
         <TradeCharacterInventory
           participant={participant}
           selection={selection}
-          disabled={isSubmitting}
+          disabled={isSubmitting || pendingTrade !== undefined}
           onSelect={setSelection}
           onReceive={(isEquippable) =>
             void transferTo(participant.id, isEquippable)
@@ -1447,16 +1481,83 @@ function TradeInventoryOptions({
         <TradeCharacterInventory
           participant={target}
           selection={selection}
-          disabled={isSubmitting}
+          disabled={isSubmitting || pendingTrade !== undefined}
           onSelect={setSelection}
           onReceive={(isEquippable) => void transferTo(target.id, isEquippable)}
         />
       </div>
+      {pendingTrade && (
+        <div className="mt-5 space-y-3 rounded-xl border border-utility p-4">
+          <p className="text-content">
+            Trade one {pendingTrade.selection.inventoryItem.item.name} from{" "}
+            {pendingTrade.selection.ownerParticipantId === participant.id
+              ? participant.name
+              : target.name}{" "}
+            to{" "}
+            {pendingTrade.destinationId === participant.id
+              ? participant.name
+              : target.name}
+            ?
+          </p>
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button
+              disabled={isSubmitting}
+              onClick={() => setPendingTrade(undefined)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              disabled={isSubmitting}
+              onClick={() => void confirmTrade()}
+            >
+              Confirm trade
+            </Button>
+          </div>
+        </div>
+      )}
       {isSubmitting && (
         <p className="mt-4 text-center text-sm font-semibold text-content-secondary">
           Trading item...
         </p>
       )}
+    </div>
+  );
+}
+
+function TransformConfirmation({
+  participant,
+  onConfirm,
+  onCancel,
+}: {
+  participant: ScenePlaythroughParticipant;
+  onConfirm: () => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="space-y-5">
+      <p className="text-content-secondary">
+        {participant.isInAlternateForm
+          ? `Return ${participant.name} to normal form?`
+          : `Transform ${participant.name} into ${participant.alternateForm?.name ?? "their alternate form"}?`}{" "}
+        This ends the current turn. HP, MP, and inventory are preserved.
+      </p>
+      <div className="flex justify-end gap-3">
+        <Button disabled={busy} onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true);
+            void onConfirm().finally(() => setBusy(false));
+          }}
+        >
+          {busy ? "Transforming..." : "Confirm"}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -17,13 +17,10 @@ public sealed class UpdateSceneParticipantStatsRequest
     [Range(0, int.MaxValue)]
     public int MaxMp { get; set; }
 
-    [Range(0, int.MaxValue)]
     public int Movement { get; set; }
 
-    [Range(0, int.MaxValue)]
     public int? MeleeAttackDamage { get; set; }
 
-    [Range(0, int.MaxValue)]
     public int? BowAttackDamage { get; set; }
 
     public SceneParticipantStatsUpdateDto ToDto() => new()

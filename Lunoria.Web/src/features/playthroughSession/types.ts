@@ -52,6 +52,18 @@ export interface PublicPlaythroughEquippableItem {
 }
 
 export interface PublicPlaythroughCharacter {
+  alternateForm: {
+    name: string;
+    description: string;
+    maxHp: number;
+    maxMp: number;
+    movement: number;
+    meleeAttackDamage: number | null;
+    bowAttackDamage: number | null;
+    maxConsumableInventory: number;
+    maxEquippableInventory: number;
+    spells: PublicPlaythroughSpell[];
+  } | null;
   id: number;
   isSceneCharacter: boolean;
   characterType: CharacterType;
@@ -86,6 +98,7 @@ export interface PublicPlaythroughEventLog {
 export interface PublicPlaythroughSnapshot {
   name: string;
   activeSceneName: string | null;
+  activeScenePhotoUrl: string | null;
   journeyCharacters: PublicPlaythroughCharacter[];
   sceneCharacters: PublicPlaythroughCharacter[];
   eventLogs: PublicPlaythroughEventLog[];

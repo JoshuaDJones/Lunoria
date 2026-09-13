@@ -221,6 +221,19 @@ export interface ScenePlaythroughInventoryItem {
 }
 
 export interface ScenePlaythroughParticipant {
+  alternateForm: {
+    id: number;
+    name: string;
+    description: string;
+    maxHp: number;
+    maxMp: number;
+    movement: number;
+    meleeAttackDamage: number | null;
+    bowAttackDamage: number | null;
+    maxConsumableInventory: number;
+    maxEquippableInventory: number;
+    spells: ScenePlaythroughSpell[];
+  } | null;
   id: number;
   participantType: ParticipantType;
   sortOrderWithinType: number | null;

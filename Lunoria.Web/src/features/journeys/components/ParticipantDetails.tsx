@@ -67,6 +67,59 @@ export function ParticipantDetails({
         </p>
         <DataList values={stats} />
       </Section>
+      <Section title="Transformation character">
+        {p.alternateForm ? (
+          <>
+            <h4 className="font-semibold">
+              {p.alternateForm.name}
+              {p.isInAlternateForm ? " (current form)" : ""}
+            </h4>
+            {p.alternateForm.description && (
+              <p className="whitespace-pre-wrap text-sm text-content-secondary">
+                {p.alternateForm.description}
+              </p>
+            )}
+            <p className="text-sm text-content-muted">
+              Saved base character data, not the participant’s live stats.
+              Transformation uses this form’s movement, melee, bow, and spells.
+              The participant keeps their HP, MP, and inventory; equipment
+              effects still apply.
+            </p>
+            <DataList
+              values={[
+                ["Base max HP", p.alternateForm.maxHp],
+                ["Base max MP", p.alternateForm.maxMp],
+                ["Base movement", p.alternateForm.movement],
+                [
+                  "Base melee",
+                  p.alternateForm.meleeAttackDamage ?? "Unavailable",
+                ],
+                ["Base bow", p.alternateForm.bowAttackDamage ?? "Unavailable"],
+                [
+                  "Base consumable capacity",
+                  p.alternateForm.maxConsumableInventory,
+                ],
+                [
+                  "Base equipment capacity",
+                  p.alternateForm.maxEquippableInventory,
+                ],
+              ]}
+            />
+            <h5 className="font-semibold">
+              Base spells ({p.alternateForm.spells.length})
+            </h5>
+            {p.alternateForm.spells.length ? (
+              p.alternateForm.spells.map((spell) => (
+                <SpellData key={spell.id} spell={spell} />
+              ))
+            ) : (
+              <Empty>No base spells.</Empty>
+            )}
+          </>
+        ) : (
+          <Empty>No alternate form assigned.</Empty>
+        )}
+      </Section>
       <Section title={`Spells (${p.spells.length})`}>
         {p.spells.length ? (
           p.spells.map((spell) => <SpellData key={spell.id} spell={spell} />)

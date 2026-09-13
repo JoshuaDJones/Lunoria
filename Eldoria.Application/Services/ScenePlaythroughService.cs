@@ -368,7 +368,7 @@ public sealed partial class ScenePlaythroughService(
         CancellationToken ct)
     {
         if (update.CurrentHp < 0 || update.MaxHp < 1 ||
-            update.CurrentMp < 0 || update.MaxMp < 0 || update.Movement < 0 ||
+            update.CurrentMp < 0 || update.MaxMp < 0 ||
             update.CurrentHp > update.MaxHp || update.CurrentMp > update.MaxMp)
         {
             return Result.Fail(new Error(
@@ -470,14 +470,12 @@ public sealed partial class ScenePlaythroughService(
         var characterName = journeyCharacter?.PlaythroughCharacter.Name
             ?? sceneCharacter?.PlaythroughCharacter.Name
             ?? "Unknown character";
-        var baseMovement = journeyCharacter?.Movement
-            ?? sceneCharacter?.Movement
-            ?? 0;
+        var baseMovement = SceneActiveCombatStats.For(participant).Movement;
         var equipmentEffects = ScenePlaythroughEquipmentEffects.For(participant);
         var movement = ScenePlaythroughEquipmentEffects.Apply(
             ScenePlaythroughEquipmentEffects.Apply(
                 baseMovement,
-                equipmentEffects.MovementModifier),
+                equipmentEffects.MovementModifier, minimum: int.MinValue),
             roll);
 
         AddEvent(scene, $"{characterName} moved {movement} spaces");
@@ -614,14 +612,13 @@ public sealed partial class ScenePlaythroughService(
                 if (playthroughSpellId is not null)
                     return InvalidAttackType("A melee attack cannot include a spell.");
 
-                var meleeDamage = attackerJourneyCharacter?.MeleeAttackDamage
-                    ?? attackerSceneCharacter?.MeleeAttackDamage;
+                var meleeDamage = SceneActiveCombatStats.For(attacker).Melee;
                 if (meleeDamage is null)
                     return AttackUnavailable("This participant has no melee attack.");
 
                 baseDamage = ScenePlaythroughEquipmentEffects.Apply(
                     meleeDamage.Value,
-                    attackerEquipment.MeleeAttackDamageModifier);
+                    attackerEquipment.MeleeAttackDamageModifier, minimum: int.MinValue);
                 attackLabel = "a melee attack";
                 break;
 
@@ -629,14 +626,13 @@ public sealed partial class ScenePlaythroughService(
                 if (playthroughSpellId is not null)
                     return InvalidAttackType("A range attack cannot include a spell.");
 
-                var rangeDamage = attackerJourneyCharacter?.BowAttackDamage
-                    ?? attackerSceneCharacter?.BowAttackDamage;
+                var rangeDamage = SceneActiveCombatStats.For(attacker).Bow;
                 if (rangeDamage is null)
                     return AttackUnavailable("This participant has no range attack.");
 
                 baseDamage = ScenePlaythroughEquipmentEffects.Apply(
                     rangeDamage.Value,
-                    attackerEquipment.BowAttackDamageModifier);
+                    attackerEquipment.BowAttackDamageModifier, minimum: int.MinValue);
                 attackLabel = "a range attack";
                 break;
 
@@ -1666,7 +1662,7 @@ public sealed partial class ScenePlaythroughService(
                 character.Movement = ApplyBoundedAdjustment(
                     character.Movement,
                     adjustment,
-                    0,
+                    int.MinValue,
                     int.MaxValue);
                 break;
             case CharacterStatType.MeleeAttackDamage:
@@ -1724,7 +1720,7 @@ public sealed partial class ScenePlaythroughService(
                 character.Movement = ApplyBoundedAdjustment(
                     character.Movement,
                     adjustment,
-                    0,
+                    int.MinValue,
                     int.MaxValue);
                 break;
             case CharacterStatType.MeleeAttackDamage:
@@ -1753,7 +1749,7 @@ public sealed partial class ScenePlaythroughService(
         return ApplyBoundedAdjustment(
             currentValue ?? 0,
             adjustment,
-            0,
+            int.MinValue,
             int.MaxValue);
     }
 
@@ -2076,11 +2072,7 @@ public sealed partial class ScenePlaythroughService(
     private static IEnumerable<PlaythroughSpell> GetSpells(
         ScenePTParticipant participant)
     {
-        var characterSpells = participant.JourneyPlaythroughCharacter is { } journeyCharacter
-            ? journeyCharacter.Spells.Select(link => link.PlaythroughSpell)
-            : participant.ScenePlaythroughCharacter?.Spells
-                .Select(link => link.PlaythroughSpell)
-                ?? [];
+        var characterSpells = ScenePlaythroughSpellSelection.For(participant);
         var equipmentSpells = ScenePlaythroughEquipmentEffects.For(participant)
             .AddedSpells;
 

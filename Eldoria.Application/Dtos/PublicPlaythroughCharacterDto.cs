@@ -24,7 +24,22 @@ public sealed class PublicPlaythroughCharacterDto
     public bool IsDown { get; set; }
     public bool IsDead { get; set; }
     public bool IsInAlternateForm { get; set; }
+    public PublicAlternateFormDto? AlternateForm { get; set; }
     public List<PublicPlaythroughSpellDto> Spells { get; set; } = [];
     public List<PublicPlaythroughConsumableItemDto> ConsumableItems { get; set; } = [];
     public List<PublicPlaythroughEquippableItemDto> EquippableItems { get; set; } = [];
+}
+
+public sealed class PublicAlternateFormDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int MaxHp { get; set; }
+    public int MaxMp { get; set; }
+    public int Movement { get; set; }
+    public int? MeleeAttackDamage { get; set; }
+    public int? BowAttackDamage { get; set; }
+    public int MaxConsumableInventory { get; set; }
+    public int MaxEquippableInventory { get; set; }
+    public List<PublicPlaythroughSpellDto> Spells { get; set; } = [];
 }

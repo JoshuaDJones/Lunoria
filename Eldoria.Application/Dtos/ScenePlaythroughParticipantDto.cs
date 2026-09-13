@@ -33,10 +33,26 @@ public sealed class ScenePlaythroughParticipantDto
     public bool IsDead { get; set; }
     public bool IsInAlternateForm { get; set; }
     public bool CanTransform { get; set; }
+    public SceneAlternateFormDetailsDto? AlternateForm { get; set; }
     public int? DownedTurnsRemaining { get; set; }
     public int MaxConsumableInventory { get; set; }
     public int MaxEquippableInventory { get; set; }
     public List<ScenePlaythroughSpellDto> Spells { get; set; } = [];
     public List<ScenePlaythroughInventoryItemDto> ConsumableItems { get; set; } = [];
     public List<ScenePlaythroughInventoryItemDto> EquippableItems { get; set; } = [];
+}
+
+public sealed class SceneAlternateFormDetailsDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int MaxHp { get; set; }
+    public int MaxMp { get; set; }
+    public int Movement { get; set; }
+    public int? MeleeAttackDamage { get; set; }
+    public int? BowAttackDamage { get; set; }
+    public int MaxConsumableInventory { get; set; }
+    public int MaxEquippableInventory { get; set; }
+    public List<ScenePlaythroughSpellDto> Spells { get; set; } = [];
 }

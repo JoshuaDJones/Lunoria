@@ -244,6 +244,7 @@ public static class ScenePlaythroughMappings
                 ? alternateForm
                 : baseCharacter;
         var equipmentEffects = ScenePlaythroughEquipmentEffects.For(participant);
+        var activeCombatStats = SceneActiveCombatStats.For(participant);
 
         return new ScenePlaythroughParticipantDto
         {
@@ -276,18 +277,14 @@ public static class ScenePlaythroughMappings
                 journeyCharacter?.MaxMp ?? sceneCharacter!.MaxMp,
                 equipmentEffects.MaxMpModifier),
             Movement = ScenePlaythroughEquipmentEffects.Apply(
-                journeyCharacter?.Movement ?? sceneCharacter!.Movement,
-                equipmentEffects.MovementModifier),
+                activeCombatStats.Movement,
+                equipmentEffects.MovementModifier, minimum: int.MinValue),
             MeleeAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
-                journeyCharacter is not null
-                    ? journeyCharacter.MeleeAttackDamage
-                    : sceneCharacter!.MeleeAttackDamage,
-                equipmentEffects.MeleeAttackDamageModifier),
+                activeCombatStats.Melee,
+                equipmentEffects.MeleeAttackDamageModifier, minimum: int.MinValue),
             BowAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
-                journeyCharacter is not null
-                    ? journeyCharacter.BowAttackDamage
-                    : sceneCharacter!.BowAttackDamage,
-                equipmentEffects.BowAttackDamageModifier),
+                activeCombatStats.Bow,
+                equipmentEffects.BowAttackDamageModifier, minimum: int.MinValue),
             MeleeDamageReduction = Math.Max(
                 0, equipmentEffects.MeleeDamageReduction),
             BowDamageReduction = Math.Max(
@@ -298,6 +295,29 @@ public static class ScenePlaythroughMappings
             IsDead = sceneCharacter?.IsDead ?? false,
             IsInAlternateForm = isInAlternateForm,
             CanTransform = alternateForm is not null,
+            AlternateForm = alternateForm is null ? null : new SceneAlternateFormDetailsDto
+            {
+                Id = alternateForm.Id,
+                Name = alternateForm.Name,
+                Description = alternateForm.Description,
+                MaxHp = alternateForm.BaseMaxHp,
+                MaxMp = alternateForm.BaseMaxMp,
+                Movement = alternateForm.BaseMovement,
+                MeleeAttackDamage = alternateForm.BaseMeleeAttackDamage,
+                BowAttackDamage = alternateForm.BaseBowAttackDamage,
+                MaxConsumableInventory = alternateForm.BaseMaxConsumableInventory,
+                MaxEquippableInventory = alternateForm.BaseMaxEquippableInventory,
+                Spells = alternateForm.Spells.Select(link => link.PlaythroughSpell)
+                    .DistinctBy(spell => spell.Id).OrderBy(spell => spell.Name)
+                    .Select(spell => new ScenePlaythroughSpellDto
+                    {
+                        Id = spell.Id, Name = spell.Name, Description = spell.Description,
+                        MpCost = spell.MpCost, Range = spell.Range, IsRadius = spell.IsRadius,
+                        DamageEffect = spell.DamageEffect, HealthEffect = spell.HealthEffect, MagicEffect = spell.MagicEffect,
+                        IsSupport = spell.DamageEffect.GetValueOrDefault() <= 0 && (spell.HealthEffect > 0 || spell.MagicEffect > 0),
+                        IsUtility = spell.DamageEffect.GetValueOrDefault() == 0 && spell.HealthEffect.GetValueOrDefault() == 0 && spell.MagicEffect.GetValueOrDefault() == 0
+                    }).ToList()
+            },
             DownedTurnsRemaining = participant.DownedTurnsRemaining,
             MaxConsumableInventory = ScenePlaythroughEquipmentEffects.Apply(
                 journeyCharacter?.MaxConsumableInventory
@@ -307,11 +327,7 @@ public static class ScenePlaythroughMappings
                 journeyCharacter?.MaxEquippableInventory
                     ?? sceneCharacter!.MaxEquippableInventory,
                 equipmentEffects.MaxEquippableInventoryModifier),
-            Spells = (journeyCharacter?.Spells
-                    .Select(link => link.PlaythroughSpell)
-                ?? sceneCharacter?.Spells
-                    .Select(link => link.PlaythroughSpell)
-                ?? [])
+            Spells = ScenePlaythroughSpellSelection.For(participant)
                 .Concat(equipmentEffects.AddedSpells)
                 .GroupBy(spell => spell.Id)
                 .Select(group => group.First())

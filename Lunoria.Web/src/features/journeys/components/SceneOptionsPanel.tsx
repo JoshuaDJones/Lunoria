@@ -418,16 +418,19 @@ function ParticipantStatsEditor({
       <StatInput
         label="Movement"
         value={stats.movement}
+        min={-2147483648}
         onChange={(value) => setNumber("movement", value)}
       />
       <StatInput
         label="Melee"
         value={stats.meleeAttackDamage}
+        min={-2147483648}
         onChange={(value) => setNumber("meleeAttackDamage", value, true)}
       />
       <StatInput
         label="Bow"
         value={stats.bowAttackDamage}
+        min={-2147483648}
         onChange={(value) => setNumber("bowAttackDamage", value, true)}
       />
       <Button
