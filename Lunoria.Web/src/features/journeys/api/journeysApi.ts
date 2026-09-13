@@ -154,6 +154,16 @@ export async function addPlaythroughCharacterToScene(
   );
 }
 
+export async function removeSceneParticipant(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+): Promise<void> {
+  await apiClient.delete(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}`,
+  );
+}
+
 export interface AddSceneChestLootEntryInput {
   rollMinimum: number;
   rollMaximum: number;

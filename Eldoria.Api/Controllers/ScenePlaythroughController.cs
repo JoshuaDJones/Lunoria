@@ -131,6 +131,15 @@ public sealed class ScenePlaythroughController(
             result, playthroughId, "SceneCharacterAdded", ct);
     }
 
+    [HttpDelete("participants/{participantId:int}")]
+    public async Task<IActionResult> RemoveSceneParticipant(
+        int playthroughId, int sceneId, int participantId, CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.RemoveSceneParticipantAsync(
+            User.GetUserId(), playthroughId, sceneId, participantId, ct);
+        return await CompleteMutationAsync(result, playthroughId, "SceneCharacterRemoved", ct);
+    }
+
     [HttpPost("chests")]
     public async Task<IActionResult> AddChest(
         int playthroughId,

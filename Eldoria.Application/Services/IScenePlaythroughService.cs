@@ -49,6 +49,9 @@ public interface IScenePlaythroughService
         int playthroughCharacterId,
         CancellationToken ct);
 
+    Task<Result> RemoveSceneParticipantAsync(
+        int userId, int playthroughId, int sceneId, int participantId, CancellationToken ct);
+
     Task<Result> AddChestAsync(
         int userId,
         int playthroughId,

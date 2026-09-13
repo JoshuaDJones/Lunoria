@@ -15,6 +15,7 @@ interface SceneOptionsPanelProps {
   busyAction?: string;
   onActivateJourneyCharacter: (id: number) => void;
   onAddPlaythroughCharacter: (id: number) => void;
+  onRemoveParticipant: (id: number) => void;
   onAddChest: (input: AddSceneChestInput) => void;
   onUpdateParticipant: (
     id: number,
@@ -29,6 +30,7 @@ export function SceneOptionsPanel({
   busyAction,
   onActivateJourneyCharacter,
   onAddPlaythroughCharacter,
+  onRemoveParticipant,
   onAddChest,
   onUpdateParticipant,
   onViewDialog,
@@ -59,6 +61,15 @@ export function SceneOptionsPanel({
   );
   const [participantId, setParticipantId] = useState(participants[0]?.id ?? 0);
   const participant = participants.find((item) => item.id === participantId);
+  const removableParticipants = participants.filter(
+    (item) =>
+      item.journeyPlaythroughCharacterId === null &&
+      item.scenePlaythroughCharacterId !== null,
+  );
+  const [removalId, setRemovalId] = useState<number>();
+  const removal = removableParticipants.find((item) => item.id === removalId);
+  const removalDisabled =
+    busyAction !== undefined || !!scene.counterattackToken;
 
   return (
     <div className="space-y-8">
@@ -107,6 +118,64 @@ export function SceneOptionsPanel({
                 onAction={() => onAddPlaythroughCharacter(character.id)}
               />
             ))}
+          </div>
+        )}
+      </OptionSection>
+
+      <OptionSection title="Remove Scene Character">
+        <p className="mb-3 text-sm text-content-secondary">
+          Remove a scene character from participation, without a defeat or loot
+          reward. Journey characters cannot be removed here.
+        </p>
+        {scene.counterattackToken && (
+          <p className="mb-3 text-sm text-content-muted">
+            Resolve or pass the counterattack first.
+          </p>
+        )}
+        {removableParticipants.length === 0 ? (
+          <EmptyMessage>
+            No scene characters are available to remove.
+          </EmptyMessage>
+        ) : (
+          <div className="space-y-3">
+            {removableParticipants.map((item) => (
+              <OptionRow
+                key={item.id}
+                name={`${item.name} (#${item.id})`}
+                imageUrl={item.portraitUrl || item.photoUrl}
+                actionLabel="Remove"
+                disabled={removalDisabled}
+                busy={busyAction === `remove-${item.id}`}
+                onAction={() => setRemovalId(item.id)}
+              />
+            ))}
+          </div>
+        )}
+        {removal && (
+          <div className="mt-3 rounded-xl border border-danger/40 p-4">
+            <p>
+              Remove {removal.name} (#{removal.id}) from this scene?
+              {removal.isCurrentParticipant &&
+                " Their turn will end and the rotation will advance."}
+            </p>
+            <div className="mt-3 flex gap-3">
+              <Button
+                variant="danger"
+                disabled={removalDisabled}
+                onClick={() => {
+                  onRemoveParticipant(removal.id);
+                  setRemovalId(undefined);
+                }}
+              >
+                Confirm removal
+              </Button>
+              <Button
+                disabled={busyAction !== undefined}
+                onClick={() => setRemovalId(undefined)}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
       </OptionSection>

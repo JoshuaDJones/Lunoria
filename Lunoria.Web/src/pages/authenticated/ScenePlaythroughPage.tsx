@@ -16,6 +16,7 @@ import {
   ParticipantType,
   recordSceneParticipantMovement,
   resolveSceneParticipantAttack,
+  removeSceneParticipant,
   passSceneCounterattack,
   SceneAttackType,
   SceneOptionsPanel,
@@ -741,6 +742,19 @@ export function ScenePlaythroughPage() {
                       characterId,
                     ),
                   "Scene character added.",
+                )
+              }
+              onRemoveParticipant={(participantId) =>
+                void runSceneOption(
+                  `remove-${participantId}`,
+                  async () => {
+                    await removeSceneParticipant(playthroughId, sceneId, participantId);
+                    if (scene.currentParticipantId === participantId) {
+                      setBegunTurnKey("");
+                      setAwaitingActionTurnKey("");
+                    }
+                  },
+                  "Scene character removed.",
                 )
               }
               onAddChest={(input) =>
