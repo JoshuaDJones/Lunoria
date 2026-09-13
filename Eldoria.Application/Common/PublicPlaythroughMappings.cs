@@ -184,7 +184,9 @@ public static class PublicPlaythroughMappings
             Id = spell.Id,
             Name = spell.Name,
             Description = spell.Description,
-            PhotoUrl = spell.PhotoUrl,
+            PhotoUrl = string.IsNullOrWhiteSpace(spell.PhotoUrl)
+                ? spell.PlaythroughSpellType.PhotoUrl
+                : spell.PhotoUrl,
             SpellType = spell.PlaythroughSpellType.TypeName,
             Range = spell.Range,
             IsRadius = spell.IsRadius,
