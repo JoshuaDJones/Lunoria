@@ -65,6 +65,10 @@ export const router = createBrowserRouter([
         element: <SceneGridPage />,
       },
       {
+        path: "/playthroughs/:playthroughId/scene-grids/:sceneId",
+        element: <SceneGridPage />,
+      },
+      {
         path: "/journeys",
         element: <JourneysPage />,
       },

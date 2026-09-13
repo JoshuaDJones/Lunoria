@@ -77,7 +77,7 @@ public interface IScenePlaythroughService
         int playthroughId,
         int sceneId,
         int participantId,
-        int targetParticipantId,
+        int? targetParticipantId,
         SceneAttackType attackType,
         int roll,
         int? playthroughSpellId,

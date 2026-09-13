@@ -33,6 +33,7 @@ import {
 } from "@/features/journeys";
 import { DialogViewer } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
+import { ParticipantDetails } from "@/features/journeys/components/ParticipantDetails";
 
 interface AttackAnimationState {
   targetName: string;
@@ -135,7 +136,7 @@ export function ScenePlaythroughPage() {
 
   const attack = async (
     participant: ScenePlaythroughParticipant,
-    targetParticipantId: number,
+    targetParticipantId: number | null,
     attackType: SceneAttackType,
     roll: number,
     playthroughSpellId: number | null,
@@ -158,7 +159,7 @@ export function ScenePlaythroughPage() {
         },
       );
 
-      if (!result.isSupport) {
+      if (!result.isSupport && !result.isUtility) {
         setAttackAnimation({
           targetName: target?.name ?? "Target",
           imageUrl:
@@ -189,7 +190,7 @@ export function ScenePlaythroughPage() {
       modalStack.dismissAll();
       toast.success(
         getAttackResultMessage(result),
-        result.isSupport ? "Spell cast" : "Attack complete",
+        result.isSupport || result.isUtility ? "Spell cast" : "Attack complete",
       );
     } catch (requestError: unknown) {
       stopAttackSounds();
@@ -621,11 +622,7 @@ export function ScenePlaythroughPage() {
 
         {!isLoading && !error && scene && (
           <div className="grid gap-6 px-6 pb-10 sm:px-10 lg:grid-cols-[minmax(0,4fr)_minmax(14rem,1fr)]">
-            <section className="rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px]">
-              <h2 className="text-3xl font-semibold text-content">
-                Participants
-              </h2>
-
+            <section className="rounded-3xl  p-5 ">
               {scene.participants.length === 0 ? (
                 <p className="mt-5 text-content-muted">
                   No active participants were added to this scene.
@@ -646,6 +643,15 @@ export function ScenePlaythroughPage() {
                       <ParticipantCard
                         key={participant.id}
                         participant={participant}
+                        onShowDetails={() =>
+                          modalStack.push({
+                            title: `${participant.name} — Details`,
+                            placement: "center",
+                            content: (
+                              <ParticipantDetails participant={participant} />
+                            ),
+                          })
+                        }
                         turnPromptLabel={turnPromptLabel}
                         onTurnPrompt={() => {
                           if (isAwaitingAction) {
@@ -847,10 +853,12 @@ function playAttackSlashSounds() {
 
 function ParticipantCard({
   participant,
+  onShowDetails,
   turnPromptLabel,
   onTurnPrompt,
 }: {
   participant: ScenePlaythroughParticipant;
+  onShowDetails: () => void;
   turnPromptLabel?: "Begin Turn" | "Select Action";
   onTurnPrompt: () => void;
 }) {
@@ -886,7 +894,7 @@ function ParticipantCard({
 
         <div className="flex min-w-0 flex-1 flex-col p-4">
           <div>
-            <h3 className="text-xl font-semibold text-content">
+            <h3 className="pr-6 text-xl font-semibold text-content">
               {participant.name}
             </h3>
             <p className="text-sm text-content-muted">
@@ -899,26 +907,26 @@ function ParticipantCard({
             )}
           </div>
 
-          <dl className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            <div className="rounded-lg bg-surface/75 p-2">
+          <dl className="mt-4 flex min-w-0 flex-col gap-2 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
               <dt className="text-content-muted">HP</dt>
               <dd className="font-semibold text-content">
                 {participant.currentHp} / {participant.maxHp}
               </dd>
             </div>
-            <div className="rounded-lg bg-surface/75 p-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
               <dt className="text-content-muted">MP</dt>
               <dd className="font-semibold text-content">
                 {participant.currentMp} / {participant.maxMp}
               </dd>
             </div>
-            <div className="rounded-lg bg-surface/75 p-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
               <dt className="text-content-muted">Move</dt>
               <dd className="font-semibold text-content">
                 {participant.movement}
               </dd>
             </div>
-            <div className="rounded-lg bg-surface/75 p-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
               <dt className="text-content-muted">Attacks</dt>
               <dd className="font-semibold text-content">
                 {participant.attacksRemaining} / {participant.attacksPerTurn}
@@ -965,6 +973,28 @@ function ParticipantCard({
           </Button>
         </div>
       )}
+      <button
+        type="button"
+        aria-label={`Show details for ${participant.name}`}
+        title="Show details"
+        onClick={onShowDetails}
+        className="absolute right-2 top-2 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 text-content-muted transition-colors hover:text-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v6" />
+          <path d="M12 7h.01" />
+        </svg>
+      </button>
     </Card>
   );
 }
@@ -1984,7 +2014,8 @@ function AttackTypeOptions({
         />
       )}
       {participant.spells.some(
-        (spell) => spell.damageEffect !== null || spell.isSupport,
+        (spell) =>
+          spell.damageEffect !== null || spell.isSupport || spell.isUtility,
       ) && (
         <TurnActionButton
           label="Cast Spell"
@@ -2006,13 +2037,14 @@ function AttackResolutionOptions({
   targets: ScenePlaythroughParticipant[];
   attackType: SceneAttackType;
   onAttack: (
-    targetParticipantId: number,
+    targetParticipantId: number | null,
     roll: number,
     playthroughSpellId: number | null,
   ) => Promise<void>;
 }) {
   const availableSpells = attacker.spells.filter(
-    (spell) => spell.damageEffect !== null || spell.isSupport,
+    (spell) =>
+      spell.damageEffect !== null || spell.isSupport || spell.isUtility,
   );
   const [selectedTargetId, setSelectedTargetId] = useState<number>();
   const [selectedRoll, setSelectedRoll] = useState<number>();
@@ -2023,6 +2055,8 @@ function AttackResolutionOptions({
   );
   const isSupport =
     attackType === SceneAttackType.Spell && selectedSpell?.isSupport === true;
+  const isUtility =
+    attackType === SceneAttackType.Spell && selectedSpell?.isUtility === true;
   const targets =
     attackType === SceneAttackType.Spell && !selectedSpell
       ? []
@@ -2041,8 +2075,9 @@ function AttackResolutionOptions({
   const hasRequiredSpell =
     attackType !== SceneAttackType.Spell || selectedSpell !== undefined;
   const canAttack =
-    selectedTarget !== undefined &&
-    (isSupport || (selectedRoll !== undefined && totalDamage !== null)) &&
+    (isUtility || selectedTarget !== undefined) &&
+    (isUtility ||
+      (selectedRoll !== undefined && (isSupport || totalDamage !== null))) &&
     (attackType !== SceneAttackType.Spell ||
       (selectedSpell !== undefined &&
         selectedSpell.mpCost <= attacker.currentMp)) &&
@@ -2051,11 +2086,30 @@ function AttackResolutionOptions({
 
   return (
     <div>
-      {isSupport ? (
+      {isUtility ? (
         <p className="rounded-xl border border-border bg-surface p-4 text-content">
-          Restores {selectedSpell?.healthEffect ?? 0} HP and{" "}
-          {selectedSpell?.magicEffect ?? 0} MP, up to the target’s maximum. Uses{" "}
-          {selectedSpell?.mpCost} MP and one action. No damage roll is required.
+          Utility spell: uses {selectedSpell?.mpCost} MP and one action. No
+          target or die roll is required. No other stats are changed.
+        </p>
+      ) : isSupport ? (
+        <p className="rounded-xl border border-border bg-surface p-4 text-content">
+          Base restoration: {selectedSpell?.healthEffect ?? 0} HP and{" "}
+          {selectedSpell?.magicEffect ?? 0} MP. Add the selected roll to each
+          positive restoration effect, capped at the target’s maximum. Uses{" "}
+          {selectedSpell?.mpCost} MP and one action.
+          {selectedRoll !== undefined && (
+            <span className="mt-2 block">
+              With roll {selectedRoll}: up to{" "}
+              {(selectedSpell?.healthEffect ?? 0) > 0
+                ? selectedSpell!.healthEffect! + selectedRoll
+                : 0}{" "}
+              HP and{" "}
+              {(selectedSpell?.magicEffect ?? 0) > 0
+                ? selectedSpell!.magicEffect! + selectedRoll
+                : 0}{" "}
+              MP.
+            </span>
+          )}
         </p>
       ) : (
         <div className="grid grid-cols-3 gap-4 rounded-xl border border-border bg-surface p-4 text-center">
@@ -2091,60 +2145,63 @@ function AttackResolutionOptions({
         />
       )}
 
-      <section className="mt-6">
-        <h3 className="text-lg font-semibold text-content">Select a target</h3>
-        {targets.length === 0 ? (
-          <p className="mt-3 rounded-xl border border-border bg-surface p-4 text-content-muted">
-            {attackType === SceneAttackType.Spell && !selectedSpell
-              ? "Choose a spell to see eligible targets."
-              : "There are no eligible targets for this action."}
-          </p>
-        ) : (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {targets.map((target) => {
-              const imageUrl =
-                target.portraitUrl?.trim() || target.photoUrl?.trim();
-              const isSelected = selectedTargetId === target.id;
+      {!isUtility && (
+        <section className="mt-6">
+          <h3 className="text-lg font-semibold text-content">
+            Select a target
+          </h3>
+          {targets.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-border bg-surface p-4 text-content-muted">
+              {attackType === SceneAttackType.Spell && !selectedSpell
+                ? "Choose a spell to see eligible targets."
+                : "There are no eligible targets for this action."}
+            </p>
+          ) : (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {targets.map((target) => {
+                const imageUrl =
+                  target.portraitUrl?.trim() || target.photoUrl?.trim();
+                const isSelected = selectedTargetId === target.id;
 
-              return (
-                <button
-                  key={target.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  className={`flex cursor-pointer items-center gap-3 overflow-hidden rounded-xl border-2 bg-surface p-3 text-left transition hover:border-utility focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
-                    isSelected ? "border-utility" : "border-border"
-                  }`}
-                  onClick={() => setSelectedTargetId(target.id)}
-                >
-                  <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-canvas">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt=""
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <span className="text-xs text-content-muted">
-                        No image
+                return (
+                  <button
+                    key={target.id}
+                    type="button"
+                    aria-pressed={isSelected}
+                    className={`flex cursor-pointer items-center gap-3 overflow-hidden rounded-xl border-2 bg-surface p-3 text-left transition hover:border-utility focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
+                      isSelected ? "border-utility" : "border-border"
+                    }`}
+                    onClick={() => setSelectedTargetId(target.id)}
+                  >
+                    <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-canvas">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-xs text-content-muted">
+                          No image
+                        </span>
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-content">
+                        {target.name}
                       </span>
-                    )}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-content">
-                      {target.name}
+                      <span className="mt-1 block text-sm text-content-muted">
+                        HP {target.currentHp} / {target.maxHp}
+                      </span>
                     </span>
-                    <span className="mt-1 block text-sm text-content-muted">
-                      HP {target.currentHp} / {target.maxHp}
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {!isSupport && (
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+      {!isUtility && (
         <section className="mt-6">
           <h3 className="text-lg font-semibold text-content">
             Select a die face
@@ -2169,9 +2226,9 @@ function AttackResolutionOptions({
           disabled={!canAttack}
           onClick={() => {
             if (
-              selectedTargetId === undefined ||
-              (!isSupport && selectedRoll === undefined) ||
-              !selectedTarget ||
+              (!isUtility &&
+                (selectedTargetId === undefined || !selectedTarget)) ||
+              (!isUtility && selectedRoll === undefined) ||
               !hasRequiredSpell
             ) {
               return;
@@ -2179,8 +2236,8 @@ function AttackResolutionOptions({
 
             setIsSubmitting(true);
             void onAttack(
-              selectedTargetId,
-              isSupport ? 1 : selectedRoll!,
+              isUtility ? null : selectedTargetId!,
+              isUtility ? 1 : selectedRoll!,
               selectedSpell?.id ?? null,
             ).finally(() => setIsSubmitting(false));
           }}
@@ -2235,9 +2292,11 @@ function SpellAttackSelector({
                   {spell.name}
                 </span>
                 <span className="mt-1 block text-sm text-content-muted">
-                  {spell.isSupport
-                    ? `Restore ${spell.healthEffect ?? 0} HP / ${spell.magicEffect ?? 0} MP`
-                    : `Damage ${spell.damageEffect}`}{" "}
+                  {spell.isUtility
+                    ? "Utility spell"
+                    : spell.isSupport
+                      ? `Restore ${spell.healthEffect ?? 0} HP / ${spell.magicEffect ?? 0} MP`
+                      : `Damage ${spell.damageEffect}`}{" "}
                   · MP cost {spell.mpCost}
                 </span>
                 {spell.description && (
@@ -2384,6 +2443,8 @@ function getAttackTypeLabel(attackType: SceneAttackType) {
 }
 
 function getAttackResultMessage(result: SceneAttackResult) {
+  if (result.isUtility)
+    return "Utility spell cast. MP spent and one action used.";
   if (result.isSupport)
     return `Restored ${result.healthRestored} HP and ${result.magicRestored} MP.`;
   const reward = result.rewardStat

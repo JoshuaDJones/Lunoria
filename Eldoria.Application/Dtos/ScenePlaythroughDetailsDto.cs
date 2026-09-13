@@ -9,6 +9,8 @@ public sealed class ScenePlaythroughDetailsDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? PhotoUrl { get; set; }
+    public string? GridUrl { get; set; }
+    public ScenePlaythroughGridDto? Grid { get; set; }
     public ScenePlaythroughStatus Status { get; set; }
     public int RoundNumber { get; set; }
     public DateTime? StartedAt { get; set; }
@@ -22,4 +24,12 @@ public sealed class ScenePlaythroughDetailsDto
     public List<ScenePlaythroughChestDto> Chests { get; set; } = [];
     public List<ScenePlaythroughDialogDto> Dialogs { get; set; } = [];
     public List<PlaythroughEventLogDto> EventLogs { get; set; } = [];
+}
+
+public sealed class ScenePlaythroughGridDto
+{
+    public int Rows { get; set; }
+    public int Columns { get; set; }
+    public string GridColor { get; set; } = string.Empty;
+    public string? BackgroundImageUrl { get; set; }
 }

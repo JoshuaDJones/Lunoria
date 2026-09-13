@@ -6,7 +6,7 @@ namespace Eldoria.Api.Requests;
 public sealed class ResolveSceneAttackRequest
 {
     [Range(1, int.MaxValue)]
-    public int TargetParticipantId { get; set; }
+    public int? TargetParticipantId { get; set; }
 
     [EnumDataType(typeof(SceneAttackType))]
     public SceneAttackType AttackType { get; set; }

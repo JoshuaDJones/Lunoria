@@ -38,18 +38,39 @@ export function SceneOptionsPanel({
   const playthroughCharacters = scene.playthroughCharacters ?? [];
   const participants = scene.participants ?? [];
   const dialogs = scene.dialogs ?? [];
+  const gridUrl = scene.gridUrl?.trim();
+  const openGrid = () => {
+    const url = scene.grid
+      ? `${window.location.origin}/playthroughs/${scene.playthroughId}/scene-grids/${scene.id}`
+      : gridUrl
+        ? /^https?:\/\//i.test(gridUrl)
+          ? gridUrl
+          : `https://${gridUrl}`
+        : undefined;
+    if (!url) return;
+    window.open(
+      url,
+      "_blank",
+      `popup=yes,width=${window.screen.availWidth},height=${window.screen.availHeight},left=0,top=0,noopener,noreferrer`,
+    );
+  };
   const availableJourneyCharacters = journeyCharacters.filter(
     (character) => !character.isParticipant,
   );
-  const [participantId, setParticipantId] = useState(
-    participants[0]?.id ?? 0,
-  );
-  const participant = participants.find(
-    (item) => item.id === participantId,
-  );
+  const [participantId, setParticipantId] = useState(participants[0]?.id ?? 0);
+  const participant = participants.find((item) => item.id === participantId);
 
   return (
     <div className="space-y-8">
+      <OptionSection title="Scene Grid">
+        {scene.grid || gridUrl ? (
+          <Button onClick={openGrid} variant="primary">
+            Open grid
+          </Button>
+        ) : (
+          <EmptyMessage>No grid is assigned to this scene.</EmptyMessage>
+        )}
+      </OptionSection>
       <OptionSection title="Activate Journey Characters">
         {availableJourneyCharacters.length === 0 ? (
           <EmptyMessage>All journey characters are participating.</EmptyMessage>
@@ -108,7 +129,9 @@ export function SceneOptionsPanel({
               <Select
                 id="participant-option"
                 value={participantId}
-                onChange={(event) => setParticipantId(Number(event.target.value))}
+                onChange={(event) =>
+                  setParticipantId(Number(event.target.value))
+                }
               >
                 {participants.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -239,7 +262,8 @@ function LiveChestForm({
 
       {!hasItems ? (
         <EmptyMessage>
-          This playthrough has no consumable or equippable items available for chest loot.
+          This playthrough has no consumable or equippable items available for
+          chest loot.
         </EmptyMessage>
       ) : (
         <>
@@ -370,30 +394,86 @@ function ParticipantStatsEditor({
 
   return (
     <form className="mt-4 grid grid-cols-2 gap-3" onSubmit={submit}>
-      <StatInput label="Current HP" value={stats.currentHp} onChange={(value) => setNumber("currentHp", value)} />
-      <StatInput label="Max HP" value={stats.maxHp} onChange={(value) => setNumber("maxHp", value)} min={1} />
-      <StatInput label="Current MP" value={stats.currentMp} onChange={(value) => setNumber("currentMp", value)} />
-      <StatInput label="Max MP" value={stats.maxMp} onChange={(value) => setNumber("maxMp", value)} />
-      <StatInput label="Movement" value={stats.movement} onChange={(value) => setNumber("movement", value)} />
-      <StatInput label="Melee" value={stats.meleeAttackDamage} onChange={(value) => setNumber("meleeAttackDamage", value, true)} />
-      <StatInput label="Bow" value={stats.bowAttackDamage} onChange={(value) => setNumber("bowAttackDamage", value, true)} />
-      <Button type="submit" variant="primary" className="self-end" disabled={disabled}>
+      <StatInput
+        label="Current HP"
+        value={stats.currentHp}
+        onChange={(value) => setNumber("currentHp", value)}
+      />
+      <StatInput
+        label="Max HP"
+        value={stats.maxHp}
+        onChange={(value) => setNumber("maxHp", value)}
+        min={1}
+      />
+      <StatInput
+        label="Current MP"
+        value={stats.currentMp}
+        onChange={(value) => setNumber("currentMp", value)}
+      />
+      <StatInput
+        label="Max MP"
+        value={stats.maxMp}
+        onChange={(value) => setNumber("maxMp", value)}
+      />
+      <StatInput
+        label="Movement"
+        value={stats.movement}
+        onChange={(value) => setNumber("movement", value)}
+      />
+      <StatInput
+        label="Melee"
+        value={stats.meleeAttackDamage}
+        onChange={(value) => setNumber("meleeAttackDamage", value, true)}
+      />
+      <StatInput
+        label="Bow"
+        value={stats.bowAttackDamage}
+        onChange={(value) => setNumber("bowAttackDamage", value, true)}
+      />
+      <Button
+        type="submit"
+        variant="primary"
+        className="self-end"
+        disabled={disabled}
+      >
         {busy ? "Saving..." : "Save Stats"}
       </Button>
     </form>
   );
 }
 
-function StatInput({ label, value, onChange, min = 0 }: { label: string; value: number | null; onChange: (value: string) => void; min?: number }) {
+function StatInput({
+  label,
+  value,
+  onChange,
+  min = 0,
+}: {
+  label: string;
+  value: number | null;
+  onChange: (value: string) => void;
+  min?: number;
+}) {
   const id = `participant-stat-${label.toLowerCase().replace(" ", "-")}`;
   return (
     <FormField htmlFor={id} label={label}>
-      <Input id={id} type="number" min={min} value={value ?? ""} onChange={(event) => onChange(event.target.value)} />
+      <Input
+        id={id}
+        type="number"
+        min={min}
+        value={value ?? ""}
+        onChange={(event) => onChange(event.target.value)}
+      />
     </FormField>
   );
 }
 
-function OptionSection({ title, children }: { title: string; children: ReactNode }) {
+function OptionSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <section>
       <h3 className="mb-3 text-xl font-semibold text-content">{title}</h3>
@@ -402,12 +482,38 @@ function OptionSection({ title, children }: { title: string; children: ReactNode
   );
 }
 
-function OptionRow({ name, imageUrl, actionLabel, disabled, busy, onAction }: { name: string; imageUrl: string | null; actionLabel: string; disabled: boolean; busy: boolean; onAction: () => void }) {
+function OptionRow({
+  name,
+  imageUrl,
+  actionLabel,
+  disabled,
+  busy,
+  onAction,
+}: {
+  name: string;
+  imageUrl: string | null;
+  actionLabel: string;
+  disabled: boolean;
+  busy: boolean;
+  onAction: () => void;
+}) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3">
-      {imageUrl ? <img src={imageUrl} alt="" className="h-12 w-12 rounded-lg object-contain" /> : <div className="h-12 w-12 rounded-lg bg-surface-raised" />}
-      <p className="min-w-0 flex-1 truncate font-semibold text-content">{name}</p>
-      <Button disabled={disabled} onClick={onAction}>{busy ? "Working..." : actionLabel}</Button>
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          className="h-12 w-12 rounded-lg object-contain"
+        />
+      ) : (
+        <div className="h-12 w-12 rounded-lg bg-surface-raised" />
+      )}
+      <p className="min-w-0 flex-1 truncate font-semibold text-content">
+        {name}
+      </p>
+      <Button disabled={disabled} onClick={onAction}>
+        {busy ? "Working..." : actionLabel}
+      </Button>
     </div>
   );
 }

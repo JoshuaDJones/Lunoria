@@ -246,6 +246,7 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
         return dbContext.ScenePTs
             .AsNoTrackingWithIdentityResolution()
             .AsSplitQuery()
+            .Include(scene => scene.ScenePTGrid)
             .Include(scene => scene.SceneParticipants)
                 .ThenInclude(participant => participant.JourneyPlaythroughCharacter)
                     .ThenInclude(character => character!.PlaythroughCharacter)

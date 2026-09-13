@@ -3,19 +3,42 @@ import { Navigate, useParams } from "react-router-dom";
 import { ApiLoadError } from "@/components/ui";
 import { getSceneGrid, type SceneGridConfiguration } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
+import { getScenePlaythrough } from "@/features/journeys";
 
 export function SceneGridPage() {
-  const { sceneId: sceneIdParam } = useParams<{ sceneId: string }>();
+  const { sceneId: sceneIdParam, playthroughId: playthroughIdParam } =
+    useParams<{ sceneId: string; playthroughId: string }>();
   const sceneId = Number(sceneIdParam);
-  const [grid, setGrid] = useState<SceneGridConfiguration>();
+  const playthroughId =
+    playthroughIdParam === undefined ? undefined : Number(playthroughIdParam);
+  const validIds =
+    Number.isInteger(sceneId) &&
+    sceneId > 0 &&
+    (playthroughId === undefined ||
+      (Number.isInteger(playthroughId) && playthroughId > 0));
+  const [grid, setGrid] =
+    useState<
+      Pick<
+        SceneGridConfiguration,
+        "rows" | "columns" | "gridColor" | "backgroundImageUrl"
+      >
+    >();
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    if (!Number.isInteger(sceneId) || sceneId <= 0) return;
+    if (!validIds) return;
     let current = true;
 
-    void getSceneGrid(sceneId)
+    const request =
+      playthroughId === undefined
+        ? getSceneGrid(sceneId)
+        : getScenePlaythrough(playthroughId, sceneId).then((scene) => {
+            if (!scene.grid)
+              throw new Error("This playthrough scene has no saved grid.");
+            return scene.grid;
+          });
+    void request
       .then((loadedGrid) => {
         if (current) {
           setGrid(loadedGrid);
@@ -29,9 +52,9 @@ export function SceneGridPage() {
     return () => {
       current = false;
     };
-  }, [sceneId, reloadKey]);
+  }, [sceneId, playthroughId, validIds, reloadKey]);
 
-  if (!Number.isInteger(sceneId) || sceneId <= 0) {
+  if (!validIds) {
     return <Navigate to="/home" replace />;
   }
 

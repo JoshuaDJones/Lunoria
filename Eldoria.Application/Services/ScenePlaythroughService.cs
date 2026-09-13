@@ -495,7 +495,7 @@ public sealed partial class ScenePlaythroughService(
         int playthroughId,
         int sceneId,
         int participantId,
-        int targetParticipantId,
+        int? targetParticipantId,
         SceneAttackType attackType,
         int roll,
         int? playthroughSpellId,
@@ -547,6 +547,29 @@ public sealed partial class ScenePlaythroughService(
                 "A downed or defeated participant cannot attack."));
         }
 
+        var selectedSpell = attackType == SceneAttackType.Spell
+            ? GetSpells(attacker).SingleOrDefault(spell => spell.Id == playthroughSpellId)
+            : null;
+        var isUtility = selectedSpell is not null && selectedSpell.DamageEffect.GetValueOrDefault() == 0
+            && selectedSpell.HealthEffect.GetValueOrDefault() == 0 && selectedSpell.MagicEffect.GetValueOrDefault() == 0;
+        if (isUtility)
+        {
+            var journeyCaster = attacker.JourneyPlaythroughCharacter;
+            var sceneCaster = attacker.ScenePlaythroughCharacter;
+            var currentMp = journeyCaster?.CurrentMp ?? sceneCaster!.CurrentMp;
+            if (currentMp < selectedSpell!.MpCost)
+                return Result<SceneAttackResultDto>.Fail(new Error("ScenePlaythrough.InsufficientMp", "The participant does not have enough MP to cast this spell."));
+            if (journeyCaster is not null) journeyCaster.CurrentMp -= selectedSpell.MpCost;
+            else sceneCaster!.CurrentMp -= selectedSpell.MpCost;
+            var casterName = journeyCaster?.PlaythroughCharacter.Name ?? sceneCaster!.PlaythroughCharacter.Name;
+            AddEvent(scene, $"{casterName} cast {selectedSpell.Name}, spending {selectedSpell.MpCost} MP");
+            attacker.AttacksRemaining--;
+            if (attacker.AttacksRemaining == 0) AdvanceTurn(scene, attacker);
+            await playthroughRepository.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return Result<SceneAttackResultDto>.Ok(new SceneAttackResultDto { IsUtility = true });
+        }
+
         var target = scene.SceneParticipants.SingleOrDefault(
             participant => participant.Id == targetParticipantId);
         if (target is null)
@@ -556,9 +579,6 @@ public sealed partial class ScenePlaythroughService(
                 "The target participant was not found."));
         }
 
-        var selectedSpell = attackType == SceneAttackType.Spell
-            ? GetSpells(attacker).SingleOrDefault(spell => spell.Id == playthroughSpellId)
-            : null;
         var isSupport = selectedSpell is not null && selectedSpell.DamageEffect.GetValueOrDefault() <= 0
             && (selectedSpell.HealthEffect > 0 || selectedSpell.MagicEffect > 0);
         var validSupportTarget = target.IsActive && target.ScenePlaythroughCharacter?.IsDead != true
@@ -654,8 +674,10 @@ public sealed partial class ScenePlaythroughService(
                     var oldMp = targetJourneyCharacter?.CurrentMp ?? targetSceneCharacter!.CurrentMp;
                     var maxHp = ScenePlaythroughEquipmentEffects.Apply(targetJourneyCharacter?.MaxHp ?? targetSceneCharacter!.MaxHp, targetEquipment.MaxHpModifier, minimum: 1);
                     var maxMp = ScenePlaythroughEquipmentEffects.Apply(targetJourneyCharacter?.MaxMp ?? targetSceneCharacter!.MaxMp, targetEquipment.MaxMpModifier);
-                    var healedHp = (int)Math.Max(oldHp, Math.Min(maxHp, (long)oldHp + Math.Max(0, spell.HealthEffect ?? 0)));
-                    var healedMp = (int)Math.Max(oldMp, Math.Min(maxMp, (long)oldMp + Math.Max(0, spell.MagicEffect ?? 0)));
+                    var hpRestoration = spell.HealthEffect > 0 ? (long)spell.HealthEffect.Value + roll : 0;
+                    var mpRestoration = spell.MagicEffect > 0 ? (long)spell.MagicEffect.Value + roll : 0;
+                    var healedHp = (int)Math.Max(oldHp, Math.Min(maxHp, (long)oldHp + hpRestoration));
+                    var healedMp = (int)Math.Max(oldMp, Math.Min(maxMp, (long)oldMp + mpRestoration));
                     if (targetJourneyCharacter is not null)
                     {
                         targetJourneyCharacter.CurrentHp = healedHp;
@@ -671,7 +693,7 @@ public sealed partial class ScenePlaythroughService(
                         targetSceneCharacter!.CurrentHp = healedHp;
                         targetSceneCharacter.CurrentMp = healedMp;
                     }
-                    AddEvent(scene, $"{attackerName} cast {spell.Name} on {targetName}, restoring {healedHp - oldHp} HP and {healedMp - oldMp} MP");
+                    AddEvent(scene, $"{attackerName} cast {spell.Name} on {targetName} with a roll of {roll}, restoring {healedHp - oldHp} HP and {healedMp - oldMp} MP");
                     attacker.AttacksRemaining--;
                     if (attacker.AttacksRemaining == 0) AdvanceTurn(scene, attacker);
                     await playthroughRepository.SaveChangesAsync(ct);

@@ -200,6 +200,9 @@ export enum SceneAttackType {
 }
 
 export interface ScenePlaythroughSpell {
+  range: number;
+  isRadius: boolean;
+  isUtility: boolean;
   healthEffect: number | null;
   magicEffect: number | null;
   isSupport: boolean;
@@ -256,6 +259,7 @@ export interface ScenePlaythroughParticipant {
 }
 
 export interface SceneAttackResult {
+  isUtility: boolean;
   isSupport: boolean;
   healthRestored: number;
   magicRestored: number;
@@ -369,6 +373,13 @@ export interface ScenePlaythroughDialog {
 }
 
 export interface ScenePlaythroughDetails {
+  gridUrl: string | null;
+  grid: {
+    rows: number;
+    columns: number;
+    gridColor: string;
+    backgroundImageUrl: string | null;
+  } | null;
   id: number;
   playthroughId: number;
   name: string;

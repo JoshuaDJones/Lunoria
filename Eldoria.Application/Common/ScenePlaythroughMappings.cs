@@ -16,6 +16,14 @@ public static class ScenePlaythroughMappings
             Name = scene.Name,
             Description = scene.Description,
             PhotoUrl = scene.PhotoUrl,
+            GridUrl = scene.GridUrl,
+            Grid = scene.ScenePTGrid is { } grid ? new ScenePlaythroughGridDto
+            {
+                Rows = grid.Rows,
+                Columns = grid.Columns,
+                GridColor = grid.GridColor,
+                BackgroundImageUrl = grid.BackgroundImageUrl
+            } : null,
             Status = scene.Status,
             RoundNumber = scene.RoundNumber,
             StartedAt = scene.StartedAt,
@@ -204,9 +212,12 @@ public static class ScenePlaythroughMappings
                     Name = spell.Name,
                     Description = spell.Description,
                     MpCost = spell.MpCost,
+                    Range = spell.Range,
+                    IsRadius = spell.IsRadius,
                     DamageEffect = spell.DamageEffect,
                     HealthEffect = spell.HealthEffect,
                     MagicEffect = spell.MagicEffect,
+                    IsUtility = spell.DamageEffect.GetValueOrDefault() == 0 && spell.HealthEffect.GetValueOrDefault() == 0 && spell.MagicEffect.GetValueOrDefault() == 0,
                     IsSupport = spell.DamageEffect.GetValueOrDefault() <= 0 && (spell.HealthEffect > 0 || spell.MagicEffect > 0)
                 })
                 .ToList()
@@ -312,8 +323,11 @@ public static class ScenePlaythroughMappings
                     Name = spell.Name,
                     Description = spell.Description,
                     MpCost = spell.MpCost,
+                    Range = spell.Range,
+                    IsRadius = spell.IsRadius,
                     HealthEffect = spell.HealthEffect,
                     MagicEffect = spell.MagicEffect,
+                    IsUtility = spell.DamageEffect.GetValueOrDefault() == 0 && spell.HealthEffect.GetValueOrDefault() == 0 && spell.MagicEffect.GetValueOrDefault() == 0,
                     IsSupport = spell.DamageEffect.GetValueOrDefault() <= 0 && (spell.HealthEffect > 0 || spell.MagicEffect > 0),
                     DamageEffect = spell.DamageEffect is int damageEffect
                         ? ScenePlaythroughEquipmentEffects.Apply(
@@ -334,7 +348,17 @@ public static class ScenePlaythroughMappings
                     IsEquipped = false,
                     Item = link.PlaythroughConsumableItem.ToLootItemDto()
                 })
-                .ToList() ?? [],
+                .ToList() ?? sceneCharacter?.ConsumableItems
+                    .Where(link => !link.IsUsed)
+                    .OrderBy(link => link.PlaythroughConsumableItem.Name)
+                    .ThenBy(link => link.Id)
+                    .Select(link => new ScenePlaythroughInventoryItemDto
+                    {
+                        InventoryItemId = link.Id,
+                        IsEquippable = false,
+                        IsEquipped = false,
+                        Item = link.PlaythroughConsumableItem.ToLootItemDto()
+                    }).ToList() ?? [],
             EquippableItems = journeyCharacter?.EquippableItems
                 .OrderByDescending(link => link.IsEquipped)
                 .ThenBy(link => link.PlaythroughEquippableItem.Name)
@@ -346,7 +370,16 @@ public static class ScenePlaythroughMappings
                     IsEquipped = true,
                     Item = link.PlaythroughEquippableItem.ToLootItemDto()
                 })
-                .ToList() ?? []
+                .ToList() ?? sceneCharacter?.EquippableItems
+                    .OrderBy(link => link.PlaythroughEquippableItem.Name)
+                    .ThenBy(link => link.Id)
+                    .Select(link => new ScenePlaythroughInventoryItemDto
+                    {
+                        InventoryItemId = link.Id,
+                        IsEquippable = true,
+                        IsEquipped = true,
+                        Item = link.PlaythroughEquippableItem.ToLootItemDto()
+                    }).ToList() ?? []
         };
     }
 }

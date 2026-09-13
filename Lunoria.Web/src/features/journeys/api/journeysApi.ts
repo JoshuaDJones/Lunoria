@@ -239,7 +239,7 @@ export async function forfeitSceneParticipantAction(
 }
 
 export interface ResolveSceneAttackInput {
-  targetParticipantId: number;
+  targetParticipantId: number | null;
   attackType: SceneAttackType;
   roll: number;
   playthroughSpellId: number | null;
