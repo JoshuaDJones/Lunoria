@@ -13,6 +13,9 @@ public sealed class ScenePlaythroughDetailsDto
     public ScenePlaythroughGridDto? Grid { get; set; }
     public ScenePlaythroughStatus Status { get; set; }
     public int RoundNumber { get; set; }
+    public int? CounterattackerId { get; set; }
+    public int? CounterattackTargetId { get; set; }
+    public Guid? CounterattackToken { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
     public int? CurrentParticipantId { get; set; }

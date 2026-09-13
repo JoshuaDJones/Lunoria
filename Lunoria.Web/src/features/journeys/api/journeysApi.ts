@@ -239,10 +239,26 @@ export async function forfeitSceneParticipantAction(
 }
 
 export interface ResolveSceneAttackInput {
+  isCounterattack?: boolean;
+  counterattackToken?: string;
   targetParticipantId: number | null;
   attackType: SceneAttackType;
   roll: number;
   playthroughSpellId: number | null;
+}
+
+export async function passSceneCounterattack(
+  playthroughId: number,
+  sceneId: number,
+  token: string,
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/counterattack/pass`,
+    JSON.stringify(token),
+    {
+      headers: { "Content-Type": "application/json" },
+    },
+  );
 }
 
 export async function resolveSceneParticipantAttack(

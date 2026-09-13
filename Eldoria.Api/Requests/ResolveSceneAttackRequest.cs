@@ -16,4 +16,6 @@ public sealed class ResolveSceneAttackRequest
 
     [Range(1, int.MaxValue)]
     public int? PlaythroughSpellId { get; set; }
+    public bool IsCounterattack { get; set; }
+    public Guid? CounterattackToken { get; set; }
 }

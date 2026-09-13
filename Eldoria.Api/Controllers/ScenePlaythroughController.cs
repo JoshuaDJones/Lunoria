@@ -232,7 +232,9 @@ public sealed class ScenePlaythroughController(
             request.AttackType,
             request.Roll,
             request.PlaythroughSpellId,
-            ct);
+            ct,
+            request.IsCounterattack,
+            request.CounterattackToken);
 
         if (result.Success)
         {
@@ -242,6 +244,13 @@ public sealed class ScenePlaythroughController(
         }
 
         return ToError(result.Error);
+    }
+
+    [HttpPost("counterattack/pass")]
+    public async Task<IActionResult> PassCounterattack(int playthroughId, int sceneId, [FromBody] Guid token, CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.PassCounterattackAsync(User.GetUserId(), playthroughId, sceneId, token, ct);
+        return await CompleteMutationAsync(result, playthroughId, "CounterattackPassed", ct);
     }
 
     [HttpPost("participants/{participantId:int}/chests/{chestId:int}/open")]

@@ -81,7 +81,11 @@ public interface IScenePlaythroughService
         SceneAttackType attackType,
         int roll,
         int? playthroughSpellId,
-        CancellationToken ct);
+        CancellationToken ct,
+        bool isCounterattack = false,
+        Guid? counterattackToken = null);
+
+    Task<Result> PassCounterattackAsync(int userId, int playthroughId, int sceneId, Guid token, CancellationToken ct);
 
     Task<Result<SceneOpenChestResultDto>> OpenChestAsync(
         int userId,

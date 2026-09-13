@@ -57,6 +57,9 @@ public sealed partial class ScenePlaythroughService(
                 "Only an in-progress scene can be ended."));
         }
 
+        if (scene.CounterattackToken is not null)
+            return Result.Fail(new Error("ScenePlaythrough.CounterattackPending", "Resolve or pass the counterattack before ending the scene."));
+
         // Transformation lasts for this scene only. Keep inventories, stats,
         // and alternate-form assignments, including for inactive characters.
         foreach (var character in scene.Playthrough.JourneyCharacters)
@@ -497,7 +500,9 @@ public sealed partial class ScenePlaythroughService(
         SceneAttackType attackType,
         int roll,
         int? playthroughSpellId,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool isCounterattack = false,
+        Guid? counterattackToken = null)
     {
         if (roll is < 1 or > 6)
         {
@@ -510,9 +515,12 @@ public sealed partial class ScenePlaythroughService(
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
         var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
             userId, playthroughId, sceneId, ct);
-        var stateError = ValidateManageableScene(scene);
+        var stateError = ValidateManageableScene(scene, allowCounterattack: isCounterattack);
         if (stateError is not null)
             return Result<SceneAttackResultDto>.Fail(stateError);
+        if (isCounterattack && (scene!.CounterattackToken is null || scene.CounterattackToken != counterattackToken ||
+            scene.CounterattackerId != participantId || scene.CounterattackTargetId != targetParticipantId))
+            return Result<SceneAttackResultDto>.Fail(new Error("ScenePlaythrough.InvalidCounterattack", "This counterattack is no longer available. Reload the scene."));
 
         var attacker = scene!.SceneParticipants.SingleOrDefault(
             participant => participant.Id == participantId);
@@ -523,14 +531,14 @@ public sealed partial class ScenePlaythroughService(
                 "The attacking participant was not found."));
         }
 
-        if (scene.CurrentParticipantId != attacker.Id || !attacker.IsActive)
+        if ((!isCounterattack && scene.CurrentParticipantId != attacker.Id) || !attacker.IsActive)
         {
             return Result<SceneAttackResultDto>.Fail(new Error(
                 "ScenePlaythrough.NotCurrentTurn",
                 "Only the active current participant can attack."));
         }
 
-        if (attacker.AttacksRemaining <= 0)
+        if (!isCounterattack && attacker.AttacksRemaining <= 0)
         {
             return Result<SceneAttackResultDto>.Fail(new Error(
                 "ScenePlaythrough.NoAttacksRemaining",
@@ -550,6 +558,10 @@ public sealed partial class ScenePlaythroughService(
             : null;
         var isUtility = selectedSpell is not null && selectedSpell.DamageEffect.GetValueOrDefault() == 0
             && selectedSpell.HealthEffect.GetValueOrDefault() == 0 && selectedSpell.MagicEffect.GetValueOrDefault() == 0;
+        if (isCounterattack && attackType == SceneAttackType.Spell &&
+            (selectedSpell?.DamageEffect is null || isUtility ||
+             (selectedSpell.DamageEffect <= 0 && (selectedSpell.HealthEffect > 0 || selectedSpell.MagicEffect > 0))))
+            return Result<SceneAttackResultDto>.Fail(new Error("ScenePlaythrough.InvalidCounterattack", "Only damage spells can be used for a counterattack."));
         if (isUtility)
         {
             var journeyCaster = attacker.JourneyPlaythroughCharacter;
@@ -747,6 +759,7 @@ public sealed partial class ScenePlaythroughService(
         {
             targetSceneCharacter.IsDead = true;
             targetSceneCharacter.IsActive = false;
+            target.IsActive = false;
             scene.SceneParticipants.Remove(target);
             AddEvent(scene, $"{targetName} was defeated");
         }
@@ -792,9 +805,24 @@ public sealed partial class ScenePlaythroughService(
                     : $"{attackerName} received an {rewardStat} reward but was already at maximum");
         }
 
-        attacker.AttacksRemaining--;
-        if (attacker.AttacksRemaining == 0)
-            AdvanceTurn(scene, attacker);
+        if (isCounterattack)
+        {
+            ClearCounterattack(scene);
+            AdvanceTurn(scene, target);
+        }
+        else
+        {
+            attacker.AttacksRemaining--;
+            if (!targetDefeated)
+            {
+                scene.CounterattackerId = target.Id;
+                scene.CounterattackTargetId = attacker.Id;
+                scene.CounterattackToken = Guid.NewGuid();
+                AddEvent(scene, $"{targetName} may counterattack {attackerName}");
+            }
+            else if (attacker.AttacksRemaining == 0)
+                AdvanceTurn(scene, attacker);
+        }
 
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
@@ -1869,12 +1897,14 @@ public sealed partial class ScenePlaythroughService(
         };
     }
 
-    private static Error? ValidateManageableScene(ScenePT? scene)
+    private static Error? ValidateManageableScene(ScenePT? scene, bool allowCounterattack = false)
     {
         if (scene is null)
             return new Error("ScenePlaythrough.NotFound", "Scene playthrough was not found.");
         if (scene.Playthrough.CompletedAt is not null)
             return new Error("Playthrough.Completed", "The playthrough is completed.");
+        if (!allowCounterattack && scene.CounterattackToken is not null)
+            return new Error("ScenePlaythrough.CounterattackPending", "Resolve or pass the pending counterattack first.");
         return scene.Status == ScenePlaythroughStatus.InProgress
             ? null
             : new Error(
@@ -1989,6 +2019,8 @@ public sealed partial class ScenePlaythroughService(
         currentParticipant.AttacksRemaining = 0;
         var participants = scene.SceneParticipants
             .Where(participant => participant.IsActive)
+            .Append(currentParticipant)
+            .DistinctBy(participant => participant.Id)
             .OrderBy(participant => participant.ParticipantType)
             .ThenBy(participant => participant.SortOrderWithinType)
             .ThenBy(participant => participant.Id)
@@ -2009,6 +2041,7 @@ public sealed partial class ScenePlaythroughService(
                 scene.RoundNumber++;
 
             var candidate = participants[nextIndex];
+            if (!candidate.IsActive) continue;
             if (!PrepareForScheduledTurn(scene, candidate))
                 continue;
 

@@ -1,4 +1,4 @@
-﻿using Eldoria.Application;
+using Eldoria.Application;
 using Eldoria.Api.GridPrototype;
 using Eldoria.Api.PlaythroughRealtime;
 using Eldoria.Infrastructure;
@@ -31,7 +31,9 @@ builder.Services.AddCors(options =>
                 "http://127.0.0.1:5173",
                 "http://127.0.0.1:5174",
                 "http://192.168.0.153:5173",
+                "http://192.168.0.254:5173",
                 "https://localhost:7121",
+                "https://localhost:5173",
                 "https://mango-hill-056fbd20f.7.azurestaticapps.net"])
             .AllowAnyHeader()
             .AllowAnyMethod()

@@ -16,6 +16,7 @@ import {
   ParticipantType,
   recordSceneParticipantMovement,
   resolveSceneParticipantAttack,
+  passSceneCounterattack,
   SceneAttackType,
   SceneOptionsPanel,
   tradeSceneParticipantItem,
@@ -68,6 +69,20 @@ export function ScenePlaythroughPage() {
   const [viewingDialog, setViewingDialog] = useState<ScenePlaythroughDialog>();
   const [attackAnimation, setAttackAnimation] =
     useState<AttackAnimationState>();
+
+  const animateAttack = async (target?: ScenePlaythroughParticipant) => {
+    setAttackAnimation({
+      targetName: target?.name ?? "Target",
+      imageUrl: target?.portraitUrl?.trim() || target?.photoUrl?.trim() || null,
+    });
+    const stopAttackSounds = playAttackSlashSounds();
+    try {
+      await delay(2_000);
+    } finally {
+      stopAttackSounds();
+      setAttackAnimation(undefined);
+    }
+  };
 
   const beginParticipantTurn = (
     roundNumber: number,
@@ -144,7 +159,6 @@ export function ScenePlaythroughPage() {
     const target = scene?.participants.find(
       (candidate) => candidate.id === targetParticipantId,
     );
-    let stopAttackSounds = () => {};
 
     try {
       const result = await resolveSceneParticipantAttack(
@@ -160,15 +174,7 @@ export function ScenePlaythroughPage() {
       );
 
       if (!result.isSupport && !result.isUtility) {
-        setAttackAnimation({
-          targetName: target?.name ?? "Target",
-          imageUrl:
-            target?.portraitUrl?.trim() || target?.photoUrl?.trim() || null,
-        });
-        stopAttackSounds = playAttackSlashSounds();
-        await delay(2_000);
-        stopAttackSounds();
-        setAttackAnimation(undefined);
+        await animateAttack(target);
       }
 
       const loadedScene = await getScenePlaythrough(playthroughId, sceneId);
@@ -193,8 +199,6 @@ export function ScenePlaythroughPage() {
         result.isSupport || result.isUtility ? "Spell cast" : "Attack complete",
       );
     } catch (requestError: unknown) {
-      stopAttackSounds();
-      setAttackAnimation(undefined);
       toast.error(getApiError(requestError).message, "Unable to attack");
     }
   };
@@ -773,10 +777,171 @@ export function ScenePlaythroughPage() {
         />
       )}
 
-      {attackAnimation && (
+      {scene?.counterattackToken && (
+        <CounterattackDialog
+          key={scene.counterattackToken}
+          scene={scene}
+          attackAnimation={attackAnimation}
+          onResolve={async (input) => {
+            if (input) {
+              const result = await resolveSceneParticipantAttack(
+                playthroughId,
+                sceneId,
+                scene.counterattackerId!,
+                {
+                  ...input,
+                  targetParticipantId: scene.counterattackTargetId,
+                  isCounterattack: true,
+                  counterattackToken: scene.counterattackToken!,
+                },
+              );
+              await animateAttack(
+                scene.participants.find(
+                  (participant) => participant.id === scene.counterattackTargetId,
+                ),
+              );
+              toast.success(
+                getAttackResultMessage(result),
+                "Counterattack complete",
+              );
+            } else
+              await passSceneCounterattack(
+                playthroughId,
+                sceneId,
+                scene.counterattackToken!,
+              );
+            setScene(await getScenePlaythrough(playthroughId, sceneId));
+            setBegunTurnKey("");
+            setAwaitingActionTurnKey("");
+          }}
+          onReload={async () =>
+            setScene(await getScenePlaythrough(playthroughId, sceneId))
+          }
+        />
+      )}
+      {attackAnimation && !scene?.counterattackToken && (
         <AttackAnimationOverlay animation={attackAnimation} />
       )}
     </AppLayout>
+  );
+}
+
+function CounterattackDialog({
+  scene,
+  attackAnimation,
+  onResolve,
+  onReload,
+}: {
+  scene: ScenePlaythroughDetails;
+  attackAnimation?: AttackAnimationState;
+  onResolve: (input?: {
+    attackType: SceneAttackType;
+    roll: number;
+    playthroughSpellId: number | null;
+  }) => Promise<void>;
+  onReload: () => Promise<void>;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [attackType, setAttackType] = useState<SceneAttackType>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const pending = useRef(false);
+  const defender = scene.participants.find(
+    (p) => p.id === scene.counterattackerId,
+  );
+  const target = scene.participants.find(
+    (p) => p.id === scene.counterattackTargetId,
+  );
+  const offensiveDefender = defender
+    ? {
+        ...defender,
+        spells: defender.spells.filter(
+          (s) => !s.isSupport && !s.isUtility && s.damageEffect !== null,
+        ),
+      }
+    : undefined;
+  useEffect(() => {
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
+  const resolve = async (input?: {
+    attackType: SceneAttackType;
+    roll: number;
+    playthroughSpellId: number | null;
+  }) => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      await onResolve(input);
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
+  };
+  return (
+    <dialog
+      ref={dialog}
+      onCancel={(event) => event.preventDefault()}
+      aria-labelledby="counterattack-title"
+      className="m-auto max-h-[90dvh] w-[min(95vw,48rem)] overflow-y-auto rounded-xl border border-border bg-surface-raised p-6 text-content backdrop:bg-black/70"
+    >
+      <h2 id="counterattack-title" className="text-2xl font-semibold">
+        {defender?.name ?? "Defender"}: counterattack
+      </h2>
+      <p className="my-4">
+        You may attack {target?.name ?? "the original attacker"} once. Normal MP
+        costs apply. This does not use your regular turn and cannot trigger
+        another counterattack.
+      </p>
+      {error && (
+        <p role="alert" className="my-3 text-danger">
+          {error}
+        </p>
+      )}
+      <fieldset disabled={busy}>
+        {offensiveDefender &&
+          target &&
+          (attackType === undefined ? (
+            <AttackTypeOptions
+              participant={offensiveDefender}
+              onSelect={setAttackType}
+            />
+          ) : (
+            <AttackResolutionOptions
+              attacker={offensiveDefender}
+              targets={[target]}
+              attackType={attackType}
+              onAttack={(_target, roll, spellId) =>
+                resolve({ attackType, roll, playthroughSpellId: spellId })
+              }
+            />
+          ))}
+        <div className="mt-5 flex flex-wrap gap-3">
+          {attackType !== undefined && (
+            <Button onClick={() => setAttackType(undefined)}>Back</Button>
+          )}
+          <Button onClick={() => void resolve()}>Pass counterattack</Button>
+          {error && (
+            <Button
+              onClick={() =>
+                void onReload().catch((e) => setError(getApiError(e).message))
+              }
+            >
+              Reload scene
+            </Button>
+          )}
+        </div>
+      </fieldset>
+      {busy && <p role="status">Resolving counterattack…</p>}
+      {attackAnimation && (
+        <AttackAnimationOverlay animation={attackAnimation} inline />
+      )}
+    </dialog>
   );
 }
 
@@ -806,10 +971,12 @@ function SceneBackground({ photoUrl }: { photoUrl?: string }) {
 
 function AttackAnimationOverlay({
   animation,
+  inline = false,
 }: {
   animation: AttackAnimationState;
+  inline?: boolean;
 }) {
-  return createPortal(
+  const overlay = (
     <div
       className="attack-animation-overlay fixed inset-0 z-[9999] flex items-center justify-center bg-canvas/90 p-6 backdrop-blur-sm"
       role="status"
@@ -831,9 +998,10 @@ function AttackAnimationOverlay({
         <span className="attack-animation-slash attack-animation-slash-first" />
         <span className="attack-animation-slash attack-animation-slash-second" />
       </div>
-    </div>,
-    document.body,
+    </div>
   );
+  // Native dialogs occupy the top layer; their animation must live inside it.
+  return inline ? overlay : createPortal(overlay, document.body);
 }
 
 function playAttackSlashSounds() {
@@ -2102,11 +2270,13 @@ function AttackTypeOptions({
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      <TurnActionButton
-        label="Melee Attack"
-        imageSrc="/Melee_Attack.png"
-        onClick={() => onSelect(SceneAttackType.Melee)}
-      />
+      {participant.meleeAttackDamage !== null && (
+        <TurnActionButton
+          label="Melee Attack"
+          imageSrc="/Melee_Attack.png"
+          onClick={() => onSelect(SceneAttackType.Melee)}
+        />
+      )}
       {participant.bowAttackDamage !== null && (
         <TurnActionButton
           label="Range Attack"

@@ -386,6 +386,9 @@ export interface ScenePlaythroughDialog {
 }
 
 export interface ScenePlaythroughDetails {
+  counterattackerId: number | null;
+  counterattackTargetId: number | null;
+  counterattackToken: string | null;
   gridUrl: string | null;
   grid: {
     rows: number;
