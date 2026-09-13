@@ -523,7 +523,8 @@ public sealed class PlaythroughService(
                                         PlaythroughCharacter = change.CharacterId is int targetId
                                             ? playthroughCharactersBySourceId[targetId]
                                             : null,
-                                        AlternateForm = playthroughCharactersBySourceId[change.AlternateFormId]
+                                        AlternateForm = change.AlternateFormId is int eventAlternateFormId
+                                            ? playthroughCharactersBySourceId[eventAlternateFormId] : null
                                     }
                                     : null,
                             CharacterGiveItemAction = action.CharacterGiveItemAction is { } grant
@@ -816,8 +817,8 @@ public sealed class PlaythroughService(
                 var change = action.CharacterChangeAlternateFormAction;
                 if (change?.CharacterId is int targetId && !characterIds.Contains(targetId))
                     return Missing("event alternate-form target", targetId);
-                if (change is not null && !characterIds.Contains(change.AlternateFormId))
-                    return Missing("event alternate form", change.AlternateFormId);
+                if (change?.AlternateFormId is int eventAlternateFormId && !characterIds.Contains(eventAlternateFormId))
+                    return Missing("event alternate form", eventAlternateFormId);
 
                 if (addSpell?.CharacterId is int addSpellCharacterId &&
                     !characterIds.Contains(addSpellCharacterId))

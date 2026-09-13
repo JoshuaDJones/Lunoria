@@ -261,7 +261,7 @@ namespace Eldoria.Application.Services
         {
             if (!Enum.IsDefined(targetType) || !Enum.IsDefined(actionType) || !Enum.IsDefined(statType) || !Enum.IsDefined(operation))
                 return new Error("SceneEventAction.InvalidType", "One or more action values are invalid.");
-            if (actionType is not (EventActionType.CharacterStatAdjustment or EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem))
+            if (actionType is not (EventActionType.CharacterStatAdjustment or EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm or EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem))
                 return new Error("SceneEventAction.UnsupportedType", "The action type is not supported.");
             if (actionType is EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem)
             {
@@ -290,6 +290,13 @@ namespace Eldoria.Application.Services
                         await equippableRepository.GetByIdForUserAsync(userId, equippableId, ct) is null)
                         return new Error("SceneEventAction.InvalidItem", "The equipment was not found or is not owned by you.");
                 }
+            }
+            if (actionType == EventActionType.CharacterClearAlternateForm)
+            {
+                if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
+                    return new Error("SceneEventAction.InvalidTarget", "Alternate forms can only be cleared for journey characters.");
+                if (alternateFormId is not null)
+                    return new Error("SceneEventAction.InvalidAlternateForm", "A clear-alternate-form action cannot specify an alternate character.");
             }
             if (actionType == EventActionType.CharacterChangeAlternateForm)
             {
@@ -333,7 +340,7 @@ namespace Eldoria.Application.Services
         {
             if (action.EventActionType != EventActionType.CharacterStatAdjustment)
                 action.CharacterStatAdjustmentAction = null;
-            if (action.EventActionType != EventActionType.CharacterChangeAlternateForm)
+            if (action.EventActionType is not (EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm))
                 action.CharacterChangeAlternateFormAction = null;
             if (action.EventActionType != EventActionType.CharacterAddSpell)
                 action.CharacterAddSpellAction = null;
@@ -356,12 +363,14 @@ namespace Eldoria.Application.Services
                 action.CharacterGiveItemAction.Quantity = grant.Quantity;
                 return;
             }
-            if (action.EventActionType == EventActionType.CharacterChangeAlternateForm)
+            if (action.EventActionType is EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm)
             {
                 action.CharacterStatAdjustmentAction = null;
                 action.CharacterChangeAlternateFormAction ??= new CharacterChangeAlternateFormAction();
                 action.CharacterChangeAlternateFormAction.CharacterId = characterId;
-                action.CharacterChangeAlternateFormAction.AlternateFormId = alternateFormId!.Value;
+                action.CharacterChangeAlternateFormAction.AlternateFormId = action.EventActionType == EventActionType.CharacterClearAlternateForm ? null : alternateFormId!.Value;
+                if (action.EventActionType == EventActionType.CharacterClearAlternateForm)
+                    action.CharacterChangeAlternateFormAction.AlternateForm = null;
             }
             else
             {

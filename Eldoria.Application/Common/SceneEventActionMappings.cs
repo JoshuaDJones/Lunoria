@@ -38,7 +38,7 @@ public static class SceneEventActionMappings
                 CharacterId = change.CharacterId,
                 CharacterName = change.Character?.Name,
                 AlternateFormId = change.AlternateFormId,
-                AlternateFormName = change.AlternateForm.Name
+                AlternateFormName = change.AlternateForm?.Name
             }
             : null
     };

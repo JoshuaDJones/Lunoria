@@ -223,6 +223,10 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
         CancellationToken ct)
     {
         return dbContext.ScenePTs
+            .AsSplitQuery()
+            .Include(scene => scene.SceneCharacters)
+            .Include(scene => scene.Playthrough)
+                .ThenInclude(playthrough => playthrough.JourneyCharacters)
             .Include(scene => scene.Playthrough)
                 .ThenInclude(playthrough => playthrough.EventLogs)
             .SingleOrDefaultAsync(

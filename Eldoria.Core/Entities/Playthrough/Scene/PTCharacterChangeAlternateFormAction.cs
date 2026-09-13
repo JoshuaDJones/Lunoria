@@ -8,8 +8,8 @@ public class PTCharacterChangeAlternateFormAction
     public int SourceCharacterChangeAlternateFormActionId { get; set; }
     public int? PlaythroughCharacterId { get; set; }
     public PlaythroughCharacter? PlaythroughCharacter { get; set; }
-    public int AlternateFormId { get; set; }
-    public PlaythroughCharacter AlternateForm { get; set; } = null!;
+    public int? AlternateFormId { get; set; }
+    public PlaythroughCharacter? AlternateForm { get; set; }
     public int ScenePTActionEventId { get; set; }
     public ScenePTActionEvent ScenePTActionEvent { get; set; } = null!;
 }

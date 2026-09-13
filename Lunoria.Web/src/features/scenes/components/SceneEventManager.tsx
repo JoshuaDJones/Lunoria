@@ -567,7 +567,7 @@ function ActionForm({
     action?.eventActionType ?? EventActionType.CharacterStatAdjustment,
   );
   const [alternateFormId, setAlternateFormId] = useState(
-    change ? String(change.alternateFormId) : "",
+    String(change?.alternateFormId ?? ""),
   );
   const [alternateCharacters, setAlternateCharacters] = useState<Character[]>(
     [],
@@ -575,6 +575,8 @@ function ActionForm({
   const [alternateError, setAlternateError] = useState("");
   const changesAlternateForm =
     actionType === EventActionType.CharacterChangeAlternateForm;
+  const clearsAlternateForm =
+    actionType === EventActionType.CharacterClearAlternateForm;
   const givesSpell = actionType === EventActionType.CharacterAddSpell;
   const givesItem = actionType === EventActionType.CharacterGiveItem;
   const loadGrantOptions = async () => {
@@ -665,23 +667,25 @@ function ActionForm({
         name,
         actionTargetType: targetType,
         eventActionType: actionType,
-        ...(changesAlternateForm
-          ? { alternateFormId: Number(alternateFormId) }
-          : givesSpell
-            ? { spellId: Number(spellId) }
-            : givesItem
-              ? {
-                  quantity: Number(quantity),
-                  consumableItemId:
-                    itemType === "consumable" ? Number(itemId) : null,
-                  equippableItemId:
-                    itemType === "equipment" ? Number(itemId) : null,
-                }
-              : {
-                  characterStatType: statType,
-                  adjustmentOperation: operation,
-                  value: Number(value),
-                }),
+        ...(clearsAlternateForm
+          ? { alternateFormId: null }
+          : changesAlternateForm
+            ? { alternateFormId: Number(alternateFormId) }
+            : givesSpell
+              ? { spellId: Number(spellId) }
+              : givesItem
+                ? {
+                    quantity: Number(quantity),
+                    consumableItemId:
+                      itemType === "consumable" ? Number(itemId) : null,
+                    equippableItemId:
+                      itemType === "equipment" ? Number(itemId) : null,
+                  }
+                : {
+                    characterStatType: statType,
+                    adjustmentOperation: operation,
+                    value: Number(value),
+                  }),
         characterId:
           targetType === ActionTargetType.SingleJourneyCharacter
             ? Number(characterId)
@@ -725,6 +729,9 @@ function ActionForm({
           </option>
           <option value={EventActionType.CharacterChangeAlternateForm}>
             Change alternate form
+          </option>
+          <option value={EventActionType.CharacterClearAlternateForm}>
+            Clear alternate form
           </option>
           <option value={EventActionType.CharacterAddSpell}>Give spell</option>
           <option value={EventActionType.CharacterGiveItem}>Give item</option>
@@ -858,6 +865,11 @@ function ActionForm({
             </p>
           )}
         </>
+      ) : clearsAlternateForm ? (
+        <p className="text-sm text-content-secondary">
+          Removes the selected characters’ alternate form at scene start and
+          returns them to normal form. Inventories and stats are unchanged.
+        </p>
       ) : changesAlternateForm ? (
         <FormField
           htmlFor="action-alternate-form"
@@ -983,7 +995,11 @@ function ActionCard({
       )}
       {change && (
         <p className="mt-1 text-sm text-content-secondary">
-          {target}: change alternate form to {change.alternateFormName}
+          {target}:{" "}
+          {action.eventActionType ===
+          EventActionType.CharacterClearAlternateForm
+            ? "clear alternate form"
+            : `change alternate form to ${change.alternateFormName}`}
         </p>
       )}
       {adjustment && (

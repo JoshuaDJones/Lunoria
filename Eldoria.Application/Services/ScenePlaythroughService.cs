@@ -57,6 +57,14 @@ public sealed partial class ScenePlaythroughService(
                 "Only an in-progress scene can be ended."));
         }
 
+        // Transformation lasts for this scene only. Keep inventories, stats,
+        // and alternate-form assignments, including for inactive characters.
+        foreach (var character in scene.Playthrough.JourneyCharacters)
+            character.IsInAlternateForm = false;
+
+        foreach (var character in scene.SceneCharacters)
+            character.IsInAlternateForm = false;
+
         var endedAt = DateTime.UtcNow;
         scene.Status = ScenePlaythroughStatus.Completed;
         scene.EndedAt = endedAt;
@@ -1385,7 +1393,7 @@ public sealed partial class ScenePlaythroughService(
                 ExecuteCharacterStatAdjustment(scene, action),
             EventActionType.CharacterAddSpell =>
                 ExecuteCharacterAddSpell(scene, action),
-            EventActionType.CharacterChangeAlternateForm =>
+            EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm =>
                 ExecuteCharacterChangeAlternateForm(scene, action),
             _ => EventExecutionError(
                 action,
@@ -1398,8 +1406,11 @@ public sealed partial class ScenePlaythroughService(
         ScenePTActionEvent action)
     {
         var change = action.CharacterChangeAlternateFormAction;
-        if (change?.AlternateForm is null || change.AlternateFormId <= 0)
+        var clearsForm = action.EventActionType == EventActionType.CharacterClearAlternateForm;
+        if (change is null || (!clearsForm && (change.AlternateForm is null || change.AlternateFormId is null or <= 0)))
             return EventExecutionError(action, "The alternate form is missing.");
+        if (clearsForm && change.AlternateFormId is not null)
+            return EventExecutionError(action, "A clear-alternate-form action cannot specify an alternate character.");
         if (action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
             return EventExecutionError(action, "Alternate forms can only be changed for journey characters.");
 
@@ -1418,7 +1429,15 @@ public sealed partial class ScenePlaythroughService(
         {
             character.AlternateFormId = change.AlternateFormId;
             character.AlternateForm = change.AlternateForm;
-            AddEvent(scene, $"{character.PlaythroughCharacter.Name}'s alternate form changed to {change.AlternateForm.Name}");
+            if (clearsForm)
+            {
+                character.AlternateFormId = null;
+                character.AlternateForm = null;
+                character.IsInAlternateForm = false;
+                AddEvent(scene, $"{character.PlaythroughCharacter.Name}'s alternate form was cleared");
+            }
+            else
+                AddEvent(scene, $"{character.PlaythroughCharacter.Name}'s alternate form changed to {change.AlternateForm!.Name}");
         }
         return null;
     }

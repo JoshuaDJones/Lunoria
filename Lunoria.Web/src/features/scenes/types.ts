@@ -13,6 +13,7 @@ export enum EventActionType {
   CharacterStatAdjustment = 1,
   CharacterAddSpell = 2,
   CharacterChangeAlternateForm = 3,
+  CharacterClearAlternateForm = 5,
   CharacterGiveItem = 4,
 }
 
@@ -67,8 +68,8 @@ export interface SceneEventAction {
   characterChangeAlternateFormAction: {
     characterId: number | null;
     characterName: string | null;
-    alternateFormId: number;
-    alternateFormName: string;
+    alternateFormId: number | null;
+    alternateFormName: string | null;
   } | null;
 }
 
