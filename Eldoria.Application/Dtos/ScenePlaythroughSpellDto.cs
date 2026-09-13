@@ -7,4 +7,7 @@ public sealed class ScenePlaythroughSpellDto
     public string Description { get; set; } = string.Empty;
     public int MpCost { get; set; }
     public int? DamageEffect { get; set; }
+    public int? HealthEffect { get; set; }
+    public int? MagicEffect { get; set; }
+    public bool IsSupport { get; set; }
 }

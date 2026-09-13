@@ -64,8 +64,7 @@ export function ScenePlaythroughPage() {
   const [awaitingActionTurnKey, setAwaitingActionTurnKey] = useState("");
   const [optionAction, setOptionAction] = useState<string>();
   const transformPending = useRef(false);
-  const [viewingDialog, setViewingDialog] =
-    useState<ScenePlaythroughDialog>();
+  const [viewingDialog, setViewingDialog] = useState<ScenePlaythroughDialog>();
   const [attackAnimation, setAttackAnimation] =
     useState<AttackAnimationState>();
 
@@ -111,9 +110,7 @@ export function ScenePlaythroughPage() {
     }
   };
 
-  const forfeitAction = async (
-    participant: ScenePlaythroughParticipant,
-  ) => {
+  const forfeitAction = async (participant: ScenePlaythroughParticipant) => {
     try {
       await forfeitSceneParticipantAction(
         playthroughId,
@@ -161,15 +158,17 @@ export function ScenePlaythroughPage() {
         },
       );
 
-      setAttackAnimation({
-        targetName: target?.name ?? "Target",
-        imageUrl:
-          target?.portraitUrl?.trim() || target?.photoUrl?.trim() || null,
-      });
-      stopAttackSounds = playAttackSlashSounds();
-      await delay(2_000);
-      stopAttackSounds();
-      setAttackAnimation(undefined);
+      if (!result.isSupport) {
+        setAttackAnimation({
+          targetName: target?.name ?? "Target",
+          imageUrl:
+            target?.portraitUrl?.trim() || target?.photoUrl?.trim() || null,
+        });
+        stopAttackSounds = playAttackSlashSounds();
+        await delay(2_000);
+        stopAttackSounds();
+        setAttackAnimation(undefined);
+      }
 
       const loadedScene = await getScenePlaythrough(playthroughId, sceneId);
       setScene(loadedScene);
@@ -188,7 +187,10 @@ export function ScenePlaythroughPage() {
         setAwaitingActionTurnKey("");
       }
       modalStack.dismissAll();
-      toast.success(getAttackResultMessage(result), "Attack complete");
+      toast.success(
+        getAttackResultMessage(result),
+        result.isSupport ? "Spell cast" : "Attack complete",
+      );
     } catch (requestError: unknown) {
       stopAttackSounds();
       setAttackAnimation(undefined);
@@ -212,10 +214,7 @@ export function ScenePlaythroughPage() {
       setScene(await getScenePlaythrough(playthroughId, sceneId));
       return result;
     } catch (requestError: unknown) {
-      toast.error(
-        getApiError(requestError).message,
-        "Unable to open chest",
-      );
+      toast.error(getApiError(requestError).message, "Unable to open chest");
       throw requestError;
     }
   };
@@ -251,16 +250,11 @@ export function ScenePlaythroughPage() {
     inventoryItem: ScenePlaythroughInventoryItem,
   ) => {
     try {
-      await tradeSceneParticipantItem(
-        playthroughId,
-        sceneId,
-        participant.id,
-        {
-          targetParticipantId: target.id,
-          inventoryItemId: inventoryItem.inventoryItemId,
-          isEquippable: inventoryItem.isEquippable,
-        },
-      );
+      await tradeSceneParticipantItem(playthroughId, sceneId, participant.id, {
+        targetParticipantId: target.id,
+        inventoryItemId: inventoryItem.inventoryItemId,
+        isEquippable: inventoryItem.isEquippable,
+      });
       setScene(await getScenePlaythrough(playthroughId, sceneId));
       setBegunTurnKey("");
       setAwaitingActionTurnKey("");
@@ -336,10 +330,7 @@ export function ScenePlaythroughPage() {
                         content: (
                           <AttackResolutionOptions
                             attacker={participant}
-                            targets={getEligibleAttackTargets(
-                              participant,
-                              scene?.participants ?? [],
-                            )}
+                            targets={scene?.participants ?? []}
                             attackType={attackType}
                             onAttack={(targetId, roll, spellId) =>
                               attack(
@@ -640,8 +631,7 @@ export function ScenePlaythroughPage() {
                 <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {scene.participants.map((participant) => {
                     const turnKey = `${scene.roundNumber}:${participant.id}`;
-                    const isAwaitingAction =
-                      awaitingActionTurnKey === turnKey;
+                    const isAwaitingAction = awaitingActionTurnKey === turnKey;
                     const hasBegunTurn = begunTurnKey === turnKey;
                     const turnPromptLabel = isAwaitingAction
                       ? "Select Action"
@@ -670,9 +660,7 @@ export function ScenePlaythroughPage() {
             </section>
 
             <aside className="self-start rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
-              <h2 className="text-3xl font-semibold text-content">
-                Event Log
-              </h2>
+              <h2 className="text-3xl font-semibold text-content">Event Log</h2>
 
               {scene.eventLogs.length === 0 ? (
                 <p className="mt-5 text-content-muted">
@@ -842,8 +830,7 @@ function ParticipantCard({
   const imageUrl =
     participant.portraitUrl?.trim() || participant.photoUrl?.trim();
   const isWaitingForTurn =
-    participant.isCurrentParticipant &&
-    turnPromptLabel !== undefined;
+    participant.isCurrentParticipant && turnPromptLabel !== undefined;
 
   return (
     <Card
@@ -855,9 +842,7 @@ function ParticipantCard({
     >
       <div
         className={`flex min-h-48 transition ${
-          isWaitingForTurn
-            ? "pointer-events-none select-none blur-[1.5px]"
-            : ""
+          isWaitingForTurn ? "pointer-events-none select-none blur-[1.5px]" : ""
         }`}
       >
         <div className="flex w-2/5 shrink-0 items-center justify-center bg-canvas">
@@ -938,7 +923,6 @@ function ParticipantCard({
               )}
             </div>
           )}
-
         </div>
       </div>
 
@@ -1216,7 +1200,9 @@ function PotionOptions({
               type="button"
               aria-pressed={isSelected}
               className={`overflow-hidden rounded-xl border-2 bg-surface text-left transition hover:border-utility focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
-                isSelected ? "border-utility ring-2 ring-utility/30" : "border-border"
+                isSelected
+                  ? "border-utility ring-2 ring-utility/30"
+                  : "border-border"
               }`}
               disabled={isSubmitting}
               onClick={() =>
@@ -1406,9 +1392,7 @@ function TradeInventoryOptions({
           selection={selection}
           disabled={isSubmitting}
           onSelect={setSelection}
-          onReceive={(isEquippable) =>
-            void transferTo(target.id, isEquippable)
-          }
+          onReceive={(isEquippable) => void transferTo(target.id, isEquippable)}
         />
       </div>
       {isSubmitting && (
@@ -1512,9 +1496,9 @@ function TradeInventorySlots({
   const displayedSlotCount = itemGroups.length + freeSlotCount;
   const canReceive = Boolean(
     selection &&
-      selection.ownerParticipantId !== participantId &&
-      selection.inventoryItem.isEquippable === isEquippable &&
-      !disabled,
+    selection.ownerParticipantId !== participantId &&
+    selection.inventoryItem.isEquippable === isEquippable &&
+    !disabled,
   );
 
   return (
@@ -1584,7 +1568,10 @@ function TradeInventorySlots({
                 } cursor-grab hover:border-utility active:cursor-grabbing`}
                 onClick={() => {
                   if (!disabled) {
-                    onSelect({ ownerParticipantId: participantId, inventoryItem });
+                    onSelect({
+                      ownerParticipantId: participantId,
+                      inventoryItem,
+                    });
                   }
                 }}
                 onDragStart={(event) => {
@@ -1597,7 +1584,10 @@ function TradeInventorySlots({
                     "text/plain",
                     String(inventoryItem.inventoryItemId),
                   );
-                  onSelect({ ownerParticipantId: participantId, inventoryItem });
+                  onSelect({
+                    ownerParticipantId: participantId,
+                    inventoryItem,
+                  });
                 }}
               >
                 {inventoryItem.item.photoUrl ? (
@@ -1966,9 +1956,11 @@ function AttackTypeOptions({
           onClick={() => onSelect(SceneAttackType.Range)}
         />
       )}
-      {participant.spells.some((spell) => spell.damageEffect !== null) && (
+      {participant.spells.some(
+        (spell) => spell.damageEffect !== null || spell.isSupport,
+      ) && (
         <TurnActionButton
-          label="Spell Attack"
+          label="Cast Spell"
           imageSrc="/Spell_Attack.png"
           onClick={() => onSelect(SceneAttackType.Spell)}
         />
@@ -1979,7 +1971,7 @@ function AttackTypeOptions({
 
 function AttackResolutionOptions({
   attacker,
-  targets,
+  targets: participants,
   attackType,
   onAttack,
 }: {
@@ -1992,16 +1984,22 @@ function AttackResolutionOptions({
     playthroughSpellId: number | null,
   ) => Promise<void>;
 }) {
-  const damageSpells = attacker.spells.filter(
-    (spell) => spell.damageEffect !== null,
+  const availableSpells = attacker.spells.filter(
+    (spell) => spell.damageEffect !== null || spell.isSupport,
   );
   const [selectedTargetId, setSelectedTargetId] = useState<number>();
   const [selectedRoll, setSelectedRoll] = useState<number>();
   const [selectedSpellId, setSelectedSpellId] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const selectedSpell = damageSpells.find(
+  const selectedSpell = availableSpells.find(
     (spell) => spell.id === selectedSpellId,
   );
+  const isSupport =
+    attackType === SceneAttackType.Spell && selectedSpell?.isSupport === true;
+  const targets =
+    attackType === SceneAttackType.Spell && !selectedSpell
+      ? []
+      : getEligibleAttackTargets(attacker, participants, isSupport);
   const selectedTarget = targets.find(
     (target) => target.id === selectedTargetId,
   );
@@ -2016,41 +2014,53 @@ function AttackResolutionOptions({
   const hasRequiredSpell =
     attackType !== SceneAttackType.Spell || selectedSpell !== undefined;
   const canAttack =
-    selectedTargetId !== undefined &&
-    selectedRoll !== undefined &&
-    totalDamage !== null &&
+    selectedTarget !== undefined &&
+    (isSupport || (selectedRoll !== undefined && totalDamage !== null)) &&
+    (attackType !== SceneAttackType.Spell ||
+      (selectedSpell !== undefined &&
+        selectedSpell.mpCost <= attacker.currentMp)) &&
     hasRequiredSpell &&
     !isSubmitting;
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-4 rounded-xl border border-border bg-surface p-4 text-center">
-        <div>
-          <p className="text-sm text-content-muted">Attack damage</p>
-          <p className="mt-1 text-3xl font-semibold text-content">
-            {baseDamage ?? "—"}
-          </p>
+      {isSupport ? (
+        <p className="rounded-xl border border-border bg-surface p-4 text-content">
+          Restores {selectedSpell?.healthEffect ?? 0} HP and{" "}
+          {selectedSpell?.magicEffect ?? 0} MP, up to the target’s maximum. Uses{" "}
+          {selectedSpell?.mpCost} MP and one action. No damage roll is required.
+        </p>
+      ) : (
+        <div className="grid grid-cols-3 gap-4 rounded-xl border border-border bg-surface p-4 text-center">
+          <div>
+            <p className="text-sm text-content-muted">Attack damage</p>
+            <p className="mt-1 text-3xl font-semibold text-content">
+              {baseDamage ?? "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-content-muted">Target reduction</p>
+            <p className="mt-1 text-3xl font-semibold text-content">
+              {selectedTarget ? damageReduction : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-content-muted">Total attack damage</p>
+            <p className="mt-1 text-3xl font-semibold text-content">
+              {totalDamage ?? "—"}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-content-muted">Target reduction</p>
-          <p className="mt-1 text-3xl font-semibold text-content">
-            {selectedTarget ? damageReduction : "—"}
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-content-muted">Total attack damage</p>
-          <p className="mt-1 text-3xl font-semibold text-content">
-            {totalDamage ?? "—"}
-          </p>
-        </div>
-      </div>
-
+      )}
       {attackType === SceneAttackType.Spell && (
         <SpellAttackSelector
-          spells={damageSpells}
+          spells={availableSpells}
           currentMp={attacker.currentMp}
           selectedSpellId={selectedSpellId}
-          onSelect={setSelectedSpellId}
+          onSelect={(id) => {
+            setSelectedSpellId(id);
+            setSelectedTargetId(undefined);
+          }}
         />
       )}
 
@@ -2058,7 +2068,9 @@ function AttackResolutionOptions({
         <h3 className="text-lg font-semibold text-content">Select a target</h3>
         {targets.length === 0 ? (
           <p className="mt-3 rounded-xl border border-border bg-surface p-4 text-content-muted">
-            There are no eligible targets for this attack.
+            {attackType === SceneAttackType.Spell && !selectedSpell
+              ? "Choose a spell to see eligible targets."
+              : "There are no eligible targets for this action."}
           </p>
         ) : (
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -2105,23 +2117,24 @@ function AttackResolutionOptions({
         )}
       </section>
 
-      <section className="mt-6">
-        <h3 className="text-lg font-semibold text-content">
-          Select a die face
-        </h3>
-        <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-6">
-          {[1, 2, 3, 4, 5, 6].map((value) => (
-            <DieFaceButton
-              key={value}
-              value={value}
-              selected={selectedRoll === value}
-              onClick={() => setSelectedRoll(value)}
-              compact
-            />
-          ))}
-        </div>
-      </section>
-
+      {!isSupport && (
+        <section className="mt-6">
+          <h3 className="text-lg font-semibold text-content">
+            Select a die face
+          </h3>
+          <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-6">
+            {[1, 2, 3, 4, 5, 6].map((value) => (
+              <DieFaceButton
+                key={value}
+                value={value}
+                selected={selectedRoll === value}
+                onClick={() => setSelectedRoll(value)}
+                compact
+              />
+            ))}
+          </div>
+        </section>
+      )}
       <div className="mt-6 flex justify-end">
         <Button
           variant="danger"
@@ -2130,7 +2143,8 @@ function AttackResolutionOptions({
           onClick={() => {
             if (
               selectedTargetId === undefined ||
-              selectedRoll === undefined ||
+              (!isSupport && selectedRoll === undefined) ||
+              !selectedTarget ||
               !hasRequiredSpell
             ) {
               return;
@@ -2139,12 +2153,16 @@ function AttackResolutionOptions({
             setIsSubmitting(true);
             void onAttack(
               selectedTargetId,
-              selectedRoll,
+              isSupport ? 1 : selectedRoll!,
               selectedSpell?.id ?? null,
             ).finally(() => setIsSubmitting(false));
           }}
         >
-          {isSubmitting ? "Attacking..." : "Attack"}
+          {isSubmitting
+            ? "Resolving..."
+            : attackType === SceneAttackType.Spell
+              ? "Cast spell"
+              : "Attack"}
         </Button>
       </div>
     </div>
@@ -2167,7 +2185,7 @@ function SpellAttackSelector({
       <h3 className="text-lg font-semibold text-content">Select a spell</h3>
       {spells.length === 0 ? (
         <p className="mt-3 rounded-xl border border-border bg-surface p-4 text-content-muted">
-          This participant has no damage spells.
+          This participant has no usable spells.
         </p>
       ) : (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -2190,7 +2208,10 @@ function SpellAttackSelector({
                   {spell.name}
                 </span>
                 <span className="mt-1 block text-sm text-content-muted">
-                  Damage {spell.damageEffect} · MP {spell.mpCost}
+                  {spell.isSupport
+                    ? `Restore ${spell.healthEffect ?? 0} HP / ${spell.magicEffect ?? 0} MP`
+                    : `Damage ${spell.damageEffect}`}{" "}
+                  · MP cost {spell.mpCost}
                 </span>
                 {spell.description && (
                   <span className="mt-2 block text-sm text-content-secondary">
@@ -2282,8 +2303,19 @@ function getAttackDamageReduction(
 function getEligibleAttackTargets(
   attacker: ScenePlaythroughParticipant,
   participants: ScenePlaythroughParticipant[],
+  isSupport = false,
 ) {
   return participants.filter((target) => {
+    if (isSupport) {
+      return (
+        target.isActive &&
+        !target.isDead &&
+        (attacker.participantType === ParticipantType.Enemy
+          ? target.participantType === ParticipantType.Enemy
+          : target.participantType === ParticipantType.Player ||
+            target.participantType === ParticipantType.NPC)
+      );
+    }
     if (
       target.id === attacker.id ||
       !target.isActive ||
@@ -2320,11 +2352,13 @@ function getAttackTypeLabel(attackType: SceneAttackType) {
     case SceneAttackType.Range:
       return "Range Attack";
     default:
-      return "Spell Attack";
+      return "Cast Spell";
   }
 }
 
 function getAttackResultMessage(result: SceneAttackResult) {
+  if (result.isSupport)
+    return `Restored ${result.healthRestored} HP and ${result.magicRestored} MP.`;
   const reward = result.rewardStat
     ? result.rewardAmount > 0
       ? ` You gained ${result.rewardAmount} ${result.rewardStat}.`

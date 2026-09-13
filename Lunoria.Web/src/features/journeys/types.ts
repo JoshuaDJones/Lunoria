@@ -200,6 +200,9 @@ export enum SceneAttackType {
 }
 
 export interface ScenePlaythroughSpell {
+  healthEffect: number | null;
+  magicEffect: number | null;
+  isSupport: boolean;
   id: number;
   name: string;
   description: string;
@@ -253,6 +256,9 @@ export interface ScenePlaythroughParticipant {
 }
 
 export interface SceneAttackResult {
+  isSupport: boolean;
+  healthRestored: number;
+  magicRestored: number;
   damage: number;
   targetCurrentHp: number;
   targetDefeated: boolean;

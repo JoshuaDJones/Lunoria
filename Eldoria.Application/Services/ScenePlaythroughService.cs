@@ -548,7 +548,16 @@ public sealed partial class ScenePlaythroughService(
                 "The target participant was not found."));
         }
 
-        if (!IsValidAttackTarget(attacker, target))
+        var selectedSpell = attackType == SceneAttackType.Spell
+            ? GetSpells(attacker).SingleOrDefault(spell => spell.Id == playthroughSpellId)
+            : null;
+        var isSupport = selectedSpell is not null && selectedSpell.DamageEffect.GetValueOrDefault() <= 0
+            && (selectedSpell.HealthEffect > 0 || selectedSpell.MagicEffect > 0);
+        var validSupportTarget = target.IsActive && target.ScenePlaythroughCharacter?.IsDead != true
+            && (attacker.ParticipantType == ParticipantType.Enemy
+                ? target.ParticipantType == ParticipantType.Enemy
+                : target.ParticipantType is ParticipantType.Player or ParticipantType.NPC);
+        if (isSupport ? !validSupportTarget : !IsValidAttackTarget(attacker, target))
         {
             return Result<SceneAttackResultDto>.Fail(new Error(
                 "ScenePlaythrough.InvalidAttackTarget",
@@ -609,11 +618,11 @@ public sealed partial class ScenePlaythroughService(
 
                 var spell = GetSpells(attacker).SingleOrDefault(
                     candidate => candidate.Id == playthroughSpellId.Value);
-                if (spell is null || spell.DamageEffect is null)
+                if (spell is null || (!isSupport && spell.DamageEffect is null))
                 {
                     return Result<SceneAttackResultDto>.Fail(new Error(
                         "ScenePlaythrough.SpellNotFound",
-                        "The selected damage spell is not available to this participant."));
+                        "The selected spell is not available to this participant."));
                 }
 
                 var currentMp = attackerJourneyCharacter?.CurrentMp
@@ -631,8 +640,43 @@ public sealed partial class ScenePlaythroughService(
                 else
                     attackerSceneCharacter!.CurrentMp -= spell.MpCost;
 
+                if (isSupport)
+                {
+                    var oldHp = targetJourneyCharacter?.CurrentHp ?? targetSceneCharacter!.CurrentHp;
+                    var oldMp = targetJourneyCharacter?.CurrentMp ?? targetSceneCharacter!.CurrentMp;
+                    var maxHp = ScenePlaythroughEquipmentEffects.Apply(targetJourneyCharacter?.MaxHp ?? targetSceneCharacter!.MaxHp, targetEquipment.MaxHpModifier, minimum: 1);
+                    var maxMp = ScenePlaythroughEquipmentEffects.Apply(targetJourneyCharacter?.MaxMp ?? targetSceneCharacter!.MaxMp, targetEquipment.MaxMpModifier);
+                    var healedHp = (int)Math.Max(oldHp, Math.Min(maxHp, (long)oldHp + Math.Max(0, spell.HealthEffect ?? 0)));
+                    var healedMp = (int)Math.Max(oldMp, Math.Min(maxMp, (long)oldMp + Math.Max(0, spell.MagicEffect ?? 0)));
+                    if (targetJourneyCharacter is not null)
+                    {
+                        targetJourneyCharacter.CurrentHp = healedHp;
+                        targetJourneyCharacter.CurrentMp = healedMp;
+                        if (healedHp > 0 && targetJourneyCharacter.IsDown)
+                        {
+                            targetJourneyCharacter.IsDown = false;
+                            target.DownedTurnsRemaining = null;
+                        }
+                    }
+                    else
+                    {
+                        targetSceneCharacter!.CurrentHp = healedHp;
+                        targetSceneCharacter.CurrentMp = healedMp;
+                    }
+                    AddEvent(scene, $"{attackerName} cast {spell.Name} on {targetName}, restoring {healedHp - oldHp} HP and {healedMp - oldMp} MP");
+                    attacker.AttacksRemaining--;
+                    if (attacker.AttacksRemaining == 0) AdvanceTurn(scene, attacker);
+                    await playthroughRepository.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+                    return Result<SceneAttackResultDto>.Ok(new SceneAttackResultDto
+                    {
+                        IsSupport = true, HealthRestored = healedHp - oldHp,
+                        MagicRestored = healedMp - oldMp, TargetCurrentHp = healedHp
+                    });
+                }
+
                 baseDamage = ScenePlaythroughEquipmentEffects.Apply(
-                    spell.DamageEffect.Value,
+                    spell.DamageEffect!.Value,
                     attackerEquipment.GetSpellDamageModifier(
                         spell.PlaythroughSpellTypeId));
                 attackLabel = spell.Name;

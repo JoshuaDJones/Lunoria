@@ -204,7 +204,10 @@ public static class ScenePlaythroughMappings
                     Name = spell.Name,
                     Description = spell.Description,
                     MpCost = spell.MpCost,
-                    DamageEffect = spell.DamageEffect
+                    DamageEffect = spell.DamageEffect,
+                    HealthEffect = spell.HealthEffect,
+                    MagicEffect = spell.MagicEffect,
+                    IsSupport = spell.DamageEffect.GetValueOrDefault() <= 0 && (spell.HealthEffect > 0 || spell.MagicEffect > 0)
                 })
                 .ToList()
         };
@@ -309,6 +312,9 @@ public static class ScenePlaythroughMappings
                     Name = spell.Name,
                     Description = spell.Description,
                     MpCost = spell.MpCost,
+                    HealthEffect = spell.HealthEffect,
+                    MagicEffect = spell.MagicEffect,
+                    IsSupport = spell.DamageEffect.GetValueOrDefault() <= 0 && (spell.HealthEffect > 0 || spell.MagicEffect > 0),
                     DamageEffect = spell.DamageEffect is int damageEffect
                         ? ScenePlaythroughEquipmentEffects.Apply(
                             damageEffect,
