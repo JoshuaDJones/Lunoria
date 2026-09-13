@@ -42,13 +42,33 @@ public sealed class ScenePlaythroughController(
         int sceneId,
         CancellationToken ct)
     {
-        var result = await scenePlaythroughService.StartAsync(
+        var result = await scenePlaythroughService.ContinueStartAsync(
             User.GetUserId(),
             playthroughId,
             sceneId,
+            null,
             ct);
 
-        return await CompleteMutationAsync(result, playthroughId, "SceneStarted", ct);
+        if (!result.Success) return ToError(result.Error);
+        await realtimeNotifier.NotifyUpdatedAsync(playthroughId, result.Value!.Started ? "SceneStarted" : "SceneAwaitingInventory", ct);
+        return Ok(result.Value);
+    }
+
+    [HttpGet("start-inventory")]
+    public async Task<IActionResult> GetStartInventory(int playthroughId, int sceneId, CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.GetStartInventoryAsync(User.GetUserId(), playthroughId, sceneId, ct);
+        return result.Success ? Ok(result.Value) : ToError(result.Error);
+    }
+
+    [HttpPost("start-inventory/resolve")]
+    public async Task<IActionResult> ResolveStartInventory(int playthroughId, int sceneId,
+        [FromBody] SceneInventoryResolutionInput input, CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.ContinueStartAsync(User.GetUserId(), playthroughId, sceneId, input, ct);
+        if (!result.Success) return ToError(result.Error);
+        await realtimeNotifier.NotifyUpdatedAsync(playthroughId, result.Value!.Started ? "SceneStarted" : "SceneAwaitingInventory", ct);
+        return Ok(result.Value);
     }
 
     [HttpPost("end")]

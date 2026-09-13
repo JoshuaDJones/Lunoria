@@ -11,7 +11,9 @@ export enum ActionTargetType {
 
 export enum EventActionType {
   CharacterStatAdjustment = 1,
+  CharacterAddSpell = 2,
   CharacterChangeAlternateForm = 3,
+  CharacterGiveItem = 4,
 }
 
 export enum CharacterStatType {
@@ -48,6 +50,20 @@ export interface SceneEventAction {
   eventActionType: EventActionType;
   sceneEventId: number;
   characterStatAdjustmentAction: CharacterStatAdjustmentAction | null;
+  characterAddSpellAction: {
+    characterId: number | null;
+    characterName: string | null;
+    spellId: number;
+    spellName: string;
+  } | null;
+  characterGiveItemAction: {
+    characterId: number | null;
+    characterName: string | null;
+    consumableItemId: number | null;
+    equippableItemId: number | null;
+    itemName: string;
+    quantity: number;
+  } | null;
   characterChangeAlternateFormAction: {
     characterId: number | null;
     characterName: string | null;
@@ -110,6 +126,10 @@ export interface SceneEventActionInput {
   value?: number;
   characterId?: number | null;
   alternateFormId?: number | null;
+  spellId?: number | null;
+  consumableItemId?: number | null;
+  equippableItemId?: number | null;
+  quantity?: number;
 }
 
 export interface DialogPageSection {

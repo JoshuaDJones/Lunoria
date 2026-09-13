@@ -4,6 +4,7 @@
     {
         CharacterStatAdjustment = 1,
         CharacterAddSpell = 2,
-        CharacterChangeAlternateForm = 3
+        CharacterChangeAlternateForm = 3,
+        CharacterGiveItem = 4
     }
 }

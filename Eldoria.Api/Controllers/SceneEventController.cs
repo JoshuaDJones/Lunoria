@@ -102,7 +102,14 @@ namespace Eldoria.Api.Controllers
                 req.Value,
                 req.CharacterId,
                 ct,
-                req.AlternateFormId);
+                req.AlternateFormId,
+                new SceneEventGrantInput
+                {
+                    SpellId = req.SpellId,
+                    ConsumableItemId = req.ConsumableItemId,
+                    EquippableItemId = req.EquippableItemId,
+                    Quantity = req.Quantity
+                });
 
             if (result.Success)
                 return Ok(result.Value);
@@ -131,7 +138,14 @@ namespace Eldoria.Api.Controllers
                 req.Value,
                 req.CharacterId,
                 ct,
-                req.AlternateFormId);
+                req.AlternateFormId,
+                new SceneEventGrantInput
+                {
+                    SpellId = req.SpellId,
+                    ConsumableItemId = req.ConsumableItemId,
+                    EquippableItemId = req.EquippableItemId,
+                    Quantity = req.Quantity
+                });
 
             if (result.Success)
                 return Ok(result.Value);

@@ -328,6 +328,7 @@ export function ScenePlaythroughPage() {
                 placement: "center",
                 content: (
                   <AttackTypeOptions
+                    participant={participant}
                     onSelect={(attackType) =>
                       modalStack.push({
                         title: getAttackTypeLabel(attackType),
@@ -1945,8 +1946,10 @@ function formatLootModifier(value: number) {
 }
 
 function AttackTypeOptions({
+  participant,
   onSelect,
 }: {
+  participant: ScenePlaythroughParticipant;
   onSelect: (attackType: SceneAttackType) => void;
 }) {
   return (
@@ -1956,16 +1959,20 @@ function AttackTypeOptions({
         imageSrc="/Melee_Attack.png"
         onClick={() => onSelect(SceneAttackType.Melee)}
       />
-      <TurnActionButton
-        label="Range Attack"
-        imageSrc="/Bow_Attack.png"
-        onClick={() => onSelect(SceneAttackType.Range)}
-      />
-      <TurnActionButton
-        label="Spell Attack"
-        imageSrc="/Spell_Attack.png"
-        onClick={() => onSelect(SceneAttackType.Spell)}
-      />
+      {participant.bowAttackDamage !== null && (
+        <TurnActionButton
+          label="Range Attack"
+          imageSrc="/Bow_Attack.png"
+          onClick={() => onSelect(SceneAttackType.Range)}
+        />
+      )}
+      {participant.spells.some((spell) => spell.damageEffect !== null) && (
+        <TurnActionButton
+          label="Spell Attack"
+          imageSrc="/Spell_Attack.png"
+          onClick={() => onSelect(SceneAttackType.Spell)}
+        />
+      )}
     </div>
   );
 }

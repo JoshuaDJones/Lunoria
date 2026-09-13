@@ -89,8 +89,7 @@ namespace Eldoria.Application.Services
                 UpdatedAt = DateTime.UtcNow
             };
 
-            await _journeyRepository.AddAsync(journey, ct);
-            await _journeyRepository.SaveChangesAsync(ct);            
+            await _journeyRepository.AddWithNextSortOrderAsync(journey, ct);
 
             var dto = new JourneyDto
             {

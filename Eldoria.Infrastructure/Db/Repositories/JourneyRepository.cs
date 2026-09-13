@@ -1,6 +1,7 @@
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Eldoria.Infrastructure.Db.Repositories
 {
@@ -8,6 +9,23 @@ namespace Eldoria.Infrastructure.Db.Repositories
         : Repository<Journey>(dbContext), IJourneyRepository
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
+
+        public async Task AddWithNextSortOrderAsync(Journey journey, CancellationToken ct)
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable, ct);
+
+            // Lock this series' ordering range, including an empty range, while allocating a slot.
+            var highestSortOrder = await _dbContext.Journeys
+                .FromSqlInterpolated($"SELECT * FROM [Journeys] WITH (UPDLOCK, HOLDLOCK) WHERE [SeriesId] = {journey.SeriesId}")
+                .Select(existing => (int?)existing.SortOrder)
+                .MaxAsync(ct);
+
+            journey.SortOrder = checked((highestSortOrder ?? -1) + 1);
+            await _dbContext.Journeys.AddAsync(journey, ct);
+            await _dbContext.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+        }
 
         public async Task<List<Journey>> GetUsersJourneys(int userId, int skip, int take, CancellationToken ct)
         {
@@ -222,6 +240,10 @@ namespace Eldoria.Infrastructure.Db.Repositories
                     .ThenInclude(scene => scene.SceneEvents)
                         .ThenInclude(sceneEvent => sceneEvent.SceneEventActions)
                             .ThenInclude(action => action.CharacterChangeAlternateFormAction)
+                .Include(journey => journey.Scenes)
+                    .ThenInclude(scene => scene.SceneEvents)
+                        .ThenInclude(sceneEvent => sceneEvent.SceneEventActions)
+                            .ThenInclude(action => action.CharacterGiveItemAction)
                 .Include(journey => journey.Scenes)
                     .ThenInclude(scene => scene.SceneEvents)
                         .ThenInclude(sceneEvent => sceneEvent.SceneEventActions)

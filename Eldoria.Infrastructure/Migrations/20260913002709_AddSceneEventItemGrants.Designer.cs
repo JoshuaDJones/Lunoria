@@ -4,6 +4,7 @@ using Eldoria.Infrastructure.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Eldoria.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260913002709_AddSceneEventItemGrants")]
+    partial class AddSceneEventItemGrants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1458,16 +1461,10 @@ namespace Eldoria.Infrastructure.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("nvarchar(2048)");
 
-                    b.Property<Guid?>("InventoryResolutionToken")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
-
-                    b.Property<int?>("PendingInventoryActionId")
-                        .HasColumnType("int");
 
                     b.Property<string>("PhotoUrl")
                         .HasMaxLength(2048)
@@ -1519,15 +1516,6 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.Property<int>("EventActionType")
                         .HasColumnType("int");
-
-                    b.Property<int>("GrantItemsHandled")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GrantRecipientIndex")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()

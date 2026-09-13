@@ -124,6 +124,7 @@ export enum ScenePlaythroughStatus {
 }
 
 export interface PlaythroughSceneSummary {
+  hasPendingInventory: boolean;
   id: number;
   name: string;
   description: string | null;
@@ -134,6 +135,31 @@ export interface PlaythroughSceneSummary {
   roundNumber: number;
   startedAt: string | null;
   endedAt: string | null;
+}
+
+export interface SceneStartInventory {
+  resolutionToken: string;
+  characterName: string;
+  eventName: string;
+  rewardName: string;
+  isEquippable: boolean;
+  remainingQuantity: number;
+  inventoryCount: number;
+  inventoryCapacity: number;
+  items: { id: number; name: string; recipientIds: number[] }[];
+  rewardRecipientIds: number[];
+  recipients: { id: number; name: string; availableSlots: number }[];
+}
+
+export interface SceneStartResult {
+  started: boolean;
+  pendingInventory: SceneStartInventory | null;
+}
+
+export interface SceneInventoryResolutionInput {
+  resolutionToken: string;
+  inventoryItemId: number | null;
+  targetJourneyCharacterId: number | null;
 }
 
 export interface PlaythroughIntroPage {

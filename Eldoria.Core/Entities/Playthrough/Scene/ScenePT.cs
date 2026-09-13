@@ -16,6 +16,8 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
 
         public ScenePlaythroughStatus Status { get; set; } = ScenePlaythroughStatus.NotStarted;        
         public int RoundNumber { get; set; }
+        public int? PendingInventoryActionId { get; set; }
+        public Guid? InventoryResolutionToken { get; set; }
 
         public DateTime? StartedAt { get; set; }
         public DateTime? EndedAt { get; set; }

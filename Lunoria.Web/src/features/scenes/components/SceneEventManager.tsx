@@ -12,6 +12,9 @@ import {
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { Button, FormField, Input, Select, Textarea } from "@/components/ui";
 import type { JourneyCharacter } from "@/features/journeys";
+import { listSpells } from "@/features/spells/api/spellsApi";
+import { listItems } from "@/features/items/api/itemsApi";
+import { listEquipment } from "@/features/equipment/api/equipmentApi";
 import { listCharacters } from "@/features/characters/api/charactersApi";
 import { CharacterType, type Character } from "@/features/characters/types";
 import {
@@ -545,6 +548,21 @@ function ActionForm({
 }) {
   const adjustment = action?.characterStatAdjustmentAction;
   const change = action?.characterChangeAlternateFormAction;
+  const spellGrant = action?.characterAddSpellAction;
+  const itemGrant = action?.characterGiveItemAction;
+  const [spellId, setSpellId] = useState(String(spellGrant?.spellId ?? ""));
+  const [itemType, setItemType] = useState(
+    itemGrant?.equippableItemId ? "equipment" : "consumable",
+  );
+  const [itemId, setItemId] = useState(
+    String(itemGrant?.equippableItemId ?? itemGrant?.consumableItemId ?? ""),
+  );
+  const [quantity, setQuantity] = useState(String(itemGrant?.quantity ?? 1));
+  const [grantOptions, setGrantOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [grantLoadError, setGrantLoadError] = useState("");
+  const [grantsLoading, setGrantsLoading] = useState(false);
   const [actionType, setActionType] = useState(
     action?.eventActionType ?? EventActionType.CharacterStatAdjustment,
   );
@@ -557,6 +575,47 @@ function ActionForm({
   const [alternateError, setAlternateError] = useState("");
   const changesAlternateForm =
     actionType === EventActionType.CharacterChangeAlternateForm;
+  const givesSpell = actionType === EventActionType.CharacterAddSpell;
+  const givesItem = actionType === EventActionType.CharacterGiveItem;
+  const loadGrantOptions = async () => {
+    setGrantsLoading(true);
+    setGrantLoadError("");
+    try {
+      setGrantOptions(
+        await (givesSpell
+          ? listSpells()
+          : itemType === "equipment"
+            ? listEquipment()
+            : listItems()),
+      );
+    } catch (requestError) {
+      setGrantLoadError(getApiError(requestError).message);
+    } finally {
+      setGrantsLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (!givesSpell && !givesItem) return;
+    let current = true;
+    const request = givesSpell
+      ? listSpells()
+      : itemType === "equipment"
+        ? listEquipment()
+        : listItems();
+    void request
+      .then((options) => {
+        if (current) {
+          setGrantOptions(options);
+          setGrantLoadError("");
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (current) setGrantLoadError(getApiError(requestError).message);
+      });
+    return () => {
+      current = false;
+    };
+  }, [givesSpell, givesItem, itemType]);
   useEffect(() => {
     if (!changesAlternateForm) return;
     let isCurrent = true;
@@ -586,7 +645,13 @@ function ActionForm({
   );
   const [value, setValue] = useState(String(adjustment?.value ?? 0));
   const [characterId, setCharacterId] = useState(
-    String(change?.characterId ?? adjustment?.characterId ?? ""),
+    String(
+      spellGrant?.characterId ??
+        itemGrant?.characterId ??
+        change?.characterId ??
+        adjustment?.characterId ??
+        "",
+    ),
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -602,11 +667,21 @@ function ActionForm({
         eventActionType: actionType,
         ...(changesAlternateForm
           ? { alternateFormId: Number(alternateFormId) }
-          : {
-              characterStatType: statType,
-              adjustmentOperation: operation,
-              value: Number(value),
-            }),
+          : givesSpell
+            ? { spellId: Number(spellId) }
+            : givesItem
+              ? {
+                  quantity: Number(quantity),
+                  consumableItemId:
+                    itemType === "consumable" ? Number(itemId) : null,
+                  equippableItemId:
+                    itemType === "equipment" ? Number(itemId) : null,
+                }
+              : {
+                  characterStatType: statType,
+                  adjustmentOperation: operation,
+                  value: Number(value),
+                }),
         characterId:
           targetType === ActionTargetType.SingleJourneyCharacter
             ? Number(characterId)
@@ -639,9 +714,11 @@ function ActionForm({
         <Select
           id="action-type"
           value={actionType}
-          onChange={(e) =>
-            setActionType(Number(e.target.value) as EventActionType)
-          }
+          onChange={(e) => {
+            setActionType(Number(e.target.value) as EventActionType);
+            setGrantOptions([]);
+            setGrantLoadError("");
+          }}
         >
           <option value={EventActionType.CharacterStatAdjustment}>
             Adjust stat
@@ -649,6 +726,8 @@ function ActionForm({
           <option value={EventActionType.CharacterChangeAlternateForm}>
             Change alternate form
           </option>
+          <option value={EventActionType.CharacterAddSpell}>Give spell</option>
+          <option value={EventActionType.CharacterGiveItem}>Give item</option>
         </Select>
       </FormField>
       <FormField htmlFor="action-target" label="Target">
@@ -686,7 +765,100 @@ function ActionForm({
           </Select>
         </FormField>
       )}
-      {changesAlternateForm ? (
+      {givesSpell || givesItem ? (
+        <>
+          {givesItem && (
+            <FormField htmlFor="grant-item-type" label="Item type">
+              <Select
+                id="grant-item-type"
+                value={itemType}
+                onChange={(event) => {
+                  setItemType(event.target.value);
+                  setItemId("");
+                  setGrantOptions([]);
+                }}
+              >
+                <option value="consumable">Consumable</option>
+                <option value="equipment">Equipment</option>
+              </Select>
+            </FormField>
+          )}
+          <FormField
+            htmlFor="grant-selection"
+            label={givesSpell ? "Spell" : "Item"}
+          >
+            <Select
+              id="grant-selection"
+              required
+              value={givesSpell ? spellId : itemId}
+              onChange={(event) =>
+                givesSpell
+                  ? setSpellId(event.target.value)
+                  : setItemId(event.target.value)
+              }
+            >
+              <option value="" disabled>
+                Select {givesSpell ? "a spell" : "an item"}
+              </option>
+              {givesSpell &&
+                spellGrant &&
+                !grantOptions.some(
+                  (option) => option.id === spellGrant.spellId,
+                ) && (
+                  <option value={spellGrant.spellId}>
+                    {spellGrant.spellName} (existing assignment)
+                  </option>
+                )}
+              {grantOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          {grantLoadError && (
+            <div role="alert" className="text-danger">
+              {grantLoadError}
+              <Button
+                disabled={grantsLoading}
+                onClick={() => void loadGrantOptions()}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+          {givesItem && (
+            <>
+              <FormField
+                htmlFor="grant-quantity"
+                label="Quantity per character"
+              >
+                <Input
+                  id="grant-quantity"
+                  type="number"
+                  min={1}
+                  max={1000}
+                  step={1}
+                  required
+                  value={quantity}
+                  onChange={(event) => setQuantity(event.target.value)}
+                />
+              </FormField>
+              <p className="text-sm text-content-secondary">
+                Granted at scene start. Full inventories require discarding or
+                transferring an item before continuing. Equipment is equipped
+                automatically.
+              </p>
+            </>
+          )}
+          {givesSpell && (
+            <p className="text-sm text-content-secondary">
+              Learned at scene start. Characters who already know this spell
+              keep a single copy.
+            </p>
+          )}
+        </>
+      ) : changesAlternateForm ? (
         <FormField
           htmlFor="action-alternate-form"
           label="New alternate character"
@@ -785,16 +957,30 @@ function ActionCard({
 }) {
   const adjustment = action.characterStatAdjustmentAction;
   const change = action.characterChangeAlternateFormAction;
+  const spellGrant = action.characterAddSpellAction;
+  const itemGrant = action.characterGiveItemAction;
   const target =
     action.actionTargetType === ActionTargetType.AllJourneyCharacters
       ? "All journey characters"
-      : (change?.characterName ??
+      : (spellGrant?.characterName ??
+        itemGrant?.characterName ??
+        change?.characterName ??
         adjustment?.character?.name ??
         "Selected character");
 
   return (
     <article className="rounded-xl border border-border bg-surface p-4">
       <h4 className="font-semibold text-content">{action.name}</h4>
+      {spellGrant && (
+        <p className="mt-1 text-sm text-content-secondary">
+          {target}: learn {spellGrant.spellName}
+        </p>
+      )}
+      {itemGrant && (
+        <p className="mt-1 text-sm text-content-secondary">
+          {target}: receive {itemGrant.quantity} × {itemGrant.itemName}
+        </p>
+      )}
       {change && (
         <p className="mt-1 text-sm text-content-secondary">
           {target}: change alternate form to {change.alternateFormName}

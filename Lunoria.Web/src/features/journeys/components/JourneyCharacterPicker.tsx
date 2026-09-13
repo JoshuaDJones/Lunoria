@@ -316,7 +316,7 @@ function JourneyCharacterForm({
           value={values.alternate}
           onChange={(event) => set("alternate", event.target.value)}
         >
-          <option value="">None</option>
+          <option value="">Use character's default alternate form</option>
           {alternates.map((character) => (
             <option key={character.id} value={character.id}>
               {character.name}

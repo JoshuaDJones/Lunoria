@@ -14,6 +14,11 @@ namespace Eldoria.Infrastructure.Db.Repositories
             dbContext.SceneEvents
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
                 .ThenInclude(action => action.CharacterStatAdjustmentAction)
+                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Spell)
+                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Character)
+                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.ConsumableItem)
+                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.EquippableItem)
+                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.Character)
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
                     .ThenInclude(action => action.CharacterChangeAlternateFormAction)
                         .ThenInclude(change => change!.Character)
@@ -54,6 +59,11 @@ namespace Eldoria.Infrastructure.Db.Repositories
         public Task<SceneEventAction?> GetActionForUserAsync(int userId, int actionId, CancellationToken ct) =>
             _dbContext.SceneEventActions
                 .Include(action => action.CharacterStatAdjustmentAction)
+                .Include(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Spell)
+                .Include(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Character)
+                .Include(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.ConsumableItem)
+                .Include(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.EquippableItem)
+                .Include(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.Character)
                 .Include(action => action.CharacterChangeAlternateFormAction)
                     .ThenInclude(change => change!.Character)
                 .Include(action => action.CharacterChangeAlternateFormAction)

@@ -6,6 +6,10 @@ namespace Eldoria.Application.Services;
 
 public interface IScenePlaythroughService
 {
+    Task<Result<SceneStartResultDto>> ContinueStartAsync(int userId, int playthroughId, int sceneId,
+        SceneInventoryResolutionInput? resolution, CancellationToken ct);
+    Task<Result<SceneStartResultDto>> GetStartInventoryAsync(int userId, int playthroughId, int sceneId,
+        CancellationToken ct);
     Task<Result> StartAsync(
         int userId,
         int playthroughId,

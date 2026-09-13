@@ -12,7 +12,10 @@ namespace Eldoria.Application.Services
         IRepository<Journey> journeyRepository,
         IRepository<SceneEventAction> sceneEventActionRepository,
         IJourneyCharacterRepository journeyCharacterRepository,
-        ICharacterRepository characterRepository) : ISceneEventService
+        ICharacterRepository characterRepository,
+        ISpellRepository spellRepository,
+        IRepository<ConsumableItem> consumableRepository,
+        IEquippableItemRepository equippableRepository) : ISceneEventService
     {
         private readonly ISceneEventRepository _sceneEventRepository = sceneEventRepository;
         private readonly IRepository<Scene> _sceneRepository = sceneRepository;
@@ -131,19 +134,20 @@ namespace Eldoria.Application.Services
             int value,
             int? characterId,
             CancellationToken ct,
-            int? alternateFormId = null)
+            int? alternateFormId = null,
+            SceneEventGrantInput? grant = null)
         {
             var sceneEvent = await GetOwnedEventAsync(userId, sceneId, eventId, ct);
 
             if (sceneEvent is null)
                 return Result<SceneEventActionDto>.Fail(NotFoundEvent);
 
-            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId);
+            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId, grant, null);
 
             if (validationError is not null)
                 return Result<SceneEventActionDto>.Fail(validationError);
 
-            var action = BuildAction(eventId, name, targetType, actionType, statType, operation, value, characterId, alternateFormId);
+            var action = BuildAction(eventId, name, targetType, actionType, statType, operation, value, characterId, alternateFormId, grant);
 
             await _sceneEventRepository.AddActionWithNextSortOrderAsync(action, ct);
 
@@ -163,7 +167,8 @@ namespace Eldoria.Application.Services
             int value,
             int? characterId,
             CancellationToken ct,
-            int? alternateFormId = null)
+            int? alternateFormId = null,
+            SceneEventGrantInput? grant = null)
         {
             var sceneEvent = await GetOwnedEventAsync(userId, sceneId, eventId, ct);
 
@@ -175,7 +180,7 @@ namespace Eldoria.Application.Services
             if (action is null || action.SceneEventId != eventId)
                 return Result<SceneEventActionDto>.Fail(NotFoundAction);
 
-            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId);
+            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId, grant, action.CharacterAddSpellAction?.SpellId);
 
             if (validationError is not null)
                 return Result<SceneEventActionDto>.Fail(validationError);
@@ -183,7 +188,7 @@ namespace Eldoria.Application.Services
             action.Name = name.Trim();
             action.ActionTargetType = targetType;
             action.EventActionType = actionType;
-            SetActionPayload(action, statType, operation, value, characterId, alternateFormId);
+            SetActionPayload(action, statType, operation, value, characterId, alternateFormId, grant);
 
             await _sceneEventRepository.SaveChangesAsync(ct);
 
@@ -252,12 +257,40 @@ namespace Eldoria.Application.Services
             return sceneEvent?.SceneId == sceneId ? sceneEvent : null;
         }
 
-        private async Task<Error?> ValidateActionAsync(int userId, int sceneId, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int? characterId, CancellationToken ct, int? alternateFormId)
+        private async Task<Error?> ValidateActionAsync(int userId, int sceneId, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int? characterId, CancellationToken ct, int? alternateFormId, SceneEventGrantInput? grant, int? existingSpellId)
         {
             if (!Enum.IsDefined(targetType) || !Enum.IsDefined(actionType) || !Enum.IsDefined(statType) || !Enum.IsDefined(operation))
                 return new Error("SceneEventAction.InvalidType", "One or more action values are invalid.");
-            if (actionType is not (EventActionType.CharacterStatAdjustment or EventActionType.CharacterChangeAlternateForm))
+            if (actionType is not (EventActionType.CharacterStatAdjustment or EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem))
                 return new Error("SceneEventAction.UnsupportedType", "The action type is not supported.");
+            if (actionType is EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem)
+            {
+                if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
+                    return new Error("SceneEventAction.InvalidTarget", "Select one or all journey characters.");
+                if (actionType == EventActionType.CharacterAddSpell)
+                {
+                    var spells = grant?.SpellId is int spellId
+                        ? await spellRepository.GetSpellsByIdsForUserAsync(userId, [spellId], ct)
+                        : [];
+                    if (spells.Count != 1 || (spells[0].IsDeleted && spells[0].Id != existingSpellId))
+                        return new Error("SceneEventAction.InvalidSpell", "Select an available spell that you own.");
+                }
+                else
+                {
+                    if (grant is null || grant.Quantity is < 1 or > 1000 ||
+                        grant.ConsumableItemId.HasValue == grant.EquippableItemId.HasValue)
+                        return new Error("SceneEventAction.InvalidItem", "Select exactly one item and a quantity between 1 and 1000.");
+                    if (grant.ConsumableItemId is int consumableId)
+                    {
+                        var item = await consumableRepository.GetByIdAsync(consumableId, ct);
+                        if (item?.UserId != userId)
+                            return new Error("SceneEventAction.InvalidItem", "The consumable item was not found or is not owned by you.");
+                    }
+                    if (grant.EquippableItemId is int equippableId &&
+                        await equippableRepository.GetByIdForUserAsync(userId, equippableId, ct) is null)
+                        return new Error("SceneEventAction.InvalidItem", "The equipment was not found or is not owned by you.");
+                }
+            }
             if (actionType == EventActionType.CharacterChangeAlternateForm)
             {
                 if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
@@ -289,15 +322,40 @@ namespace Eldoria.Application.Services
             return null;
         }
 
-        private static SceneEventAction BuildAction(int eventId, string name, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId)
+        private static SceneEventAction BuildAction(int eventId, string name, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId, SceneEventGrantInput? grant)
         {
             var action = new SceneEventAction { SceneEventId = eventId, Name = name.Trim(), ActionTargetType = targetType, EventActionType = actionType };
-            SetActionPayload(action, statType, operation, value, characterId, alternateFormId);
+            SetActionPayload(action, statType, operation, value, characterId, alternateFormId, grant);
             return action;
         }
 
-        private static void SetActionPayload(SceneEventAction action, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId)
+        private static void SetActionPayload(SceneEventAction action, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId, SceneEventGrantInput? grant)
         {
+            if (action.EventActionType != EventActionType.CharacterStatAdjustment)
+                action.CharacterStatAdjustmentAction = null;
+            if (action.EventActionType != EventActionType.CharacterChangeAlternateForm)
+                action.CharacterChangeAlternateFormAction = null;
+            if (action.EventActionType != EventActionType.CharacterAddSpell)
+                action.CharacterAddSpellAction = null;
+            if (action.EventActionType != EventActionType.CharacterGiveItem)
+                action.CharacterGiveItemAction = null;
+
+            if (action.EventActionType == EventActionType.CharacterAddSpell)
+            {
+                action.CharacterAddSpellAction ??= new CharacterAddSpellAction();
+                action.CharacterAddSpellAction.CharacterId = characterId;
+                action.CharacterAddSpellAction.SpellId = grant!.SpellId!.Value;
+                return;
+            }
+            if (action.EventActionType == EventActionType.CharacterGiveItem)
+            {
+                action.CharacterGiveItemAction ??= new CharacterGiveItemAction();
+                action.CharacterGiveItemAction.CharacterId = characterId;
+                action.CharacterGiveItemAction.ConsumableItemId = grant!.ConsumableItemId;
+                action.CharacterGiveItemAction.EquippableItemId = grant.EquippableItemId;
+                action.CharacterGiveItemAction.Quantity = grant.Quantity;
+                return;
+            }
             if (action.EventActionType == EventActionType.CharacterChangeAlternateForm)
             {
                 action.CharacterStatAdjustmentAction = null;

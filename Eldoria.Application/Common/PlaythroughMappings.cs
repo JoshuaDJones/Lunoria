@@ -38,6 +38,7 @@ public static class PlaythroughMappings
                     SortOrder = scene.SortOrder,
                     Status = scene.Status,
                     RoundNumber = scene.RoundNumber,
+                    HasPendingInventory = scene.PendingInventoryActionId is not null,
                     StartedAt = scene.StartedAt,
                     EndedAt = scene.EndedAt
                 })

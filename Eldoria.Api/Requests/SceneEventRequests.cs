@@ -49,9 +49,22 @@ namespace Eldoria.Api.Requests
         public int? CharacterId { get; set; }
         [Range(1, int.MaxValue)]
         public int? AlternateFormId { get; set; }
+        [Range(1, int.MaxValue)]
+        public int? SpellId { get; set; }
+        [Range(1, int.MaxValue)]
+        public int? ConsumableItemId { get; set; }
+        [Range(1, int.MaxValue)]
+        public int? EquippableItemId { get; set; }
+        [Range(1, 1000)]
+        public int Quantity { get; set; } = 1;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            if (EventActionType == Eldoria.Core.Enums.EventActionType.CharacterAddSpell && SpellId is null)
+                yield return new ValidationResult("A spell is required.", [nameof(SpellId)]);
+            if (EventActionType == Eldoria.Core.Enums.EventActionType.CharacterGiveItem &&
+                ConsumableItemId.HasValue == EquippableItemId.HasValue)
+                yield return new ValidationResult("Select exactly one consumable or equippable item.", [nameof(ConsumableItemId), nameof(EquippableItemId)]);
             if (EventActionType == Eldoria.Core.Enums.EventActionType.CharacterStatAdjustment)
             {
                 if (CharacterStatType is null)

@@ -12,6 +12,16 @@ import {
 } from "@/features/journeys";
 import { getApiError } from "@/lib/apiClient";
 import {
+  getSceneStartInventory,
+  resolveSceneStartInventory,
+} from "@/features/journeys/api/journeysApi";
+import type {
+  SceneStartInventory,
+  SceneInventoryResolutionInput,
+  SceneStartResult,
+} from "@/features/journeys/types";
+import { SceneStartInventoryDialog } from "@/features/journeys/components/SceneStartInventoryDialog";
+import {
   createPlaythroughJoinSession,
   PlaythroughJoinDialog,
   revokePlaythroughJoinSession,
@@ -37,6 +47,12 @@ export function PlaythroughPage() {
   const [error, setError] = useState("");
   const [viewingIntroPageId, setViewingIntroPageId] = useState<number>();
   const [startingSceneId, setStartingSceneId] = useState<number>();
+  const [pendingInventory, setPendingInventory] = useState<{
+    sceneId: number;
+    inventory: SceneStartInventory;
+  }>();
+  const [inventoryBusy, setInventoryBusy] = useState(false);
+  const [inventoryError, setInventoryError] = useState("");
   const [isCreatingJoinSession, setIsCreatingJoinSession] = useState(false);
   const hasHandledAutomaticIntro = useRef(false);
 
@@ -50,14 +66,44 @@ export function PlaythroughPage() {
     setStartingSceneId(sceneId);
 
     try {
-      await startScenePlaythrough(playthroughId, sceneId);
-      navigateToScene(sceneId);
+      const result = await startScenePlaythrough(playthroughId, sceneId);
+      handleStartResult(sceneId, result);
     } catch (requestError: unknown) {
-      toast.error(
-        getApiError(requestError).message,
-        "Unable to start scene",
-      );
+      toast.error(getApiError(requestError).message, "Unable to start scene");
       setStartingSceneId(undefined);
+    }
+  };
+
+  const handleStartResult = (sceneId: number, result: SceneStartResult) => {
+    if (result.started) {
+      setPendingInventory(undefined);
+      navigateToScene(sceneId);
+    } else if (result.pendingInventory) {
+      setPendingInventory({ sceneId, inventory: result.pendingInventory });
+      setStartingSceneId(undefined);
+    } else {
+      setPendingInventory(undefined);
+      setStartingSceneId(undefined);
+    }
+  };
+
+  const resolveInventory = async (input?: SceneInventoryResolutionInput) => {
+    if (!pendingInventory || inventoryBusy) return;
+    setInventoryBusy(true);
+    setInventoryError("");
+    try {
+      const result = input
+        ? await resolveSceneStartInventory(
+            playthroughId,
+            pendingInventory.sceneId,
+            input,
+          )
+        : await getSceneStartInventory(playthroughId, pendingInventory.sceneId);
+      handleStartResult(pendingInventory.sceneId, result);
+    } catch (requestError: unknown) {
+      setInventoryError(getApiError(requestError).message);
+    } finally {
+      setInventoryBusy(false);
     }
   };
 
@@ -114,8 +160,24 @@ export function PlaythroughPage() {
     setError("");
 
     void getPlaythrough(playthroughId)
-      .then((loadedPlaythrough) => {
-        if (isCurrent) setPlaythrough(loadedPlaythrough);
+      .then(async (loadedPlaythrough) => {
+        if (!isCurrent) return;
+        setPlaythrough(loadedPlaythrough);
+        const pendingScene = loadedPlaythrough.scenes.find(
+          (scene) => scene.hasPendingInventory,
+        );
+        if (pendingScene) {
+          const result = await getSceneStartInventory(
+            playthroughId,
+            pendingScene.id,
+          );
+          if (isCurrent && result.pendingInventory) {
+            setPendingInventory({
+              sceneId: pendingScene.id,
+              inventory: result.pendingInventory,
+            });
+          }
+        }
       })
       .catch((requestError: unknown) => {
         if (isCurrent) setError(getApiError(requestError).message);
@@ -160,6 +222,16 @@ export function PlaythroughPage() {
         <div className="valley-village-image absolute inset-0 z-0 h-full w-full" />
       }
     >
+      {pendingInventory && (
+        <SceneStartInventoryDialog
+          key={pendingInventory.inventory.resolutionToken}
+          pending={pendingInventory.inventory}
+          busy={inventoryBusy}
+          error={inventoryError}
+          onResolve={(input) => void resolveInventory(input)}
+          onReload={() => void resolveInventory()}
+        />
+      )}
       <main className="w-full flex-1">
         <header className="p-10 flex flex-wrap items-end justify-between gap-5">
           <div>
@@ -239,7 +311,8 @@ export function PlaythroughPage() {
                         )}
 
                         <dl className="mt-auto grid gap-3 pt-5 text-sm text-content-secondary sm:grid-cols-2">
-                          {scene.status !== ScenePlaythroughStatus.NotStarted && (
+                          {scene.status !==
+                            ScenePlaythroughStatus.NotStarted && (
                             <div>
                               <dt className="text-content-muted">Round</dt>
                               <dd>{scene.roundNumber}</dd>
@@ -268,7 +341,9 @@ export function PlaythroughPage() {
                           >
                             {startingSceneId === scene.id
                               ? "Starting..."
-                              : "Start"}
+                              : scene.hasPendingInventory
+                                ? "Resolve inventory"
+                                : "Start"}
                           </Button>
                         )}
 
@@ -289,9 +364,7 @@ export function PlaythroughPage() {
             </section>
 
             <aside className="self-start rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
-              <h2 className="text-3xl font-semibold text-content">
-                Event Log
-              </h2>
+              <h2 className="text-3xl font-semibold text-content">Event Log</h2>
 
               {playthrough.eventLogs.length === 0 ? (
                 <p className="mt-5 text-content-muted">

@@ -11,6 +11,8 @@ namespace Eldoria.Application.Dtos
         public EventActionType EventActionType { get; set; }
         public int SceneEventId { get; set; }
         public CharacterStatAdjustmentActionDto? CharacterStatAdjustmentAction { get; set; }
+        public CharacterAddSpellActionDto? CharacterAddSpellAction { get; set; }
+        public CharacterGiveItemActionDto? CharacterGiveItemAction { get; set; }
         public CharacterChangeAlternateFormActionDto? CharacterChangeAlternateFormAction { get; set; }
     }
 }

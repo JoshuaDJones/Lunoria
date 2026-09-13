@@ -265,12 +265,14 @@ public static class ScenePlaythroughMappings
                 journeyCharacter?.Movement ?? sceneCharacter!.Movement,
                 equipmentEffects.MovementModifier),
             MeleeAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
-                journeyCharacter?.MeleeAttackDamage
-                    ?? sceneCharacter!.MeleeAttackDamage,
+                journeyCharacter is not null
+                    ? journeyCharacter.MeleeAttackDamage
+                    : sceneCharacter!.MeleeAttackDamage,
                 equipmentEffects.MeleeAttackDamageModifier),
             BowAttackDamage = ScenePlaythroughEquipmentEffects.Apply(
-                journeyCharacter?.BowAttackDamage
-                    ?? sceneCharacter!.BowAttackDamage,
+                journeyCharacter is not null
+                    ? journeyCharacter.BowAttackDamage
+                    : sceneCharacter!.BowAttackDamage,
                 equipmentEffects.BowAttackDamageModifier),
             MeleeDamageReduction = Math.Max(
                 0, equipmentEffects.MeleeDamageReduction),

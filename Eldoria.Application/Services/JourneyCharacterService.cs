@@ -130,6 +130,8 @@ namespace Eldoria.Application.Services
                     IsInitiallyActive = true,
                     JourneyId = journeyId,
                     CharacterId = character.Id,
+                    AlternateFormId = character.BaseAlternateFormId,
+                    AlternateForm = character.BaseAlternateForm,
                     JourneyCharacterSpells = character.CharacterSpells
                         .Select(characterSpell => new JourneyCharacterSpell
                         {

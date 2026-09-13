@@ -14,6 +14,24 @@ public static class SceneEventActionMappings
         EventActionType = action.EventActionType,
         SceneEventId = action.SceneEventId,
         CharacterStatAdjustmentAction = action.CharacterStatAdjustmentAction?.ToDto(),
+        CharacterAddSpellAction = action.CharacterAddSpellAction is { } spell
+            ? new CharacterAddSpellActionDto
+            {
+                CharacterId = spell.CharacterId,
+                CharacterName = spell.Character?.Name,
+                SpellId = spell.SpellId,
+                SpellName = spell.Spell.Name
+            } : null,
+        CharacterGiveItemAction = action.CharacterGiveItemAction is { } item
+            ? new CharacterGiveItemActionDto
+            {
+                CharacterId = item.CharacterId,
+                CharacterName = item.Character?.Name,
+                ConsumableItemId = item.ConsumableItemId,
+                EquippableItemId = item.EquippableItemId,
+                ItemName = item.ConsumableItem?.Name ?? item.EquippableItem?.Name ?? "Unavailable item",
+                Quantity = item.Quantity
+            } : null,
         CharacterChangeAlternateFormAction = action.CharacterChangeAlternateFormAction is { } change
             ? new CharacterChangeAlternateFormActionDto
             {

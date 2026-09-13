@@ -9,125 +9,16 @@ using System.Security.Cryptography;
 
 namespace Eldoria.Application.Services;
 
-public sealed class ScenePlaythroughService(
+public sealed partial class ScenePlaythroughService(
     IPlaythroughRepository playthroughRepository) : IScenePlaythroughService
 {
     private const int DownedScheduledTurns = 5;
 
     public async Task<Result> StartAsync(
-        int userId,
-        int playthroughId,
-        int sceneId,
-        CancellationToken ct)
+        int userId, int playthroughId, int sceneId, CancellationToken ct)
     {
-        await using var transaction =
-            await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-
-        var scene = await playthroughRepository.GetSceneForStartAsync(
-            userId,
-            playthroughId,
-            sceneId,
-            ct);
-
-        if (scene is null)
-        {
-            return Result.Fail(new Error(
-                "ScenePlaythrough.NotFound",
-                "Scene playthrough was not found."));
-        }
-
-        if (scene.Playthrough.CompletedAt is not null)
-        {
-            return Result.Fail(new Error(
-                "Playthrough.Completed",
-                "A scene cannot be started in a completed playthrough."));
-        }
-
-        if (scene.Status != ScenePlaythroughStatus.NotStarted)
-        {
-            return Result.Fail(new Error(
-                "ScenePlaythrough.AlreadyStarted",
-                "The scene has already been started."));
-        }
-
-        if (scene.SceneParticipants.Count != 0)
-        {
-            return Result.Fail(new Error(
-                "ScenePlaythrough.InvalidState",
-                "The unstarted scene already has participants."));
-        }
-
-        foreach (var sceneEvent in scene.SceneEvents.OrderBy(item => item.SortOrder))
-        {
-            sceneEvent.ExecutionStatus = SceneEventExecutionStatus.InProgress;
-            sceneEvent.StartedAt = DateTime.UtcNow;
-            sceneEvent.CompletedAt = null;
-            sceneEvent.ErrorMessage = null;
-
-            foreach (var action in sceneEvent.ScenePTActionEvents
-                .OrderBy(item => item.SortOrder))
-            {
-                var executionError = ExecuteSceneEventAction(scene, action);
-
-                if (executionError is not null)
-                {
-                    sceneEvent.ExecutionStatus = SceneEventExecutionStatus.Failed;
-                    sceneEvent.ErrorMessage = executionError.Message;
-                    return Result.Fail(executionError);
-                }
-            }
-
-            sceneEvent.ExecutionStatus = SceneEventExecutionStatus.Completed;
-            sceneEvent.CompletedAt = DateTime.UtcNow;
-        }
-
-        var journeyParticipants = scene.Playthrough.JourneyCharacters
-            .Where(character => character.IsActive)
-            .OrderBy(character => character.SourceJourneyCharacterId)
-            .Select((character, index) => new ScenePTParticipant
-            {
-                IsActive = true,
-                SortOrderWithinType = index,
-                ParticipantType = ParticipantType.Player,
-                JourneyPlaythroughCharacter = character
-            })
-            .ToList();
-
-        var npcParticipants = CreateSceneCharacterParticipants(
-            scene,
-            CharacterType.NPC,
-            ParticipantType.NPC);
-
-        var enemyParticipants = CreateSceneCharacterParticipants(
-            scene,
-            CharacterType.Enemy,
-            ParticipantType.Enemy);
-
-        var participants = journeyParticipants
-            .Concat(npcParticipants)
-            .Concat(enemyParticipants)
-            .ToList();
-
-        foreach (var participant in participants)
-            scene.SceneParticipants.Add(participant);
-
-        var startedAt = DateTime.UtcNow;
-        scene.Status = ScenePlaythroughStatus.InProgress;
-        scene.StartedAt = startedAt;
-        scene.RoundNumber = 1;
-        scene.CurrentParticipant = journeyParticipants.FirstOrDefault();
-        if (scene.CurrentParticipant is not null)
-            ResetAttacksForTurn(scene.CurrentParticipant);
-        scene.Playthrough.EventLogs.Add(new PlaythroughEventLog
-        {
-            Message = $"Scene Started: {scene.Name}",
-            EventTime = startedAt
-        });
-
-        await playthroughRepository.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
-
-        return Result.Ok();
+        var result = await ContinueStartAsync(userId, playthroughId, sceneId, null, ct);
+        return result.Success ? Result.Ok() : Result.Fail(result.Error);
     }
 
     public async Task<Result> EndAsync(
@@ -1517,6 +1408,7 @@ public sealed class ScenePlaythroughService(
             character => ApplyStatAdjustment(character, adjustment));
     }
 
+
     private static Error? ExecuteCharacterAddSpell(
         ScenePT scene,
         ScenePTActionEvent action)
@@ -1530,7 +1422,7 @@ public sealed class ScenePlaythroughService(
                 "The character-add-spell payload is missing.");
         }
 
-        if (addSpell.PlaythroughSpellId <= 0)
+        if (addSpell.PlaythroughSpellId <= 0 || addSpell.PlaythroughSpell is null)
         {
             return EventExecutionError(
                 action,
@@ -1549,8 +1441,10 @@ public sealed class ScenePlaythroughService(
                     character.Spells.Add(new JourneyPTCharacterSpell
                     {
                         SourceJourneyCharacterSpellId = null,
-                        PlaythroughSpellId = addSpell.PlaythroughSpellId
+                        PlaythroughSpellId = addSpell.PlaythroughSpellId,
+                        PlaythroughSpell = addSpell.PlaythroughSpell
                     });
+                    AddEvent(scene, $"{character.PlaythroughCharacter.Name} learned {addSpell.PlaythroughSpell.Name}");
                 }
             },
             character =>
@@ -1561,8 +1455,10 @@ public sealed class ScenePlaythroughService(
                     character.Spells.Add(new ScenePTCharacterSpell
                     {
                         SourceSceneCharacterSpellId = null,
-                        PlaythroughSpellId = addSpell.PlaythroughSpellId
+                        PlaythroughSpellId = addSpell.PlaythroughSpellId,
+                        PlaythroughSpell = addSpell.PlaythroughSpell
                     });
+                    AddEvent(scene, $"{character.PlaythroughCharacter.Name} learned {addSpell.PlaythroughSpell.Name}");
                 }
             });
     }

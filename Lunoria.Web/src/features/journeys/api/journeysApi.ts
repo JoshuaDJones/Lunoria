@@ -14,6 +14,8 @@ import type {
   SceneOpenChestResult,
   ScenePlaythroughDetails,
   SceneUseConsumableResult,
+  SceneStartResult,
+  SceneInventoryResolutionInput,
 } from "@/features/journeys/types";
 import { SceneDialog } from "@/features/scenes/types";
 
@@ -76,19 +78,40 @@ export async function getPlaythrough(
 export async function startScenePlaythrough(
   playthroughId: number,
   sceneId: number,
-): Promise<void> {
-  await apiClient.post(
+): Promise<SceneStartResult> {
+  const { data } = await apiClient.post<SceneStartResult>(
     `/playthroughs/${playthroughId}/scenes/${sceneId}/start`,
   );
+  return data;
+}
+
+export async function getSceneStartInventory(
+  playthroughId: number,
+  sceneId: number,
+): Promise<SceneStartResult> {
+  const { data } = await apiClient.get<SceneStartResult>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/start-inventory`,
+  );
+  return data;
+}
+
+export async function resolveSceneStartInventory(
+  playthroughId: number,
+  sceneId: number,
+  input: SceneInventoryResolutionInput,
+): Promise<SceneStartResult> {
+  const { data } = await apiClient.post<SceneStartResult>(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/start-inventory/resolve`,
+    input,
+  );
+  return data;
 }
 
 export async function endScenePlaythrough(
   playthroughId: number,
   sceneId: number,
 ): Promise<void> {
-  await apiClient.post(
-    `/playthroughs/${playthroughId}/scenes/${sceneId}/end`,
-  );
+  await apiClient.post(`/playthroughs/${playthroughId}/scenes/${sceneId}/end`);
 }
 
 export async function getScenePlaythrough(

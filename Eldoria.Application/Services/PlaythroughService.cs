@@ -324,7 +324,10 @@ public sealed class PlaythroughService(
 
                 PlaythroughCharacter =
                     playthroughCharactersBySourceId[journeyCharacter.CharacterId],
-                AlternateForm = journeyCharacter.AlternateFormId is int alternateFormSourceId
+                // Older journey assignments may not have copied the catalog alternate form.
+                // An explicit journey alternate takes precedence over the character default.
+                AlternateForm = (journeyCharacter.AlternateFormId
+                    ?? journeyCharacter.Character.BaseAlternateFormId) is int alternateFormSourceId
                     ? playthroughCharactersBySourceId[alternateFormSourceId]
                     : null,
                 Spells = [.. journeyCharacter.JourneyCharacterSpells
@@ -523,6 +526,18 @@ public sealed class PlaythroughService(
                                         AlternateForm = playthroughCharactersBySourceId[change.AlternateFormId]
                                     }
                                     : null,
+                            CharacterGiveItemAction = action.CharacterGiveItemAction is { } grant
+                                ? new PTCharacterGiveItemAction
+                                {
+                                    SourceCharacterGiveItemActionId = grant.Id,
+                                    PlaythroughCharacter = grant.CharacterId is int itemTargetId
+                                        ? playthroughCharactersBySourceId[itemTargetId] : null,
+                                    PlaythroughConsumableItem = grant.ConsumableItemId is int consumableId
+                                        ? playthroughConsumablesBySourceId[consumableId] : null,
+                                    PlaythroughEquippableItem = grant.EquippableItemId is int equippableId
+                                        ? playthroughEquippablesBySourceId[equippableId] : null,
+                                    Quantity = grant.Quantity
+                                } : null,
                             CharacterAddSpellAction =
                                 action.CharacterAddSpellAction is null
                                     ? null
@@ -615,6 +630,7 @@ public sealed class PlaythroughService(
                     characterIds,
                     action.CharacterAddSpellAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.CharacterId);
+                AddIfPresent(characterIds, action.CharacterGiveItemAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.AlternateFormId);
             }
         }
@@ -786,6 +802,17 @@ public sealed class PlaythroughService(
                 }
 
                 var addSpell = action.CharacterAddSpellAction;
+                var grant = action.CharacterGiveItemAction;
+                if (action.EventActionType == EventActionType.CharacterGiveItem &&
+                    (grant is null || grant.Quantity is < 1 or > 1000 ||
+                     grant.ConsumableItemId.HasValue == grant.EquippableItemId.HasValue))
+                    return new Error("Playthrough.InvalidSourceGraph", "An item-grant event has invalid item or quantity settings.");
+                if (grant?.CharacterId is int grantTargetId && !characterIds.Contains(grantTargetId))
+                    return Missing("event item recipient", grantTargetId);
+                if (grant?.ConsumableItemId is int grantConsumableId && !consumableIds.Contains(grantConsumableId))
+                    return Missing("event consumable", grantConsumableId);
+                if (grant?.EquippableItemId is int grantEquippableId && !equippableIds.Contains(grantEquippableId))
+                    return Missing("event equipment", grantEquippableId);
                 var change = action.CharacterChangeAlternateFormAction;
                 if (change?.CharacterId is int targetId && !characterIds.Contains(targetId))
                     return Missing("event alternate-form target", targetId);
