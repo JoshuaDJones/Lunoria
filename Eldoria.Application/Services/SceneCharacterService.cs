@@ -68,7 +68,14 @@ namespace Eldoria.Application.Services
                 CharacterId = characterId,
                 Character = character,
                 AlternateFormId = character.BaseAlternateFormId,
-                AlternateForm = character.BaseAlternateForm
+                AlternateForm = character.BaseAlternateForm,
+                SceneCharacterSpells = [.. character.CharacterSpells
+                    .Where(link => !link.Spell.IsDeleted)
+                    .Select(link => new SceneCharacterSpell
+                    {
+                        SpellId = link.SpellId,
+                        Spell = link.Spell
+                    })]
             };
 
             await _sceneCharacterRepository.AddAsync(sceneCharacter, ct);
