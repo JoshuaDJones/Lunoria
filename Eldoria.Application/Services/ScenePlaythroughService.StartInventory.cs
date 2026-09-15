@@ -87,11 +87,12 @@ public sealed partial class ScenePlaythroughService
 
         var journeyParticipants = scene.Playthrough.JourneyCharacters
             .Where(character => character.IsActive)
-            .OrderBy(character => character.SourceJourneyCharacterId)
-            .Select((character, index) => new ScenePTParticipant
+            .OrderBy(character => character.SortOrder)
+            .ThenBy(character => character.SourceJourneyCharacterId)
+            .Select(character => new ScenePTParticipant
             {
                 IsActive = true,
-                SortOrderWithinType = index,
+                SortOrderWithinType = character.SortOrder,
                 ParticipantType = ParticipantType.Player,
                 JourneyPlaythroughCharacter = character
             })

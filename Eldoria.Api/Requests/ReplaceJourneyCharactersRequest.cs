@@ -10,6 +10,7 @@ namespace Eldoria.Api.Requests
 
     public class UpdateJourneyCharacterStatsRequest
     {
+        [Range(0, int.MaxValue)] public int? SortOrder { get; set; }
         [Range(0, int.MaxValue)] public int? MeleeAttackDamage { get; set; }
         [Range(0, int.MaxValue)] public int? BowAttackDamage { get; set; }
         [Required, Range(0, int.MaxValue)] public int? Movement { get; set; }

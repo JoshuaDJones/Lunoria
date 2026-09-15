@@ -18,6 +18,7 @@ namespace Eldoria.Application.Common
                MaxHp = journeyCharacter.MaxHp,
                MaxMp = journeyCharacter.MaxMp,
                IsInitiallyActive = journeyCharacter.IsInitiallyActive,
+               SortOrder = journeyCharacter.SortOrder,
                JourneyId = journeyCharacter.JourneyId,
                AlternateForm = journeyCharacter.AlternateForm?.ToDto(),
                CharacterId = journeyCharacter.CharacterId,

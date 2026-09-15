@@ -8,6 +8,7 @@ namespace Eldoria.Core.Entities.Playthrough.Journey
     public class JourneyPTCharacter
     {
         public int Id { get; set; }
+        public int SortOrder { get; set; }
         public int SourceJourneyCharacterId { get; set; }
 
         public int? InitialMeleeAttackDamage { get; set; }

@@ -3,6 +3,7 @@
     public class JourneyCharacterDto
     {
         public int Id { get; set; }
+        public int SortOrder { get; set; }
         public int? MeleeAttackDamage { get; set; }
         public int? BowAttackDamage { get; set; }
         public int Movement { get; set; }

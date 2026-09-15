@@ -110,7 +110,9 @@ export function JourneyCharacterPicker({
     <div className="flex min-h-full flex-col">
       <p className="mb-5 text-sm text-content-secondary">
         Select playable characters for this journey, or edit the stats used when
-        a new playthrough starts.
+        a new playthrough starts. Save new selections first, then use Edit stats
+        & order to set their turn order. Lower numbers go first among journey
+        characters.
       </p>
       {isLoading && (
         <p className="text-content-secondary" role="status">
@@ -153,6 +155,11 @@ export function JourneyCharacterPicker({
                     <span className="block truncate text-lg font-semibold text-content">
                       {character.name}
                     </span>
+                    {assignment && (
+                      <span className="block text-sm text-content-muted">
+                        Turn order: {assignment.sortOrder}
+                      </span>
+                    )}
                     <span className="mt-1 line-clamp-2 block text-sm text-content-secondary">
                       {assignment
                         ? `HP ${assignment.maxHp} · MP ${assignment.maxMp} · ${assignment.isInitiallyActive ? "Initially active" : "Initially inactive"}`
@@ -173,7 +180,7 @@ export function JourneyCharacterPicker({
                       size="sm"
                       leftIcon={<FontAwesomeIcon icon={faPen} />}
                     >
-                      Edit stats
+                      Edit stats & order
                     </Button>
                   </div>
                 )}
@@ -213,6 +220,7 @@ function JourneyCharacterForm({
   onCancel: () => void;
 }) {
   const [values, setValues] = useState({
+    sortOrder: String(assignment.sortOrder ?? 0),
     melee: text(assignment.meleeAttackDamage),
     bow: text(assignment.bowAttackDamage),
     movement: String(assignment.movement),
@@ -233,6 +241,7 @@ function JourneyCharacterForm({
     setError("");
     try {
       await onSave({
+        sortOrder: Number(values.sortOrder),
         meleeAttackDamage: numberOrNull(values.melee),
         bowAttackDamage: numberOrNull(values.bow),
         movement: Number(values.movement),
@@ -264,6 +273,12 @@ function JourneyCharacterForm({
         Edit {assignment.character.name}
       </h3>
       <div className="grid gap-4 sm:grid-cols-2">
+        <NumberField
+          id="jc-sort-order"
+          label="Turn sort order (lower goes first)"
+          value={values.sortOrder}
+          change={(v) => set("sortOrder", v)}
+        />
         <NumberField
           id="jc-hp"
           label="Max HP"

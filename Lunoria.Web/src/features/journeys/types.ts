@@ -42,6 +42,7 @@ export interface SpellDamageModifier {
 }
 
 export interface JourneyCharacter {
+  sortOrder: number;
   id: number;
   journeyId: number;
   characterId: number;

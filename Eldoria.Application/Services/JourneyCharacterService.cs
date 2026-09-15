@@ -37,7 +37,7 @@ namespace Eldoria.Application.Services
             int? meleeAttackDamage, int? bowAttackDamage, int movement,
             int maxConsumableInventory, int maxEquippableInventory,
             int maxHp, int maxMp, bool isInitiallyActive,
-            int? alternateFormId, CancellationToken ct)
+            int? alternateFormId, CancellationToken ct, int? sortOrder = null)
         {
             var journeyCharacter = await _journeyCharacterRepository.GetForUserAsync(userId, journeyCharacterId, ct);
             if (journeyCharacter is null)
@@ -53,6 +53,12 @@ namespace Eldoria.Application.Services
                 if (alternateForm is null || alternateForm.Id == journeyCharacter.CharacterId)
                     return Result<JourneyCharacterDto>.Fail(new Error("JourneyCharacter.InvalidAlternateForm", "The alternate form is invalid."));
             }
+
+            if (sortOrder < 0)
+                return Result<JourneyCharacterDto>.Fail(new Error("JourneyCharacter.InvalidSortOrder", "Sort order cannot be negative."));
+
+            if (sortOrder is not null) 
+                journeyCharacter.SortOrder = sortOrder.Value;
 
             journeyCharacter.MeleeAttackDamage = meleeAttackDamage;
             journeyCharacter.BowAttackDamage = bowAttackDamage;

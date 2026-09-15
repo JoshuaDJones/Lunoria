@@ -297,6 +297,7 @@ public sealed class PlaythroughService(
             .Select(journeyCharacter => new JourneyPTCharacter
             {
                 SourceJourneyCharacterId = journeyCharacter.Id,
+                SortOrder = journeyCharacter.SortOrder,
 
                 InitialMeleeAttackDamage = journeyCharacter.MeleeAttackDamage,
                 InitialBowAttackDamage = journeyCharacter.BowAttackDamage,

@@ -25,6 +25,7 @@ export interface ListJourneysParams {
 }
 
 export interface UpdateJourneyCharacterRequest {
+  sortOrder: number;
   meleeAttackDamage: number | null;
   bowAttackDamage: number | null;
   movement: number;

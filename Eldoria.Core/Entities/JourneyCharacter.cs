@@ -3,6 +3,7 @@
     public class JourneyCharacter
     {
         public int Id { get; set; }
+        public int SortOrder { get; set; }
 
         public int? MeleeAttackDamage { get; set; }
         public int? BowAttackDamage { get; set; }

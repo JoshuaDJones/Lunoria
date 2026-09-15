@@ -228,7 +228,7 @@ public sealed partial class ScenePlaythroughService(
         var participant = new ScenePTParticipant
         {
             IsActive = true,
-            SortOrderWithinType = NextSortOrder(scene, ParticipantType.Player),
+            SortOrderWithinType = character.SortOrder,
             ParticipantType = ParticipantType.Player,
             JourneyPlaythroughCharacter = character
         };

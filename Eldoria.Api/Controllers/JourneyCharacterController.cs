@@ -55,7 +55,7 @@ namespace Eldoria.Api.Controllers
                 req.Movement!.Value, req.MaxConsumableInventory!.Value,
                 req.MaxEquippableInventory!.Value, req.MaxHp!.Value,
                 req.MaxMp!.Value, req.IsInitiallyActive!.Value,
-                req.AlternateFormId, ct);
+                req.AlternateFormId, ct, req.SortOrder);
 
             return result.Success ? Ok(result.Value) : result.Error?.Code switch
             {

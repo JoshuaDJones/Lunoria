@@ -10,6 +10,7 @@ public sealed class JourneyPTCharacterConfig : IEntityTypeConfiguration<JourneyP
     {
         builder.ToTable("JourneyPTCharacters");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.SortOrder).HasDefaultValue(0);
 
         builder.HasIndex(x => new { x.PlaythroughId, x.SourceJourneyCharacterId }).IsUnique();
         builder.HasIndex(x => new { x.PlaythroughId, x.PlaythroughCharacterId }).IsUnique();
