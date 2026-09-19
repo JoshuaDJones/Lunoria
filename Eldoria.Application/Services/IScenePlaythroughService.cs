@@ -130,4 +130,12 @@ public interface IScenePlaythroughService
         int sceneId,
         int participantId,
         CancellationToken ct);
+
+    Task<Result> CampfireAsync(
+        int userId,
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        string resource,
+        CancellationToken ct);
 }

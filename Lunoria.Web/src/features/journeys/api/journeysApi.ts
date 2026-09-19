@@ -249,6 +249,18 @@ export async function forfeitSceneParticipantAction(
   );
 }
 
+export async function replenishAtSceneCampfire(
+  playthroughId: number,
+  sceneId: number,
+  participantId: number,
+  resource: "hp" | "mp",
+): Promise<void> {
+  await apiClient.post(
+    `/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/campfire`,
+    { resource },
+  );
+}
+
 export interface ResolveSceneAttackInput {
   isCounterattack?: boolean;
   counterattackToken?: string;

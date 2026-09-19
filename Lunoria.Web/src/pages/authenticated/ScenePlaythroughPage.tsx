@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBottleDroplet } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useModalStack, useToast } from "@/app/providers";
@@ -15,6 +17,7 @@ import {
   openSceneParticipantChest,
   ParticipantType,
   recordSceneParticipantMovement,
+  replenishAtSceneCampfire,
   resolveSceneParticipantAttack,
   removeSceneParticipant,
   passSceneCounterattack,
@@ -32,6 +35,7 @@ import {
   type ScenePlaythroughInventoryItem,
   type ScenePlaythroughParticipant,
   type ScenePlaythroughSpell,
+  type ScenePlaythroughCharacterOption,
 } from "@/features/journeys";
 import { DialogViewer } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
@@ -65,6 +69,7 @@ export function ScenePlaythroughPage() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [begunTurnKey, setBegunTurnKey] = useState("");
   const [awaitingActionTurnKey, setAwaitingActionTurnKey] = useState("");
+  const [activationTurnKey, setActivationTurnKey] = useState("");
   const [optionAction, setOptionAction] = useState<string>();
   const transformPending = useRef(false);
   const [viewingDialog, setViewingDialog] = useState<ScenePlaythroughDialog>();
@@ -156,8 +161,9 @@ export function ScenePlaythroughPage() {
     attackType: SceneAttackType,
     roll: number,
     playthroughSpellId: number | null,
+    attackScene = scene,
   ) => {
-    const target = scene?.participants.find(
+    const target = attackScene?.participants.find(
       (candidate) => candidate.id === targetParticipantId,
     );
 
@@ -301,9 +307,10 @@ export function ScenePlaythroughPage() {
   const openTurnActionDialog = (
     turnKey: string,
     participant: ScenePlaythroughParticipant,
+    actionScene = scene,
   ) => {
     setAwaitingActionTurnKey(turnKey);
-    const unopenedChests = (scene?.chests ?? []).filter(
+    const unopenedChests = (actionScene?.chests ?? []).filter(
       (chest) => chest.status === ChestStatus.Unopened,
     );
     modalStack.push({
@@ -317,6 +324,46 @@ export function ScenePlaythroughPage() {
           hasUnopenedChests={unopenedChests.length > 0}
           hasConsumables={participant.consumableItems.length > 0}
           onSelect={(title) => {
+            if (title === "Campfire") {
+              modalStack.push({
+                title: "Campfire",
+                placement: "center",
+                content: (
+                  <CampfireOptions
+                    onBack={() => modalStack.pop()}
+                    onReplenish={async (resource) => {
+                      await replenishAtSceneCampfire(
+                        playthroughId,
+                        sceneId,
+                        participant.id,
+                        resource,
+                      );
+                    }}
+                    onComplete={async (resource) => {
+                      modalStack.dismissAll();
+                      setBegunTurnKey("");
+                      setAwaitingActionTurnKey("");
+                      setActivationTurnKey("");
+                      toast.success(
+                        `${participant.name} replenished ${resource.toUpperCase()}. Their turn has ended.`,
+                        "Campfire",
+                      );
+                      try {
+                        setScene(
+                          await getScenePlaythrough(playthroughId, sceneId),
+                        );
+                      } catch (requestError) {
+                        toast.error(
+                          getApiError(requestError).message,
+                          "Campfire used—reload the scene to see the updated turn",
+                        );
+                      }
+                    }}
+                  />
+                ),
+              });
+              return;
+            }
             if (title === "Transform") {
               modalStack.push({
                 title: participant.isInAlternateForm
@@ -348,7 +395,7 @@ export function ScenePlaythroughPage() {
                         content: (
                           <AttackResolutionOptions
                             attacker={participant}
-                            targets={scene?.participants ?? []}
+                            targets={actionScene?.participants ?? []}
                             attackType={attackType}
                             onAttack={(targetId, roll, spellId) =>
                               attack(
@@ -357,6 +404,7 @@ export function ScenePlaythroughPage() {
                                 attackType,
                                 roll,
                                 spellId,
+                                actionScene,
                               )
                             }
                           />
@@ -407,7 +455,7 @@ export function ScenePlaythroughPage() {
             if (title === "Trade Item") {
               const tradePartners = getEligibleTradePartners(
                 participant,
-                scene?.participants ?? [],
+                actionScene?.participants ?? [],
               );
               modalStack.push({
                 title: "Choose Trade Partner",
@@ -475,7 +523,8 @@ export function ScenePlaythroughPage() {
         participant.id,
         roll,
       );
-      setScene(await getScenePlaythrough(playthroughId, sceneId));
+      const loadedScene = await getScenePlaythrough(playthroughId, sceneId);
+      setScene(loadedScene);
       setBegunTurnKey(turnKey);
       setAwaitingActionTurnKey(turnKey);
       toast.success(
@@ -483,13 +532,67 @@ export function ScenePlaythroughPage() {
         "Movement",
       );
       modalStack.pop();
-      openTurnActionDialog(turnKey, participant);
+
+      const refreshedParticipant =
+        loadedScene.participants.find((item) => item.id === participant.id) ??
+        participant;
+      if (participant.journeyPlaythroughCharacterId !== null) {
+        setActivationTurnKey(turnKey);
+        openActivationDialog(
+          turnKey,
+          refreshedParticipant,
+          loadedScene.playthroughCharacters,
+        );
+      } else {
+        openTurnActionDialog(turnKey, refreshedParticipant, loadedScene);
+      }
     } catch (requestError: unknown) {
       toast.error(
         getApiError(requestError).message,
         "Unable to record movement",
       );
     }
+  };
+
+  const openActivationDialog = (
+    turnKey: string,
+    participant: ScenePlaythroughParticipant,
+    playthroughCharacters: ScenePlaythroughCharacterOption[],
+  ) => {
+    setAwaitingActionTurnKey(turnKey);
+
+    modalStack.push({
+      title: "Activate Scene Characters",
+      placement: "center",
+      content: (
+        <SceneCharacterActivationOptions
+          playthroughCharacters={playthroughCharacters}
+          onActivate={async (id) => {
+            await addPlaythroughCharacterToScene(playthroughId, sceneId, id);
+          }}
+          onReload={async () => {
+            const refreshed = await getScenePlaythrough(playthroughId, sceneId);
+            setScene(refreshed);
+            return refreshed;
+          }}
+          onNext={(refreshed) => {
+            const current = refreshed.participants.find(
+              (item) => item.id === participant.id,
+            );
+            if (
+              !current?.isCurrentParticipant ||
+              `${refreshed.roundNumber}:${current.id}` !== turnKey
+            )
+              throw new Error(
+                "The current turn has changed. Close this dialog and continue the current turn.",
+              );
+            setActivationTurnKey("");
+            modalStack.pop();
+            openTurnActionDialog(turnKey, current, refreshed);
+          }}
+        />
+      ),
+    });
   };
 
   const runSceneOption = async (
@@ -672,6 +775,14 @@ export function ScenePlaythroughPage() {
                         turnPromptLabel={turnPromptLabel}
                         onTurnPrompt={() => {
                           if (isAwaitingAction) {
+                            if (activationTurnKey === turnKey) {
+                              openActivationDialog(
+                                turnKey,
+                                participant,
+                                scene.playthroughCharacters,
+                              );
+                              return;
+                            }
                             openTurnActionDialog(turnKey, participant);
                             return;
                           }
@@ -748,7 +859,11 @@ export function ScenePlaythroughPage() {
                 void runSceneOption(
                   `remove-${participantId}`,
                   async () => {
-                    await removeSceneParticipant(playthroughId, sceneId, participantId);
+                    await removeSceneParticipant(
+                      playthroughId,
+                      sceneId,
+                      participantId,
+                    );
                     if (scene.currentParticipantId === participantId) {
                       setBegunTurnKey("");
                       setAwaitingActionTurnKey("");
@@ -811,7 +926,8 @@ export function ScenePlaythroughPage() {
               );
               await animateAttack(
                 scene.participants.find(
-                  (participant) => participant.id === scene.counterattackTargetId,
+                  (participant) =>
+                    participant.id === scene.counterattackTargetId,
                 ),
               );
               toast.success(
@@ -837,6 +953,144 @@ export function ScenePlaythroughPage() {
         <AttackAnimationOverlay animation={attackAnimation} />
       )}
     </AppLayout>
+  );
+}
+
+function SceneCharacterActivationOptions({
+  playthroughCharacters,
+  onActivate,
+  onReload,
+  onNext,
+}: {
+  playthroughCharacters: ScenePlaythroughCharacterOption[];
+  onActivate: (id: number) => Promise<void>;
+  onReload: () => Promise<ScenePlaythroughDetails>;
+  onNext: (scene: ScenePlaythroughDetails) => void;
+}) {
+  const [busy, setBusy] = useState<number | "next">();
+  const [added, setAdded] = useState<Record<number, number>>({});
+  const [error, setError] = useState("");
+  const pending = useRef(false);
+  const addedCount = Object.values(added).reduce(
+    (total, count) => total + count,
+    0,
+  );
+
+  const activate = async (id: number) => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(id);
+    setError("");
+    try {
+      await onActivate(id);
+      setAdded((current) => ({ ...current, [id]: (current[id] ?? 0) + 1 }));
+      await onReload();
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+    } finally {
+      pending.current = false;
+      setBusy(undefined);
+    }
+  };
+
+  const next = async () => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy("next");
+    setError("");
+    try {
+      onNext(await onReload());
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : getApiError(requestError).message,
+      );
+    } finally {
+      pending.current = false;
+      setBusy(undefined);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-content-secondary">
+        Activate any NPCs or enemies needed for the scene. You can add multiple
+        characters, then click Next to choose your action. Or{" "}
+        <button
+          type="button"
+          disabled={busy !== undefined}
+          onClick={() => void next()}
+          className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-utility underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          skip activation
+        </button>
+        .
+      </p>
+      {playthroughCharacters.length === 0 && (
+        <p className="text-content-muted">
+          No scene characters are available to activate.
+        </p>
+      )}
+      {playthroughCharacters.map((character) => {
+        const imageUrl = character.portraitUrl || character.photoUrl;
+        return (
+          <div
+            key={character.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
+          >
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt=""
+                className="h-12 w-12 rounded-lg object-contain"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-lg bg-surface-raised" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-content">
+                {character.name}
+              </p>
+              {!!added[character.id] && (
+                <p className="text-sm text-content-muted">
+                  Added: {added[character.id]}
+                </p>
+              )}
+            </div>
+            <Button
+              disabled={busy !== undefined}
+              onClick={() => void activate(character.id)}
+            >
+              {busy === character.id
+                ? "Activating..."
+                : added[character.id]
+                  ? "Activate another"
+                  : "Activate"}
+            </Button>
+          </div>
+        );
+      })}
+      {error && (
+        <p role="alert" className="text-danger">
+          {error}
+        </p>
+      )}
+      {addedCount > 0 && (
+        <p role="status" className="text-content-secondary">
+          {addedCount} scene character{addedCount === 1 ? "" : "s"} added.
+        </p>
+      )}
+      <div className="flex justify-end border-t border-border pt-4">
+        <Button
+          variant="primary"
+          disabled={busy !== undefined}
+          onClick={() => void next()}
+        >
+          {busy === "next" ? "Continuing..." : "Next"}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -1327,7 +1581,13 @@ function TurnActionOptions({
   hasUnopenedChests: boolean;
   hasConsumables: boolean;
   onSelect: (
-    title: "Attack" | "Open Chest" | "Use Potion" | "Trade Item" | "Transform",
+    title:
+      | "Attack"
+      | "Open Chest"
+      | "Use Potion"
+      | "Trade Item"
+      | "Transform"
+      | "Campfire",
   ) => void;
   onForfeit: () => void;
 }) {
@@ -1356,6 +1616,11 @@ function TurnActionOptions({
       )}
       {canManageItems && (
         <>
+          <TurnActionButton
+            label="Campfire"
+            imageSrc="/Campfire_Action.png"
+            onClick={() => onSelect("Campfire")}
+          />
           {hasUnopenedChests && (
             <TurnActionButton
               label="Open Chest"
@@ -1703,6 +1968,74 @@ function TradeInventoryOptions({
           Trading item...
         </p>
       )}
+    </div>
+  );
+}
+
+function CampfireOptions({
+  onBack,
+  onReplenish,
+  onComplete,
+}: {
+  onBack: () => void;
+  onReplenish: (resource: "hp" | "mp") => Promise<void>;
+  onComplete: (resource: "hp" | "mp") => Promise<void>;
+}) {
+  const [busy, setBusy] = useState<"hp" | "mp">();
+  const [error, setError] = useState("");
+  const pending = useRef(false);
+  const replenish = async (resource: "hp" | "mp") => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(resource);
+    setError("");
+    try {
+      await onReplenish(resource);
+    } catch (requestError) {
+      setError(getApiError(requestError).message);
+      pending.current = false;
+      setBusy(undefined);
+      return;
+    }
+    // Recovery has succeeded; do not allow a second action while refreshing.
+    await onComplete(resource);
+  };
+  return (
+    <div className="space-y-5">
+      <p className="text-content-secondary">
+        Use the warmth of the campfire to replenish your character. You must be
+        one tile away from the campfire on the physical board.
+      </p>
+      <p className="text-content-secondary">
+        Fill either HP or MP to its maximum. Choosing either option ends your
+        turn.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Button
+          disabled={busy !== undefined}
+          onClick={() => void replenish("hp")}
+          className="border-red-400/40 bg-transparent font-semibold text-red-400 hover:border-red-400 hover:bg-red-400/10 hover:text-red-400 focus-visible:ring-red-400/40"
+          leftIcon={<FontAwesomeIcon icon={faBottleDroplet} aria-hidden="true" />}
+        >
+          {busy === "hp" ? "Replenishing HP..." : "Replenish HP"}
+        </Button>
+        <Button
+          disabled={busy !== undefined}
+          onClick={() => void replenish("mp")}
+          className="border-green-400/40 bg-transparent font-semibold text-green-400 hover:border-green-400 hover:bg-green-400/10 hover:text-green-400 focus-visible:ring-green-400/40"
+          leftIcon={<FontAwesomeIcon icon={faBottleDroplet} aria-hidden="true" />}
+        >
+          {busy === "mp" ? "Replenishing MP..." : "Replenish MP"}
+        </Button>
+      </div>
+      {error && (
+        <p role="alert" className="text-danger">
+          {error}
+        </p>
+      )}
+      <Button disabled={busy !== undefined} onClick={onBack}>
+        Back to actions
+      </Button>
     </div>
   );
 }

@@ -224,6 +224,20 @@ public sealed class ScenePlaythroughController(
             result, playthroughId, "ActionForfeited", ct);
     }
 
+    [HttpPost("participants/{participantId:int}/campfire")]
+    public async Task<IActionResult> Campfire(
+        int playthroughId,
+        int sceneId,
+        int participantId,
+        [FromBody] CampfireRequest request,
+        CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.CampfireAsync(
+            User.GetUserId(), playthroughId, sceneId, participantId, request.Resource, ct);
+        return await CompleteMutationAsync(
+            result, playthroughId, "CampfireUsed", ct);
+    }
+
     [HttpPost("participants/{participantId:int}/attack")]
     public async Task<ActionResult<SceneAttackResultDto>> Attack(
         int playthroughId,
