@@ -528,6 +528,15 @@ public sealed class PlaythroughService(
                                             ? playthroughCharactersBySourceId[eventAlternateFormId] : null
                                     }
                                     : null,
+                            CharacterInAlternateFormAction =
+                                action.CharacterInAlternateFormAction is { } inForm
+                                    ? new PTCharacterInAlternateFormAction
+                                    {
+                                        PlaythroughCharacter = inForm.CharacterId is int inFormTargetId
+                                            ? playthroughCharactersBySourceId[inFormTargetId]
+                                            : null
+                                    }
+                                    : null,
                             CharacterGiveItemAction = action.CharacterGiveItemAction is { } grant
                                 ? new PTCharacterGiveItemAction
                                 {
@@ -632,6 +641,7 @@ public sealed class PlaythroughService(
                     characterIds,
                     action.CharacterAddSpellAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.CharacterId);
+                AddIfPresent(characterIds, action.CharacterInAlternateFormAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterGiveItemAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.AlternateFormId);
             }
@@ -816,6 +826,17 @@ public sealed class PlaythroughService(
                 if (grant?.EquippableItemId is int grantEquippableId && !equippableIds.Contains(grantEquippableId))
                     return Missing("event equipment", grantEquippableId);
                 var change = action.CharacterChangeAlternateFormAction;
+                var inForm = action.CharacterInAlternateFormAction;
+                if (action.EventActionType == EventActionType.CharacterInAlternateForm)
+                {
+                    if (action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter) ||
+                        (action.ActionTargetType == ActionTargetType.AllJourneyCharacters && inForm?.CharacterId is not null) ||
+                        (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && inForm?.CharacterId is null))
+                        return new Error("Playthrough.InvalidSourceGraph", "An enter-alternate-form event has invalid target settings.");
+                    if (inForm?.CharacterId is int inFormTargetId &&
+                        (!characterIds.Contains(inFormTargetId) || !journey.JourneyCharacters.Any(character => character.CharacterId == inFormTargetId)))
+                        return Missing("event transformation journey character", inFormTargetId);
+                }
                 if (change?.CharacterId is int targetId && !characterIds.Contains(targetId))
                     return Missing("event alternate-form target", targetId);
                 if (change?.AlternateFormId is int eventAlternateFormId && !characterIds.Contains(eventAlternateFormId))

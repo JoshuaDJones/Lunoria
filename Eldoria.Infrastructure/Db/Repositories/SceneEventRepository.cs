@@ -14,17 +14,30 @@ namespace Eldoria.Infrastructure.Db.Repositories
             dbContext.SceneEvents
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
                 .ThenInclude(action => action.CharacterStatAdjustmentAction)
-                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Spell)
-                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Character)
-                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.ConsumableItem)
-                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.EquippableItem)
-                .Include(sceneEvent => sceneEvent.SceneEventActions).ThenInclude(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.Character)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterAddSpellAction)
+                        .ThenInclude(grant => grant!.Spell)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterAddSpellAction)
+                        .ThenInclude(grant => grant!.Character)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterGiveItemAction)
+                        .ThenInclude(grant => grant!.ConsumableItem)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterGiveItemAction)
+                        .ThenInclude(grant => grant!.EquippableItem)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterGiveItemAction)
+                        .ThenInclude(grant => grant!.Character)
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
                     .ThenInclude(action => action.CharacterChangeAlternateFormAction)
                         .ThenInclude(change => change!.Character)
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
                     .ThenInclude(action => action.CharacterChangeAlternateFormAction)
-                        .ThenInclude(change => change!.AlternateForm);
+                        .ThenInclude(change => change!.AlternateForm)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterInAlternateFormAction)
+                        .ThenInclude(check => check!.Character);
 
         public Task<List<SceneEvent>> ListForSceneAsync(
             int userId,
@@ -59,20 +72,28 @@ namespace Eldoria.Infrastructure.Db.Repositories
         public Task<SceneEventAction?> GetActionForUserAsync(int userId, int actionId, CancellationToken ct) =>
             _dbContext.SceneEventActions
                 .Include(action => action.CharacterStatAdjustmentAction)
-                .Include(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Spell)
-                .Include(action => action.CharacterAddSpellAction).ThenInclude(grant => grant!.Character)
-                .Include(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.ConsumableItem)
-                .Include(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.EquippableItem)
-                .Include(action => action.CharacterGiveItemAction).ThenInclude(grant => grant!.Character)
+                .Include(action => action.CharacterAddSpellAction)
+                    .ThenInclude(grant => grant!.Spell)
+                .Include(action => action.CharacterAddSpellAction)
+                    .ThenInclude(grant => grant!.Character)
+                .Include(action => action.CharacterGiveItemAction)
+                    .ThenInclude(grant => grant!.ConsumableItem)
+                .Include(action => action.CharacterGiveItemAction)
+                    .ThenInclude(grant => grant!.EquippableItem)
+                .Include(action => action.CharacterGiveItemAction)
+                    .ThenInclude(grant => grant!.Character)
                 .Include(action => action.CharacterChangeAlternateFormAction)
                     .ThenInclude(change => change!.Character)
                 .Include(action => action.CharacterChangeAlternateFormAction)
                     .ThenInclude(change => change!.AlternateForm)
+                .Include(action => action.CharacterInAlternateFormAction)
+                    .ThenInclude(check => check!.Character)
                 .SingleOrDefaultAsync(action => action.Id == actionId && action.SceneEvent.Scene.Journey.UserId == userId, ct);
 
         public async Task AddActionWithNextSortOrderAsync(SceneEventAction action, CancellationToken ct)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+
             var highestSortOrder = await _dbContext.SceneEventActions
                 .Where(existing => existing.SceneEventId == action.SceneEventId)
                 .Select(existing => (int?)existing.SortOrder)

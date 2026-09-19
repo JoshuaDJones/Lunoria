@@ -261,8 +261,15 @@ namespace Eldoria.Application.Services
         {
             if (!Enum.IsDefined(targetType) || !Enum.IsDefined(actionType) || !Enum.IsDefined(statType) || !Enum.IsDefined(operation))
                 return new Error("SceneEventAction.InvalidType", "One or more action values are invalid.");
-            if (actionType is not (EventActionType.CharacterStatAdjustment or EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm or EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem))
+
+            if (actionType is not (EventActionType.CharacterStatAdjustment 
+                    or EventActionType.CharacterChangeAlternateForm 
+                    or EventActionType.CharacterClearAlternateForm 
+                    or EventActionType.CharacterAddSpell 
+                    or EventActionType.CharacterGiveItem
+                    or EventActionType.CharacterInAlternateForm))
                 return new Error("SceneEventAction.UnsupportedType", "The action type is not supported.");
+
             if (actionType is EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem)
             {
                 if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
@@ -291,48 +298,79 @@ namespace Eldoria.Application.Services
                         return new Error("SceneEventAction.InvalidItem", "The equipment was not found or is not owned by you.");
                 }
             }
+
             if (actionType == EventActionType.CharacterClearAlternateForm)
             {
                 if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
                     return new Error("SceneEventAction.InvalidTarget", "Alternate forms can only be cleared for journey characters.");
+
                 if (alternateFormId is not null)
                     return new Error("SceneEventAction.InvalidAlternateForm", "A clear-alternate-form action cannot specify an alternate character.");
             }
+
             if (actionType == EventActionType.CharacterChangeAlternateForm)
             {
                 if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
                     return new Error("SceneEventAction.InvalidTarget", "Alternate forms can only be changed for journey characters.");
+
                 var alternate = alternateFormId is int id
                     ? await characterRepository.GetByIdForUserAsync(userId, id, ct)
                     : null;
+
                 if (alternate is null || alternate.IsDeleted)
                     return new Error("SceneEventAction.InvalidAlternateForm", "Select an available alternate character that you own.");
+
                 var (ownedScene, sceneError) = await GetOwnedSceneAsync(userId, sceneId, ct);
-                if (sceneError is not null) return sceneError;
+
+                if (sceneError is not null) 
+                    return sceneError;
+
                 var targets = await _journeyCharacterRepository.GetJourneyCharacters(ownedScene!.JourneyId, ct);
                 if (targets.Any(item => item.CharacterId == alternateFormId &&
                     (targetType == ActionTargetType.AllJourneyCharacters || item.CharacterId == characterId)))
                     return new Error("SceneEventAction.InvalidAlternateForm", "A character cannot be its own alternate form.");
             }
+
+            if (actionType == EventActionType.CharacterInAlternateForm)
+            {
+                if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
+                    return new Error("SceneEventAction.InvalidTarget", "Setting characters to alternate forms can only be applied to journey characters.");
+            }
+
             if (targetType == ActionTargetType.AllJourneyCharacters && characterId is not null)
                 return new Error("SceneEventAction.InvalidTarget", "A character cannot be supplied when targeting all journey characters.");
+
             if (targetType == ActionTargetType.SingleJourneyCharacter && characterId is null)
                 return new Error("SceneEventAction.InvalidTarget", "A character is required for a single-character target.");
+
             if (characterId is not null)
             {
                 var (scene, error) = await GetOwnedSceneAsync(userId, sceneId, ct);
-                if (error is not null) return error;
+
+                if (error is not null) 
+                    return error;
+
                 var characters = await _journeyCharacterRepository.GetJourneyCharacters(scene!.JourneyId, ct);
+
                 if (!characters.Any(item => item.CharacterId == characterId))
                     return new Error("SceneEventAction.CharacterNotFound", "The character is not attached to this journey.");
             }
+
             return null;
         }
 
         private static SceneEventAction BuildAction(int eventId, string name, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId, SceneEventGrantInput? grant)
         {
-            var action = new SceneEventAction { SceneEventId = eventId, Name = name.Trim(), ActionTargetType = targetType, EventActionType = actionType };
+            var action = new SceneEventAction 
+            { 
+                SceneEventId = eventId, 
+                Name = name.Trim(), 
+                ActionTargetType = targetType, 
+                EventActionType = actionType 
+            };
+
             SetActionPayload(action, statType, operation, value, characterId, alternateFormId, grant);
+
             return action;
         }
 
@@ -340,10 +378,16 @@ namespace Eldoria.Application.Services
         {
             if (action.EventActionType != EventActionType.CharacterStatAdjustment)
                 action.CharacterStatAdjustmentAction = null;
+
             if (action.EventActionType is not (EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm))
                 action.CharacterChangeAlternateFormAction = null;
+
+            if (action.EventActionType != EventActionType.CharacterInAlternateForm)
+                action.CharacterInAlternateFormAction = null;
+
             if (action.EventActionType != EventActionType.CharacterAddSpell)
                 action.CharacterAddSpellAction = null;
+
             if (action.EventActionType != EventActionType.CharacterGiveItem)
                 action.CharacterGiveItemAction = null;
 
@@ -354,6 +398,7 @@ namespace Eldoria.Application.Services
                 action.CharacterAddSpellAction.SpellId = grant!.SpellId!.Value;
                 return;
             }
+
             if (action.EventActionType == EventActionType.CharacterGiveItem)
             {
                 action.CharacterGiveItemAction ??= new CharacterGiveItemAction();
@@ -363,12 +408,21 @@ namespace Eldoria.Application.Services
                 action.CharacterGiveItemAction.Quantity = grant.Quantity;
                 return;
             }
+
+            if (action.EventActionType == EventActionType.CharacterInAlternateForm)
+            {
+                action.CharacterInAlternateFormAction ??= new CharacterInAlternateFormAction();
+                action.CharacterInAlternateFormAction.CharacterId = characterId;
+                return;
+            }
+
             if (action.EventActionType is EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm)
             {
                 action.CharacterStatAdjustmentAction = null;
                 action.CharacterChangeAlternateFormAction ??= new CharacterChangeAlternateFormAction();
                 action.CharacterChangeAlternateFormAction.CharacterId = characterId;
                 action.CharacterChangeAlternateFormAction.AlternateFormId = action.EventActionType == EventActionType.CharacterClearAlternateForm ? null : alternateFormId!.Value;
+
                 if (action.EventActionType == EventActionType.CharacterClearAlternateForm)
                     action.CharacterChangeAlternateFormAction.AlternateForm = null;
             }

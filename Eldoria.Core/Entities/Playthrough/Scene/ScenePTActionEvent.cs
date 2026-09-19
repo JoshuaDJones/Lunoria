@@ -21,5 +21,6 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
         public PTCharacterAddSpellAction? CharacterAddSpellAction { get; set; }
         public PTCharacterGiveItemAction? CharacterGiveItemAction { get; set; }
         public PTCharacterChangeAlternateFormAction? CharacterChangeAlternateFormAction { get; set; }
+        public PTCharacterInAlternateFormAction? CharacterInAlternateFormAction { get; set; }
     }
 }

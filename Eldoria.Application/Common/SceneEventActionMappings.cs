@@ -40,6 +40,13 @@ public static class SceneEventActionMappings
                 AlternateFormId = change.AlternateFormId,
                 AlternateFormName = change.AlternateForm?.Name
             }
-            : null
+            : null,
+        CharacterInAlternateFormAction = action.CharacterInAlternateFormAction is { } inForm
+            ? new CharacterInAlternateFormActionDto
+            {
+                CharacterId = inForm.CharacterId,
+                CharacterName = inForm.Character?.Name,
+            }
+            : null,
     };
 }

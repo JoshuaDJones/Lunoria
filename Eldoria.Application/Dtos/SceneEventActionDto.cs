@@ -14,5 +14,6 @@ namespace Eldoria.Application.Dtos
         public CharacterAddSpellActionDto? CharacterAddSpellAction { get; set; }
         public CharacterGiveItemActionDto? CharacterGiveItemAction { get; set; }
         public CharacterChangeAlternateFormActionDto? CharacterChangeAlternateFormAction { get; set; }
+        public CharacterInAlternateFormActionDto? CharacterInAlternateFormAction { get; set; }
     }
 }

@@ -64,23 +64,34 @@ public sealed partial class ScenePlaythroughService
     {
         scene.PendingInventoryActionId = null;
         scene.InventoryResolutionToken = null;
+
         foreach (var sceneEvent in scene.SceneEvents.OrderBy(item => item.SortOrder).ThenBy(item => item.Id))
         {
             if (sceneEvent.ExecutionStatus == SceneEventExecutionStatus.Completed)
                 continue;
+
             sceneEvent.ExecutionStatus = SceneEventExecutionStatus.InProgress;
             sceneEvent.StartedAt ??= DateTime.UtcNow;
             sceneEvent.ErrorMessage = null;
+
             foreach (var action in sceneEvent.ScenePTActionEvents.OrderBy(item => item.SortOrder).ThenBy(item => item.Id))
             {
-                if (action.IsCompleted) continue;
+                if (action.IsCompleted) 
+                    continue;
+
                 var error = action.EventActionType == EventActionType.CharacterGiveItem
                     ? ProcessItemGrant(scene, action)
                     : ExecuteSceneEventAction(scene, action);
-                if (error is not null) return error;
-                if (scene.PendingInventoryActionId is not null) return null;
+
+                if (error is not null) 
+                    return error;
+
+                if (scene.PendingInventoryActionId is not null) 
+                    return null;
+
                 action.IsCompleted = true;
             }
+
             sceneEvent.ExecutionStatus = SceneEventExecutionStatus.Completed;
             sceneEvent.CompletedAt = DateTime.UtcNow;
         }

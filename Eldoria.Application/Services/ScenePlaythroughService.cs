@@ -1,5 +1,6 @@
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
+using Eldoria.Core.Entities;
 using Eldoria.Core.Entities.Playthrough.Base;
 using Eldoria.Core.Entities.Playthrough.Journey;
 using Eldoria.Core.Entities.Playthrough.Scene;
@@ -1441,6 +1442,8 @@ public sealed partial class ScenePlaythroughService(
                 ExecuteCharacterAddSpell(scene, action),
             EventActionType.CharacterChangeAlternateForm or EventActionType.CharacterClearAlternateForm =>
                 ExecuteCharacterChangeAlternateForm(scene, action),
+            EventActionType.CharacterInAlternateForm =>
+                ExecuteCharacterInAlternateForm(scene, action),
             _ => EventExecutionError(
                 action,
                 $"Action type '{action.EventActionType}' is not supported.")
@@ -1453,6 +1456,7 @@ public sealed partial class ScenePlaythroughService(
     {
         var change = action.CharacterChangeAlternateFormAction;
         var clearsForm = action.EventActionType == EventActionType.CharacterClearAlternateForm;
+
         if (change is null || (!clearsForm && (change.AlternateForm is null || change.AlternateFormId is null or <= 0)))
             return EventExecutionError(action, "The alternate form is missing.");
         if (clearsForm && change.AlternateFormId is not null)
@@ -1464,6 +1468,7 @@ public sealed partial class ScenePlaythroughService(
             .Where(character => action.ActionTargetType == ActionTargetType.AllJourneyCharacters ||
                 character.PlaythroughCharacterId == change.PlaythroughCharacterId)
             .ToList();
+
         if (action.ActionTargetType == ActionTargetType.AllJourneyCharacters && change.PlaythroughCharacterId is not null)
             return EventExecutionError(action, "An all-journey-characters action cannot specify a character.");
         if (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && targets.Count != 1)
@@ -1485,6 +1490,48 @@ public sealed partial class ScenePlaythroughService(
             else
                 AddEvent(scene, $"{character.PlaythroughCharacter.Name}'s alternate form changed to {change.AlternateForm!.Name}");
         }
+        return null;
+    }
+
+    private static Error? ExecuteCharacterInAlternateForm(
+    ScenePT scene,
+    ScenePTActionEvent action)
+    {
+        if (action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
+            return EventExecutionError(action, "Alternate forms can only be changed for journey characters.");
+
+        if(action.ActionTargetType == ActionTargetType.AllJourneyCharacters && action.CharacterInAlternateFormAction?.PlaythroughCharacterId is not null)
+            return EventExecutionError(action, "Cannot link a specific character to transform when the target type is set to all journey characters.");
+
+        var allCharacters = action.ActionTargetType == ActionTargetType.AllJourneyCharacters;
+
+        if (allCharacters)
+        {
+            scene.Playthrough.JourneyCharacters.ToList().ForEach(character =>
+            {
+                if(character.AlternateForm is not null)
+                    character.IsInAlternateForm = true;
+            });
+
+            AddEvent(scene, $"Journey Characters that are able, are now in their alternate forms.");
+
+            return null;
+        }
+            
+        if(action.CharacterInAlternateFormAction is null || action.CharacterInAlternateFormAction.PlaythroughCharacterId is null)
+            return EventExecutionError(action, "The targeted journey character is missing, cannot transform to alternate form.");
+
+        var character = scene.Playthrough.JourneyCharacters.SingleOrDefault(character => character.PlaythroughCharacterId == action.CharacterInAlternateFormAction.PlaythroughCharacterId);
+
+        if (character is null)
+            return EventExecutionError(action, "The target character does not exist, cannot transform to alternate form.");
+
+        if(character.AlternateForm is null)
+            return EventExecutionError(action, "The target character does not have an alternate form, cannot transform to alternate form.");
+
+        character.IsInAlternateForm = true;
+        AddEvent(scene, $"{character.PlaythroughCharacter.Name} is now in their alternate form.");
+
         return null;
     }
 
