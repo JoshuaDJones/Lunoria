@@ -474,6 +474,10 @@ public sealed partial class ScenePlaythroughService(
         var characterName = journeyCharacter?.PlaythroughCharacter.Name
             ?? sceneCharacter?.PlaythroughCharacter.Name
             ?? "Unknown character";
+
+        if (ValidateGeneralAction(participant) is { } actionError)
+            return Result<SceneMovementResultDto>.Fail(actionError);
+
         var baseMovement = SceneActiveCombatStats.For(participant).Movement;
         var equipmentEffects = ScenePlaythroughEquipmentEffects.For(participant);
         var movement = ScenePlaythroughEquipmentEffects.Apply(
@@ -809,7 +813,7 @@ public sealed partial class ScenePlaythroughService(
         if (isCounterattack)
         {
             ClearCounterattack(scene);
-            AdvanceTurn(scene, target);
+            ResumeTurnAfterCounterattack(scene, target);
         }
         else
         {
@@ -900,6 +904,9 @@ public sealed partial class ScenePlaythroughService(
                 "ScenePlaythrough.ChestUnavailable",
                 "A downed player cannot open a chest."));
         }
+
+        if (ValidateGeneralAction(participant) is { } actionError)
+            return Result<SceneOpenChestResultDto>.Fail(actionError);
 
         var chest = scene.SceneChests.SingleOrDefault(candidate => candidate.Id == chestId);
         if (chest is null)
@@ -1061,6 +1068,9 @@ public sealed partial class ScenePlaythroughService(
                 "A downed or defeated participant cannot use a consumable item."));
         }
 
+        if (ValidateGeneralAction(participant) is { } actionError)
+            return Result<SceneUseConsumableResultDto>.Fail(actionError);
+
         PlaythroughConsumableItem? item;
         int previousHp;
         int previousMp;
@@ -1204,6 +1214,9 @@ public sealed partial class ScenePlaythroughService(
                 "ScenePlaythrough.TradeUnavailable",
                 "Items can only be traded between two active player participants."));
         }
+
+        if (ValidateGeneralAction(participant) is { } actionError)
+            return Result.Fail(actionError);
 
         string itemName;
         string sourceName;
@@ -1349,6 +1362,9 @@ public sealed partial class ScenePlaythroughService(
                 "ScenePlaythrough.TransformUnavailable",
                 "This participant does not have an available alternate form."));
         }
+
+        if (ValidateGeneralAction(participant) is { } actionError)
+            return Result.Fail(actionError);
 
         var wasInAlternateForm = journeyCharacter?.IsInAlternateForm
             ?? sceneCharacter!.IsInAlternateForm;
@@ -2057,6 +2073,14 @@ public sealed partial class ScenePlaythroughService(
             Message = message,
             EventTime = DateTime.UtcNow
         });
+    }
+
+    private static Error? ValidateGeneralAction(ScenePTParticipant participant)
+    {
+        return participant.AttacksRemaining <
+            ScenePlaythroughEquipmentEffects.For(participant).GetAttacksPerTurn()
+            ? new Error("ScenePlaythrough.AttacksOnly", "Only attacks or spell casts are available after the first attack. You may also forfeit the remaining attacks.")
+            : null;
     }
 
     private static void AdvanceTurn(

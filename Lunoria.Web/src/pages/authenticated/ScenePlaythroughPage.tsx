@@ -318,6 +318,7 @@ export function ScenePlaythroughPage() {
       placement: "center",
       content: (
         <TurnActionOptions
+          attacksOnly={hasRemainingBonusAttacks(participant)}
           participantType={participant.participantType}
           canTransform={participant.canTransform}
           isInAlternateForm={participant.isInAlternateForm}
@@ -751,7 +752,8 @@ export function ScenePlaythroughPage() {
                 <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {scene.participants.map((participant) => {
                     const turnKey = `${scene.roundNumber}:${participant.id}`;
-                    const isAwaitingAction = awaitingActionTurnKey === turnKey;
+                    const isAwaitingAction = awaitingActionTurnKey === turnKey ||
+                      hasRemainingBonusAttacks(participant);
                     const hasBegunTurn = begunTurnKey === turnKey;
                     const turnPromptLabel = isAwaitingAction
                       ? "Select Action"
@@ -940,9 +942,18 @@ export function ScenePlaythroughPage() {
                 sceneId,
                 scene.counterattackToken!,
               );
-            setScene(await getScenePlaythrough(playthroughId, sceneId));
+            const refreshed = await getScenePlaythrough(playthroughId, sceneId);
+            setScene(refreshed);
+            const turnOwner = refreshed.participants.find(
+              (participant) => participant.id === scene.counterattackTargetId,
+            );
             setBegunTurnKey("");
             setAwaitingActionTurnKey("");
+            if (turnOwner && hasRemainingBonusAttacks(turnOwner) && !refreshed.counterattackToken) {
+              const turnKey = `${refreshed.roundNumber}:${turnOwner.id}`;
+              setBegunTurnKey(turnKey);
+              openTurnActionDialog(turnKey, turnOwner, refreshed);
+            }
           }}
           onReload={async () =>
             setScene(await getScenePlaythrough(playthroughId, sceneId))
@@ -1566,7 +1577,13 @@ function MovementRollOptions({
   );
 }
 
+function hasRemainingBonusAttacks(participant: ScenePlaythroughParticipant) {
+  return participant.isCurrentParticipant && participant.attacksRemaining > 0 &&
+    participant.attacksRemaining < participant.attacksPerTurn;
+}
+
 function TurnActionOptions({
+  attacksOnly,
   participantType,
   canTransform,
   isInAlternateForm,
@@ -1575,6 +1592,7 @@ function TurnActionOptions({
   onSelect,
   onForfeit,
 }: {
+  attacksOnly: boolean;
   participantType: ParticipantType;
   canTransform: boolean;
   isInAlternateForm: boolean;
@@ -1591,7 +1609,7 @@ function TurnActionOptions({
   ) => void;
   onForfeit: () => void;
 }) {
-  const canManageItems = participantType === ParticipantType.Player;
+  const canManageItems = !attacksOnly && participantType === ParticipantType.Player;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -1600,14 +1618,14 @@ function TurnActionOptions({
         imageSrc="/Attack_Action.png"
         onClick={() => onSelect("Attack")}
       />
-      {canTransform && (
+      {canTransform && !attacksOnly && (
         <TurnActionButton
           label={isInAlternateForm ? "Revert" : "Transform"}
           imageSrc="/Transform_Action.png"
           onClick={() => onSelect("Transform")}
         />
       )}
-      {hasConsumables && (
+      {hasConsumables && !attacksOnly && (
         <TurnActionButton
           label="Use Potion"
           imageSrc="/Use_Potion_Action.png"

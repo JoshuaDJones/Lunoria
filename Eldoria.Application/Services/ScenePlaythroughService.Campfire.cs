@@ -27,6 +27,9 @@ public sealed partial class ScenePlaythroughService
         if (participant.AttacksRemaining <= 0)
             return Result.Fail(new Error("ScenePlaythrough.NoAttacksRemaining", "This player has no action remaining."));
 
+        if (ValidateGeneralAction(participant) is { } actionError)
+            return Result.Fail(actionError);
+
         // Proximity is checked by the players on the physical board.
         // HP/MP belong to the journey character even while transformed.
         var equipment = ScenePlaythroughEquipmentEffects.For(participant);
