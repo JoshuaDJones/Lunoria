@@ -465,12 +465,12 @@ function PublicCharacterView({
   return (
     <article className="w-full overflow-hidden rounded-3xl bg-surface/75 backdrop-blur-[2px]">
       <div className="grid lg:grid-cols-[minmax(17rem,2fr)_minmax(0,3fr)]">
-        <div className="flex min-h-72 items-center justify-center bg-canvas/80 p-4 lg:min-h-[32rem]">
+        <div className="flex items-center justify-center bg-canvas/80 p-4">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              className="max-h-[32rem] w-full object-contain"
+              className="w-1/2 object-contain rounded-xl"
             />
           ) : (
             <span className="text-content-muted">No image</span>
