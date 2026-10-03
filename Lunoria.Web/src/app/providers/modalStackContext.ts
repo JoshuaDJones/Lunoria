@@ -7,6 +7,7 @@ export interface ModalStackOptions {
   content: ReactNode;
   placement?: ModalPlacement;
   closeOnBackdrop?: boolean;
+  dismissible?: boolean;
 }
 
 export interface ModalStackEntry extends Required<ModalStackOptions> {
@@ -18,6 +19,7 @@ export interface ModalStackContextValue {
   pop: () => void;
   popTo: (id: number) => void;
   dismissAll: () => void;
+  setDismissible: (id: number, dismissible: boolean) => void;
   depth: number;
 }
 

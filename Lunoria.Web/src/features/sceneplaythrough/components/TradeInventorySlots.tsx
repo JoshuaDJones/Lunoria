@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui";
+import { useState } from "react";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { type ScenePlaythroughInventoryItem } from "@/features/journeys";
 import { type TradeSelection } from "@/features/sceneplaythrough/types";
 import { groupTradeInventoryItems } from "@/features/sceneplaythrough/utils/sceneInventoryUtils";
@@ -21,9 +22,10 @@ function TradeInventorySlots({
   isEquippable: boolean;
   selection: TradeSelection | undefined;
   disabled: boolean;
-  onSelect: (selection: TradeSelection) => void;
+  onSelect: (selection: TradeSelection | undefined) => void;
   onReceive: (isEquippable: boolean) => void;
 }) {
+  const [hoveredSelection, setHoveredSelection] = useState<TradeSelection>();
   const itemGroups = groupTradeInventoryItems(items, isEquippable);
   const freeSlotCount = Math.max(0, limit - items.length);
   const displayedSlotCount = itemGroups.length + freeSlotCount;
@@ -31,22 +33,38 @@ function TradeInventorySlots({
     selection &&
     selection.ownerParticipantId !== participantId &&
     selection.inventoryItem.isEquippable === isEquippable &&
-    !disabled,
+    !disabled &&
+    items.length < limit,
   );
+  const isDropTargetHovered = canReceive && hoveredSelection === selection;
 
   return (
     <section
       className={`rounded-xl border p-3 transition ${
-        canReceive
+        isDropTargetHovered
           ? "border-utility bg-utility/5"
           : "border-border bg-canvas/35"
       }`}
       onDragOver={(event) => {
-        if (canReceive) event.preventDefault();
+        if (canReceive) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          setHoveredSelection(selection);
+        }
+      }}
+      onDragLeave={(event) => {
+        if (
+          event.relatedTarget instanceof Node &&
+          event.currentTarget.contains(event.relatedTarget)
+        )
+          return;
+        setHoveredSelection(undefined);
       }}
       onDrop={(event) => {
         event.preventDefault();
+        setHoveredSelection(undefined);
         if (canReceive) onReceive(isEquippable);
+        onSelect(undefined);
       }}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -69,7 +87,7 @@ function TradeInventorySlots({
                 <div
                   key={`empty-${index}`}
                   className={`grid aspect-square place-items-center rounded-lg border border-dashed text-center text-xs ${
-                    canReceive
+                    isDropTargetHovered
                       ? "border-utility text-utility-hover"
                       : "border-border text-content-muted"
                   }`}
@@ -88,74 +106,61 @@ function TradeInventorySlots({
               selection.inventoryItem.isEquippable ===
                 inventoryItem.isEquippable;
             return (
-              <button
+              <div
                 key={`${inventoryItem.isEquippable ? "equipment" : "consumable"}-${inventoryItem.inventoryItemId}`}
-                type="button"
-                draggable={!disabled}
-                aria-pressed={isSelected}
-                title={`Trade ${inventoryItem.item.name}`}
-                className={`relative aspect-square overflow-hidden rounded-lg border text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
-                  isSelected
-                    ? "border-utility ring-2 ring-utility/40"
-                    : "border-border"
-                } cursor-grab hover:border-utility active:cursor-grabbing`}
-                onClick={() => {
-                  if (!disabled) {
+                className="relative aspect-square min-w-0"
+              >
+                <button
+                  type="button"
+                  draggable={!disabled}
+                  aria-pressed={isSelected}
+                  aria-label={`Trade ${inventoryItem.item.name}`}
+                  aria-disabled={disabled}
+                  className={`relative h-full w-full overflow-hidden rounded-lg border text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility/60 ${
+                    isSelected
+                      ? "border-utility ring-2 ring-utility/40"
+                      : "border-border"
+                  } cursor-grab hover:border-utility active:cursor-grabbing`}
+                  onDragStart={(event) => {
+                    if (disabled) {
+                      event.preventDefault();
+                      return;
+                    }
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData(
+                      "text/plain",
+                      String(inventoryItem.inventoryItemId),
+                    );
                     onSelect({
                       ownerParticipantId: participantId,
                       inventoryItem,
                     });
-                  }
-                }}
-                onDragStart={(event) => {
-                  if (disabled) {
-                    event.preventDefault();
-                    return;
-                  }
-                  event.dataTransfer.effectAllowed = "move";
-                  event.dataTransfer.setData(
-                    "text/plain",
-                    String(inventoryItem.inventoryItemId),
-                  );
-                  onSelect({
-                    ownerParticipantId: participantId,
-                    inventoryItem,
-                  });
-                }}
-              >
-                {inventoryItem.item.photoUrl ? (
-                  <img
-                    src={inventoryItem.item.photoUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-surface-raised" />
-                )}
-                {quantity > 1 && (
-                  <span className="absolute right-1.5 top-1.5 rounded-full bg-utility px-2 py-0.5 text-xs font-bold text-on-utility shadow-lg">
-                    ×{quantity}
-                  </span>
-                )}
-                <span className="absolute inset-x-0 bottom-0 bg-canvas/90 px-2 py-1 text-xs font-semibold text-content backdrop-blur-sm">
-                  {inventoryItem.item.name}
-                </span>
-              </button>
+                  }}
+                  onDragEnd={() => onSelect(undefined)}
+                >
+                  {inventoryItem.item.photoUrl ? (
+                    <img
+                      src={inventoryItem.item.photoUrl}
+                      draggable={false}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-surface-raised" />
+                  )}
+                  {quantity > 1 && (
+                    <span className="absolute right-1.5 top-1.5 rounded-full bg-utility px-2 py-0.5 text-xs font-bold text-on-utility shadow-lg">
+                      ×{quantity}
+                    </span>
+                  )}
+                </button>
+                <div className="absolute bottom-1.5 right-1.5">
+                  <InfoTooltip text={inventoryItem.item.name} />
+                </div>
+              </div>
             );
           })}
         </div>
-      )}
-
-      {canReceive && (
-        <Button
-          size="sm"
-          variant="utility"
-          className="mt-3 w-full"
-          disabled={items.length >= limit}
-          onClick={() => onReceive(isEquippable)}
-        >
-          {items.length >= limit ? "Inventory Full" : "Move Here"}
-        </Button>
       )}
     </section>
   );

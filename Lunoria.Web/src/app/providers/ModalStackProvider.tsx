@@ -29,6 +29,7 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
         content: options.content,
         placement: options.placement ?? "drawer",
         closeOnBackdrop: options.closeOnBackdrop ?? true,
+        dismissible: options.dismissible ?? true,
       },
     ]);
 
@@ -37,6 +38,21 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
 
   const pop = useCallback(() => {
     setStack((current) => current.slice(0, -1));
+  }, []);
+
+  // User dismissal respects the lock; programmatic completion can still close.
+  const requestClose = useCallback(() => {
+    setStack((current) =>
+      current[current.length - 1]?.dismissible ? current.slice(0, -1) : current,
+    );
+  }, []);
+
+  const setDismissible = useCallback((id: number, dismissible: boolean) => {
+    setStack((current) =>
+      current.map((entry) =>
+        entry.id === id ? { ...entry, dismissible } : entry,
+      ),
+    );
   }, []);
 
   const popTo = useCallback((id: number) => {
@@ -59,7 +75,7 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
         event.key === "Escape" &&
         !document.querySelector('[data-confirm-dialog="true"]')
       ) {
-        pop();
+        requestClose();
       }
     };
 
@@ -71,7 +87,7 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [pop, stack.length]);
+  }, [requestClose, stack.length]);
 
   const value = useMemo(
     () => ({
@@ -79,9 +95,10 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
       pop,
       popTo,
       dismissAll,
+      setDismissible,
       depth: stack.length,
     }),
-    [dismissAll, pop, popTo, push, stack.length],
+    [dismissAll, pop, popTo, push, setDismissible, stack.length],
   );
 
   return (
@@ -105,7 +122,7 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
                 entry.closeOnBackdrop &&
                 event.target === event.currentTarget
               ) {
-                pop();
+                requestClose();
               }
             }}
           >
@@ -131,7 +148,11 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
                 >
                   {entry.title}
                 </h2>
-                <Button onClick={pop} aria-label="Close modal">
+                <Button
+                  onClick={requestClose}
+                  disabled={!isTop || !entry.dismissible}
+                  aria-label="Close modal"
+                >
                   Close
                 </Button>
               </header>

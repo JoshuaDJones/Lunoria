@@ -441,21 +441,27 @@ export function ScenePlaythroughPage() {
                 content: (
                   <TradePartnerOptions
                     participants={tradePartners}
-                    onSelect={(target) =>
-                      modalStack.push({
+                    onSelect={(target) => {
+                      const tradeModalId = modalStack.push({
                         title: `Trade with ${target.name}`,
                         placement: "center",
                         content: (
                           <TradeInventoryOptions
                             participant={participant}
                             target={target}
+                            onSubmittingChange={(isSubmitting) =>
+                              modalStack.setDismissible(
+                                tradeModalId,
+                                !isSubmitting,
+                              )
+                            }
                             onTrade={(item) =>
                               tradeItem(participant, target, item)
                             }
                           />
                         ),
-                      })
-                    }
+                      });
+                    }}
                   />
                 ),
               });

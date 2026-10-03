@@ -12,7 +12,7 @@ function TradeCharacterInventory({
   participant: ScenePlaythroughParticipant;
   selection: TradeSelection | undefined;
   disabled: boolean;
-  onSelect: (selection: TradeSelection) => void;
+  onSelect: (selection: TradeSelection | undefined) => void;
   onReceive: (isEquippable: boolean) => void;
 }) {
   const imageUrl =
