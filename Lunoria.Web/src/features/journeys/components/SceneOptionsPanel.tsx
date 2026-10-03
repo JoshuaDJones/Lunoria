@@ -43,12 +43,27 @@ export function SceneOptionsPanel({
   onViewDialog,
   onEndScene,
 }: SceneOptionsPanelProps) {
-  const [showLogs, setShowLogs] = useState(false);
+  const [page, setPage] = useState<
+    "options" | "characters" | "chest" | "stats" | "logs"
+  >("options");
+  const previousPage = useRef(page);
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     // Each drawer page starts at the top, even after scrolling through options.
     panelRef.current?.parentElement?.scrollTo({ top: 0 });
-  }, [showLogs]);
+    if (page === "options" && previousPage.current !== "options") {
+      panelRef.current
+        ?.querySelector<HTMLButtonElement>(
+          `[data-options-link="${previousPage.current}"]`,
+        )
+        ?.focus();
+    } else if (page !== "logs") {
+      panelRef.current
+        ?.querySelector<HTMLButtonElement>("[data-options-back]")
+        ?.focus();
+    }
+    previousPage.current = page;
+  }, [page]);
   const journeyCharacters = scene.journeyCharacters ?? [];
   const playthroughCharacters = scene.playthroughCharacters ?? [];
   const participants = scene.participants ?? [];
@@ -86,22 +101,108 @@ export function SceneOptionsPanel({
 
   return (
     <div ref={panelRef}>
-      {showLogs && (
+      {page === "logs" && (
         <SceneEventLogs
           logs={scene.eventLogs}
-          onBack={() => setShowLogs(false)}
+          onBack={() => setPage("options")}
         />
       )}
-      <div className="space-y-8" hidden={showLogs}>
-        <OptionSection title="Scene Grid">
-          {scene.grid || gridUrl ? (
-            <Button onClick={openGrid} variant="primary">
-              Open grid
-            </Button>
+      <div className="space-y-8" hidden={page !== "options"}>
+        <OptionSection title="Dialogs">
+          {dialogs.length === 0 ? (
+            <EmptyMessage>This scene has no dialogs.</EmptyMessage>
           ) : (
-            <EmptyMessage>No grid is assigned to this scene.</EmptyMessage>
+            <div className="space-y-3">
+              {dialogs.map((dialog) => (
+                <div
+                  key={dialog.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3"
+                >
+                  <div>
+                    <p className="font-semibold text-content">{dialog.title}</p>
+                    <p className="text-sm text-content-muted">
+                      {dialog.dialogPages.length} pages
+                    </p>
+                  </div>
+                  <Button onClick={() => onViewDialog(dialog)}>View</Button>
+                </div>
+              ))}
+            </div>
           )}
         </OptionSection>
+
+        <hr className="border-border" />
+
+        {scene.grid || gridUrl ? (
+          <Button onClick={openGrid} className="w-full justify-between">
+            Open Grid
+          </Button>
+        ) : (
+          <EmptyMessage>No grid is assigned to this scene.</EmptyMessage>
+        )}
+        <Button
+          className="w-full justify-between"
+          data-options-link="characters"
+          onClick={() => setPage("characters")}
+        >
+          Add / Remove Characters <span aria-hidden="true">→</span>
+        </Button>
+
+        <Button
+          className="w-full justify-between"
+          data-options-link="chest"
+          onClick={() => setPage("chest")}
+        >
+          Add Chest <span aria-hidden="true">→</span>
+        </Button>
+
+        <Button
+          className="w-full justify-between"
+          data-options-link="stats"
+          onClick={() => setPage("stats")}
+        >
+          Correct Participant Stats <span aria-hidden="true">→</span>
+        </Button>
+
+        <Button
+          data-options-link="logs"
+          onClick={() => setPage("logs")}
+          className="w-full justify-between"
+        >
+          View Logs
+        </Button>
+
+        <hr className="border-border" />
+
+        <OptionSection title="End Scene">
+          <div className="rounded-xl border border-danger/40 bg-danger/5 p-4">
+            <p className="text-sm text-content-secondary">
+              Complete this scene and return to the journey playthrough.
+            </p>
+            <Button
+              variant="danger"
+              inverted
+              className="mt-4 w-full"
+              disabled={busyAction !== undefined}
+              onClick={onEndScene}
+            >
+              End Scene
+            </Button>
+          </div>
+        </OptionSection>
+      </div>
+
+      {page !== "options" && page !== "logs" && (
+        <Button
+          data-options-back
+          className="mb-5"
+          onClick={() => setPage("options")}
+        >
+          Back to options
+        </Button>
+      )}
+      {/* Keep forms mounted so navigating back does not discard drafts. */}
+      <div className="space-y-8" hidden={page !== "characters"}>
         <OptionSection title="Activate Journey Characters">
           {availableJourneyCharacters.length === 0 ? (
             <EmptyMessage>
@@ -203,7 +304,8 @@ export function SceneOptionsPanel({
             </div>
           )}
         </OptionSection>
-
+      </div>
+      <div hidden={page !== "chest"}>
         <OptionSection title="Add Chest">
           <LiveChestForm
             scene={scene}
@@ -212,7 +314,8 @@ export function SceneOptionsPanel({
             onSubmit={onAddChest}
           />
         </OptionSection>
-
+      </div>
+      <div hidden={page !== "stats"}>
         <OptionSection title="Correct Participant Stats">
           {participants.length === 0 ? (
             <EmptyMessage>No participants are available.</EmptyMessage>
@@ -246,52 +349,6 @@ export function SceneOptionsPanel({
               )}
             </>
           )}
-        </OptionSection>
-
-        <OptionSection title="Dialogs">
-          {dialogs.length === 0 ? (
-            <EmptyMessage>This scene has no dialogs.</EmptyMessage>
-          ) : (
-            <div className="space-y-3">
-              {dialogs.map((dialog) => (
-                <div
-                  key={dialog.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3"
-                >
-                  <div>
-                    <p className="font-semibold text-content">{dialog.title}</p>
-                    <p className="text-sm text-content-muted">
-                      {dialog.dialogPages.length} pages
-                    </p>
-                  </div>
-                  <Button onClick={() => onViewDialog(dialog)}>View</Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </OptionSection>
-
-        <OptionSection title="Event Logs">
-          <Button onClick={() => setShowLogs(true)} className="w-full">
-            View Logs
-          </Button>
-        </OptionSection>
-
-        <OptionSection title="End Scene">
-          <div className="rounded-xl border border-danger/40 bg-danger/5 p-4">
-            <p className="text-sm text-content-secondary">
-              Complete this scene and return to the journey playthrough.
-            </p>
-            <Button
-              variant="danger"
-              inverted
-              className="mt-4 w-full"
-              disabled={busyAction !== undefined}
-              onClick={onEndScene}
-            >
-              End Scene
-            </Button>
-          </div>
         </OptionSection>
       </div>
     </div>

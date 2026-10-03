@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui";
 import { type ScenePlaythroughCharacterOption } from "@/features/journeys";
 
@@ -8,9 +9,40 @@ const ActionDialogContent = ({
   playthroughCharacters: ScenePlaythroughCharacterOption[];
   onSkip: () => void;
 }) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        !event.ctrlKey ||
+        event.altKey ||
+        event.shiftKey ||
+        event.metaKey ||
+        event.key.toLowerCase() !== "s" ||
+        event.defaultPrevented ||
+        contentRef.current
+          ?.closest('[data-nested-dialog="true"]')
+          ?.getAttribute("aria-hidden") !== "false" ||
+        document.querySelector('[data-confirm-dialog="true"], dialog[open]')
+      )
+        return;
+
+      event.preventDefault();
+      if (!event.repeat) onSkip();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onSkip]);
+
   return (
-    <div>
-      <Button className="mb-4" onClick={onSkip}>
+    <div ref={contentRef}>
+      <Button
+        className="mb-4"
+        onClick={onSkip}
+        aria-keyshortcuts="Control+s"
+        title="Skip Activation (Ctrl+S)"
+      >
         Skip Activation {"\u2192"}
       </Button>
       {playthroughCharacters.map((character) => (
