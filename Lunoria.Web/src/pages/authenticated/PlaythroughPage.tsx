@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { prepareSceneEntry } from "@/features/sceneplaythrough/utils/sceneEntry";
+import SceneBackground from "@/features/sceneplaythrough/components/SceneBackground";
+import { usePlaythroughEntrance } from "@/features/journeys/hooks/usePlaythroughEntrance";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
-import { useModalStack, useToast } from "@/app/providers";
-import { Button, Card } from "@/components/ui";
+import { useConfirmDialog, useModalStack, useToast } from "@/app/providers";
+import { Button, Card, Drawer } from "@/components/ui";
 import {
   getPlaythrough,
   IntroPageViewer,
@@ -32,6 +34,7 @@ export function PlaythroughPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
+  const { confirm } = useConfirmDialog();
   const modalStack = useModalStack();
   const {
     seriesId,
@@ -55,7 +58,20 @@ export function PlaythroughPage() {
   const [inventoryBusy, setInventoryBusy] = useState(false);
   const [inventoryError, setInventoryError] = useState("");
   const [isCreatingJoinSession, setIsCreatingJoinSession] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
   const hasHandledAutomaticIntro = useRef(false);
+  const [cinematicEntry] = useState(() =>
+    Boolean(
+      (location.state as { showIntroPages?: boolean } | null)?.showIntroPages,
+    ),
+  );
+  const entrance = usePlaythroughEntrance(
+    String(playthroughId),
+    playthrough?.playthrough.photoUrl || undefined,
+    !isLoading && !error && Boolean(playthrough),
+    cinematicEntry,
+  );
+  const showContent = entrance.contentVisible || Boolean(error);
 
   const navigateToScene = async (sceneId: number) => {
     setStartingSceneId(sceneId);
@@ -213,6 +229,7 @@ export function PlaythroughPage() {
 
     if (
       !playthrough ||
+      !entrance.ready ||
       !shouldShowIntroPages ||
       hasHandledAutomaticIntro.current
     ) {
@@ -222,22 +239,43 @@ export function PlaythroughPage() {
     hasHandledAutomaticIntro.current = true;
 
     if (playthrough.introPages.length > 0) {
-      setViewingIntroPageId(playthrough.introPages[0].id);
+      const firstPage = [...playthrough.introPages].sort(
+        (a, b) => a.sortOrder - b.sortOrder,
+      )[0];
+      void confirm({
+        title: "Start with the intro pages?",
+        message: "Would you like to watch the journey intro before choosing a scene? You can also open it later using Play Intro.",
+        confirmLabel: "Yes, Play Intro",
+        cancelLabel: "No, Skip Intro",
+      }).then((accepted) => {
+        if (accepted) setViewingIntroPageId(firstPage.id);
+      });
     }
 
     navigate(location.pathname, { replace: true, state: null });
-  }, [location.pathname, location.state, navigate, playthrough]);
+  }, [
+    location.pathname,
+    location.state,
+    navigate,
+    playthrough,
+    entrance.ready,
+    confirm,
+  ]);
 
   return (
     <AppLayout
       sidebar={<></>}
-      scrolling
-      bottomPadding={false}
+      fixedViewport
+      bottomPadding
       background={
-        <div className="valley-village-image absolute inset-0 z-0 h-full w-full" />
+        <SceneBackground
+          key={playthrough?.playthrough.photoUrl || "fallback"}
+          photoUrl={playthrough?.playthrough.photoUrl || undefined}
+          visible={entrance.backgroundVisible || Boolean(error)}
+        />
       }
     >
-      {pendingInventory && (
+      {pendingInventory && entrance.ready && (
         <SceneStartInventoryDialog
           key={pendingInventory.inventory.resolutionToken}
           pending={pendingInventory.inventory}
@@ -247,8 +285,24 @@ export function PlaythroughPage() {
           onReload={() => void resolveInventory()}
         />
       )}
-      <main className="w-full flex-1">
-        <header className="p-10 flex flex-wrap items-end justify-between gap-5">
+      {cinematicEntry && !entrance.ready && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center px-6"
+        >
+          <p
+            className={`max-w-5xl text-center text-5xl text-content drop-shadow-lg transition-opacity duration-600 motion-reduce:transition-none sm:text-7xl ${entrance.titleVisible ? "opacity-100" : "opacity-0"}`}
+          >
+            {playthrough?.playthrough.name}
+          </p>
+        </div>
+      )}
+      <main
+        inert={!showContent}
+        aria-hidden={!showContent}
+        className={`flex min-h-0 w-full flex-1 flex-col overflow-hidden transition-opacity duration-700 motion-reduce:transition-none ${showContent ? "opacity-100" : "opacity-0"}`}
+      >
+        <header className="flex shrink-0 flex-wrap items-end justify-between gap-5 p-6 sm:p-10">
           <div>
             <h1 className="text-4xl text-content sm:text-5xl lg:text-6xl">
               {playthrough?.playthrough
@@ -281,6 +335,14 @@ export function PlaythroughPage() {
               >
                 {isCreatingJoinSession ? "Creating..." : "Join"}
               </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowLogs(true)}
+                aria-haspopup="dialog"
+                aria-expanded={showLogs}
+              >
+                Logs
+              </Button>
             </div>
           )}
         </header>
@@ -297,134 +359,153 @@ export function PlaythroughPage() {
         )}
 
         {!isLoading && !error && playthrough && (
-          <div className="grid gap-6 px-6 pb-10 sm:px-10 lg:grid-cols-[minmax(0,4fr)_minmax(14rem,1fr)]">
-            <section className="rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px]">
-              <h2 className="text-3xl font-semibold text-content">Scenes</h2>
+          <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] px-6 pb-4 sm:px-10">
+            <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px]">
+              <h2 className="shrink-0 text-3xl font-semibold text-content">
+                Scenes
+              </h2>
 
               {playthrough.scenes.length === 0 ? (
                 <p className="mt-5 text-content-muted">
                   This playthrough has no scenes.
                 </p>
               ) : (
-                <div className="mt-5 grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,28rem),1fr))]">
-                  {playthrough.scenes.map((scene) => (
-                    <Card key={scene.id} className="flex flex-col">
-                      {scene.photoUrl && (
-                        <img
-                          src={scene.photoUrl}
-                          alt=""
-                          className="h-64 w-full object-cover"
-                        />
-                      )}
-
-                      <div className="flex flex-1 flex-col p-4">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <h3 className="text-2xl font-semibold text-content">
-                            {scene.name}
-                          </h3>
-                          <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-content-secondary">
-                            {getSceneStatusLabel(scene.status)}
-                          </span>
-                        </div>
-
-                        {scene.description && (
-                          <p className="mt-2 text-content-secondary">
-                            {scene.description}
-                          </p>
+                <div
+                  role="region"
+                  aria-label="Scene cards"
+                  tabIndex={0}
+                  className="mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2"
+                >
+                  <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,28rem),1fr))]">
+                    {playthrough.scenes.map((scene) => (
+                      <Card key={scene.id} className="flex flex-col">
+                        {scene.photoUrl && (
+                          <img
+                            src={scene.photoUrl}
+                            alt=""
+                            className="h-64 w-full object-cover"
+                          />
                         )}
 
-                        <dl className="mt-auto grid gap-3 pt-5 text-sm text-content-secondary sm:grid-cols-2">
-                          {scene.status !==
+                        <div className="flex flex-1 flex-col p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <h3 className="text-2xl font-semibold text-content">
+                              {scene.name}
+                            </h3>
+                            <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-content-secondary">
+                              {getSceneStatusLabel(scene.status)}
+                            </span>
+                          </div>
+
+                          {scene.description && (
+                            <p className="mt-2 text-content-secondary">
+                              {scene.description}
+                            </p>
+                          )}
+
+                          <dl className="mt-auto grid gap-3 pt-5 text-sm text-content-secondary sm:grid-cols-2">
+                            {scene.status !==
+                              ScenePlaythroughStatus.NotStarted && (
+                              <div>
+                                <dt className="text-content-muted">Round</dt>
+                                <dd>{scene.roundNumber}</dd>
+                              </div>
+                            )}
+                            {scene.startedAt && (
+                              <div>
+                                <dt className="text-content-muted">Started</dt>
+                                <dd>{formatDate(scene.startedAt)}</dd>
+                              </div>
+                            )}
+                            {scene.endedAt && (
+                              <div>
+                                <dt className="text-content-muted">
+                                  Completed
+                                </dt>
+                                <dd>{formatDate(scene.endedAt)}</dd>
+                              </div>
+                            )}
+                          </dl>
+
+                          {scene.status ===
                             ScenePlaythroughStatus.NotStarted && (
-                            <div>
-                              <dt className="text-content-muted">Round</dt>
-                              <dd>{scene.roundNumber}</dd>
-                            </div>
+                            <Button
+                              variant="primary"
+                              className="mt-5 self-end px-10"
+                              disabled={startingSceneId !== undefined}
+                              aria-busy={startingSceneId === scene.id}
+                              leftIcon={
+                                startingSceneId === scene.id ? (
+                                  <SceneButtonSpinner />
+                                ) : undefined
+                              }
+                              onClick={() => void startScene(scene.id)}
+                            >
+                              {scene.hasPendingInventory
+                                ? "Resolve inventory"
+                                : "Start"}
+                            </Button>
                           )}
-                          {scene.startedAt && (
-                            <div>
-                              <dt className="text-content-muted">Started</dt>
-                              <dd>{formatDate(scene.startedAt)}</dd>
-                            </div>
-                          )}
-                          {scene.endedAt && (
-                            <div>
-                              <dt className="text-content-muted">Completed</dt>
-                              <dd>{formatDate(scene.endedAt)}</dd>
-                            </div>
-                          )}
-                        </dl>
 
-                        {scene.status === ScenePlaythroughStatus.NotStarted && (
-                          <Button
-                            variant="primary"
-                            className="mt-5 self-end px-10"
-                            disabled={startingSceneId !== undefined}
-                            aria-busy={startingSceneId === scene.id}
-                            leftIcon={
-                              startingSceneId === scene.id ? (
-                                <SceneButtonSpinner />
-                              ) : undefined
-                            }
-                            onClick={() => void startScene(scene.id)}
-                          >
-                            {scene.hasPendingInventory
-                              ? "Resolve inventory"
-                              : "Start"}
-                          </Button>
-                        )}
-
-                        {scene.status === ScenePlaythroughStatus.InProgress && (
-                          <Button
-                            variant="primary"
-                            className="mt-5 self-end px-10"
-                            disabled={startingSceneId !== undefined}
-                            aria-busy={startingSceneId === scene.id}
-                            leftIcon={
-                              startingSceneId === scene.id ? (
-                                <SceneButtonSpinner />
-                              ) : undefined
-                            }
-                            onClick={() => void navigateToScene(scene.id)}
-                          >
-                            Resume
-                          </Button>
-                        )}
-                      </div>
-                    </Card>
-                  ))}
+                          {scene.status ===
+                            ScenePlaythroughStatus.InProgress && (
+                            <Button
+                              variant="primary"
+                              className="mt-5 self-end px-10"
+                              disabled={startingSceneId !== undefined}
+                              aria-busy={startingSceneId === scene.id}
+                              leftIcon={
+                                startingSceneId === scene.id ? (
+                                  <SceneButtonSpinner />
+                                ) : undefined
+                              }
+                              onClick={() => void navigateToScene(scene.id)}
+                            >
+                              Resume
+                            </Button>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               )}
             </section>
-
-            <aside className="self-start rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
-              <h2 className="text-3xl font-semibold text-content">Event Log</h2>
-
-              {playthrough.eventLogs.length === 0 ? (
-                <p className="mt-5 text-content-muted">
-                  No events have been recorded.
-                </p>
-              ) : (
-                <ol className="mt-5 space-y-3">
-                  {playthrough.eventLogs.map((eventLog) => (
-                    <li
-                      key={eventLog.id}
-                      className="rounded-xl border border-border bg-surface/75 p-3"
-                    >
-                      <p className="font-semibold text-content">
-                        {eventLog.message}
-                      </p>
-                      <time className="mt-1 block text-xs text-content-muted">
-                        {formatDate(eventLog.eventTime)}
-                      </time>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </aside>
           </div>
         )}
       </main>
+
+      {playthrough && showLogs && (
+        <Drawer title="Event Logs" onClose={() => setShowLogs(false)}>
+          {playthrough.eventLogs.length === 0 ? (
+            <p className="mt-5 text-content-muted">
+              No events have been recorded.
+            </p>
+          ) : (
+            <ol aria-label="Event log entries" className="space-y-3">
+              {[...playthrough.eventLogs]
+                .sort(
+                  (a, b) =>
+                    Date.parse(b.eventTime) - Date.parse(a.eventTime) ||
+                    b.id - a.id,
+                )
+                .map((eventLog) => (
+                  <li
+                    key={eventLog.id}
+                    className="rounded-xl border border-border bg-surface/75 p-3"
+                  >
+                    <p className="font-semibold text-content">
+                      {eventLog.message}
+                    </p>
+                    <time className="mt-1 block text-xs text-content-muted">
+                      {formatDate(eventLog.eventTime)}
+                    </time>
+                  </li>
+                ))}
+            </ol>
+          )}
+        </Drawer>
+      )}
 
       {playthrough && viewingIntroPageId !== undefined && (
         <IntroPageViewer

@@ -1,0 +1,27 @@
+.intro-slide-preview {
+  container: intro-slide / inline-size;
+}
+
+.intro-slide-content {
+  font-size: 20px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.intro-slide-content h1 { font-size: 32px; }
+.intro-slide-content h2 { font-size: 28px; }
+.intro-slide-content h3 { font-size: 24px; }
+
+.intro-slide-content :is(h1, h2, h3) {
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+}
+
+/* Measure the whole slide, not the text column. The editor and thumbnails
+   render a desktop-sized slide before scaling it down. */
+@container intro-slide (min-width: 640px) {
+  .intro-slide-content { font-size: 24px; }
+  .intro-slide-content h1 { font-size: 56px; }
+  .intro-slide-content h2 { font-size: 48px; }
+  .intro-slide-content h3 { font-size: 40px; }
+}

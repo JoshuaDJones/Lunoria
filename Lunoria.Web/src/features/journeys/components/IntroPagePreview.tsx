@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { IntroPageType } from "@/features/journeys/types";
 import type { IntroPageConfig } from "@/features/journeys/introPageConfig";
-import { IntroPageContent } from "./IntroPageContent";
+import { IntroPageContent } from "@/features/journeys/components/IntroPageContent";
+import "@/features/journeys/introPageTypography.css";
 
 interface IntroPagePreviewProps {
   type: IntroPageType;
@@ -44,7 +45,7 @@ export function IntroPagePreview({
   return (
     <div
       className={clsx(
-        "relative overflow-hidden bg-surface text-content shadow-lg",
+        "intro-slide-preview relative overflow-hidden bg-surface text-content shadow-lg",
         fullScreen
           ? "h-full w-full"
           : "aspect-video rounded-xl border border-border",

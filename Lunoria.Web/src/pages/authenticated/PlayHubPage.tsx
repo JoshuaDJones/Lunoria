@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useConfirmDialog, useToast } from "@/app/providers";
@@ -124,15 +124,6 @@ export function PlayHubPage() {
               ← Back to Journey
             </Link>
           </div>
-
-          <Button
-            variant="add"
-            size="lg"
-            disabled={isStarting}
-            onClick={() => void startNewPlaythrough()}
-          >
-            {isStarting ? "Starting..." : "Play New"}
-          </Button>
         </header>
 
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] sm:p-6">
@@ -153,6 +144,25 @@ export function PlayHubPage() {
             <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-8 xl:grid-cols-2 xl:grid-rows-1">
               <PlaythroughSection
                 title="In Progress"
+                newPlaythroughAction={
+                  <Button
+                    variant="add"
+                    disabled={isStarting}
+                    aria-busy={isStarting}
+                    leftIcon={
+                      isStarting ? (
+                        <span
+                          aria-hidden="true"
+                          className="block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+                        />
+                      ) : undefined
+                    }
+                    onClick={() => void startNewPlaythrough()}
+                  >
+                    Play New
+                  </Button>
+                }
+                busy={isStarting}
                 emptyMessage="No playthroughs are currently in progress."
                 playthroughs={inProgress}
                 onResume={navigateToPlaythrough}
@@ -174,6 +184,8 @@ export function PlayHubPage() {
 
 interface PlaythroughSectionProps {
   scrollItems?: boolean;
+  newPlaythroughAction?: ReactNode;
+  busy?: boolean;
   title: string;
   emptyMessage: string;
   playthroughs: PlaythroughSummary[];
@@ -182,6 +194,8 @@ interface PlaythroughSectionProps {
 
 function PlaythroughSection({
   scrollItems = false,
+  newPlaythroughAction,
+  busy = false,
   title,
   emptyMessage,
   playthroughs,
@@ -198,9 +212,12 @@ function PlaythroughSection({
       <div className="mt-3 h-px w-full shrink-0 bg-border" />
 
       {playthroughs.length === 0 ? (
-        <p className="mt-5 rounded-xl border border-border bg-surface/50 p-5 text-content-muted">
-          {emptyMessage}
-        </p>
+        <div className="mt-5 rounded-xl border border-border bg-surface/50 p-5 text-content-muted">
+          <p>{emptyMessage}</p>
+          {newPlaythroughAction && (
+            <div className="mt-4 flex justify-end">{newPlaythroughAction}</div>
+          )}
+        </div>
       ) : (
         <div
           className={`mt-5 space-y-4 ${scrollItems ? "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-2" : ""}`}
@@ -241,13 +258,15 @@ function PlaythroughSection({
                   </div>
                 )}
                 {!playthrough.completedAt && (
-                  <div className="flex-1 flex justify-end">
+                  <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
                     <Button
                       variant="primary"
+                      disabled={busy}
                       onClick={() => onResume(playthrough.id)}
                     >
                       Resume
                     </Button>
+                    {newPlaythroughAction}
                   </div>
                 )}
               </dl>

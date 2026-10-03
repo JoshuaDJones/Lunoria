@@ -28,7 +28,7 @@ export function IntroPageContent({
       editor &&
       JSON.stringify(editor.getJSON()) !== JSON.stringify(content)
     ) {
-      editor.commands.setContent(content);
+      editor.commands.setContent(content, { emitUpdate: false });
     }
   }, [content, editor]);
 
@@ -95,10 +95,10 @@ export function IntroPageContent({
       )}
       <EditorContent
         editor={editor}
-        className={`[&_.tiptap]:min-h-28 [&_.tiptap]:outline-none [&_h1]:text-4xl [&_h2]:text-3xl [&_h3]:text-2xl [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 ${
+        className={`[&_.tiptap]:min-h-28 [&_.tiptap]:outline-none [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 ${
           editable
-            ? "rounded-lg border border-border bg-surface-raised p-4"
-            : "text-content"
+            ? "rounded-lg border border-border bg-surface-raised p-4 [&_h1]:text-4xl [&_h2]:text-3xl [&_h3]:text-2xl"
+            : "intro-slide-content text-content"
         }`}
       />
     </div>

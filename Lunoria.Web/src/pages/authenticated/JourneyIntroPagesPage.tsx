@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGripVertical } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPlay,
+  faPlus,
+  faSave,
+  faSpinner,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import AppLayout from "@/app/layouts";
 import { useConfirmDialog, useToast } from "@/app/providers";
 import { ApiLoadError, Button, Drawer } from "@/components/ui";
@@ -10,23 +16,19 @@ import {
   deleteIntroPage,
   getJourney,
   IntroPageEditor,
-  IntroPagePreview,
   IntroPageViewer,
-  IntroPageType,
-  introPageTypeLabels,
   listIntroPages,
-  parseIntroPageConfig,
   reorderIntroPages,
   updateIntroPage,
   type IntroPage,
+  type IntroPageType,
   type IntroPageConfig,
   type Journey,
 } from "@/features/journeys";
+import { IntroPageLayoutPicker } from "@/features/journeys/components/IntroPageLayoutPicker";
+import { IntroPageRail } from "@/features/journeys/components/IntroPageRail";
 import { getApiError } from "@/lib/apiClient";
-
-const introPageTypes = Object.values(IntroPageType).filter(
-  (value): value is IntroPageType => typeof value === "number",
-);
+import { introPageTypeLabels } from "@/features/journeys/introPageConfig";
 
 interface EditingPage {
   type: IntroPageType;
@@ -36,6 +38,7 @@ interface EditingPage {
 export function JourneyIntroPagesPage() {
   const { confirm } = useConfirmDialog();
   const toast = useToast();
+  const navigate = useNavigate();
   const { seriesId, journeyId: journeyIdParam } = useParams();
   const journeyId = Number(journeyIdParam);
   const [journey, setJourney] = useState<Journey>();
@@ -44,24 +47,33 @@ export function JourneyIntroPagesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isChoosingType, setIsChoosingType] = useState(false);
   const [editing, setEditing] = useState<EditingPage>();
-  const [isOrdering, setIsOrdering] = useState(false);
-  const [orderedPages, setOrderedPages] = useState<IntroPage[]>([]);
-  const [draggedPageId, setDraggedPageId] = useState<number>();
+  const [revision, setRevision] = useState(0);
+  const [dirty, setDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
-  const [orderError, setOrderError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [viewingPageId, setViewingPageId] = useState<number>();
+  const busy = isSaving || isSavingOrder || isDeleting;
+
+  const acceptLoaded = (loadedJourney: Journey, loadedPages: IntroPage[]) => {
+    const ordered = [...loadedPages].sort((a, b) => a.sortOrder - b.sortOrder);
+    setJourney(loadedJourney);
+    setPages(ordered);
+    setEditing(
+      ordered[0] ? { type: ordered[0].type, page: ordered[0] } : undefined,
+    );
+    setDirty(false);
+  };
 
   const load = async () => {
     setIsLoading(true);
     setError("");
-
     try {
       const [loadedJourney, loadedPages] = await Promise.all([
         getJourney(journeyId),
         listIntroPages(journeyId),
       ]);
-      setJourney(loadedJourney);
-      setPages(loadedPages);
+      acceptLoaded(loadedJourney, loadedPages);
     } catch (requestError) {
       setError(getApiError(requestError).message);
     } finally {
@@ -71,15 +83,12 @@ export function JourneyIntroPagesPage() {
 
   useEffect(() => {
     if (!Number.isInteger(journeyId) || journeyId <= 0) return;
-
     let isCurrent = true;
     void Promise.all([getJourney(journeyId), listIntroPages(journeyId)])
       .then(([loadedJourney, loadedPages]) => {
-        if (isCurrent) {
-          setJourney(loadedJourney);
-          setPages(loadedPages);
-          setError("");
-        }
+        if (!isCurrent) return;
+        acceptLoaded(loadedJourney, loadedPages);
+        setError("");
       })
       .catch((requestError: unknown) => {
         if (isCurrent) setError(getApiError(requestError).message);
@@ -87,319 +96,327 @@ export function JourneyIntroPagesPage() {
       .finally(() => {
         if (isCurrent) setIsLoading(false);
       });
-
     return () => {
       isCurrent = false;
     };
   }, [journeyId]);
 
+  useEffect(() => {
+    if (!dirty && !busy) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty, busy]);
+
   if (!Number.isInteger(journeyId) || journeyId <= 0 || !seriesId) {
     return <Navigate to="/home" replace />;
   }
 
-  const removePage = async (page: IntroPage) => {
-    const confirmed = await confirm({
-      title: "Delete intro page?",
-      message: "This action cannot be undone.",
-      confirmLabel: "Delete",
-      variant: "danger",
-    });
-    if (!confirmed) return;
+  const allowDiscard = async () => {
+    if (busy) return false;
+    return (
+      !dirty ||
+      (await confirm({
+        title: "Discard unsaved changes?",
+        message: "Your current page has changes that have not been saved.",
+        confirmLabel: "Discard Changes",
+        variant: "danger",
+      }))
+    );
+  };
 
-    try {
-      await deleteIntroPage(page.id, journeyId);
-      setPages((current) => current.filter((item) => item.id !== page.id));
-      toast.success("Intro page was deleted.");
-    } catch (requestError) {
-      toast.error(
-        getApiError(requestError).message,
-        "Unable to delete intro page",
+  const selectPage = async (page: IntroPage) => {
+    if (editing?.page?.id === page.id || !(await allowDiscard())) return;
+    setEditing({ type: page.type, page });
+    setDirty(false);
+    setRevision((value) => value + 1);
+  };
+
+  const savePage = async (config: IntroPageConfig, image?: File) => {
+    if (!editing) return;
+    let saved: IntroPage;
+    if (editing.page) {
+      saved = await updateIntroPage(editing.page.id, {
+        journeyId,
+        type: editing.type,
+        config: JSON.stringify(config),
+        image,
+      });
+      setPages((current) =>
+        current.map((page) => (page.id === saved.id ? saved : page)),
+      );
+    } else {
+      if (!image) throw new Error("An image is required.");
+      saved = await createIntroPage({
+        journeyId,
+        type: editing.type,
+        config: JSON.stringify(config),
+        image,
+      });
+      setPages((current) =>
+        [...current, saved].sort((a, b) => a.sortOrder - b.sortOrder),
       );
     }
+    setEditing({ type: saved.type, page: saved });
+    setDirty(false);
+    setRevision((value) => value + 1);
+    toast.success("Intro page was saved.");
   };
 
-  const openOrder = () => {
-    setDraggedPageId(undefined);
-    setOrderedPages([...pages].sort((a, b) => a.sortOrder - b.sortOrder));
-    setOrderError("");
-    setIsOrdering(true);
-  };
-
-  const moveDraggedPage = (targetId: number) => {
-    if (isSavingOrder) return;
-    if (draggedPageId === undefined || draggedPageId === targetId) return;
-    setOrderedPages((current) => {
-      const from = current.findIndex((page) => page.id === draggedPageId);
-      const to = current.findIndex((page) => page.id === targetId);
-      if (from < 0 || to < 0) return current;
-      const next = [...current];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
-    });
-  };
-
-  const saveOrder = async () => {
-    if (isSavingOrder) return;
+  const saveOrder = async (orderedPages: IntroPage[]) => {
+    if (busy) return;
     setIsSavingOrder(true);
-    setOrderError("");
     try {
       await reorderIntroPages(
         journeyId,
         orderedPages.map((page, sortOrder) => ({ id: page.id, sortOrder })),
       );
       setPages(orderedPages.map((page, sortOrder) => ({ ...page, sortOrder })));
-      setIsOrdering(false);
-      toast.success("Intro page order was updated.");
+      toast.success("Page order was saved.");
     } catch (requestError) {
-      setOrderError(getApiError(requestError).message);
+      toast.error(getApiError(requestError).message, "Unable to reorder pages");
     } finally {
       setIsSavingOrder(false);
     }
   };
 
+  const removePage = async () => {
+    const page = editing?.page;
+    if (!page || busy) return;
+    const confirmed = await confirm({
+      title: "Delete intro page?",
+      message: dirty
+        ? "This page and its unsaved changes will be discarded. This cannot be undone."
+        : "This action cannot be undone.",
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+    if (!confirmed) return;
+    setIsDeleting(true);
+    try {
+      await deleteIntroPage(page.id, journeyId);
+      const remaining = pages.filter((item) => item.id !== page.id);
+      setPages(remaining);
+      const next =
+        remaining[
+          Math.min(
+            pages.findIndex((item) => item.id === page.id),
+            remaining.length - 1,
+          )
+        ];
+      setEditing(next ? { type: next.type, page: next } : undefined);
+      setDirty(false);
+      setRevision((value) => value + 1);
+      toast.success("Intro page was deleted.");
+    } catch (requestError) {
+      toast.error(
+        getApiError(requestError).message,
+        "Unable to delete intro page",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <AppLayout
-      scrolling
+      fixedViewport
+      bottomPadding
       background={<div className="stone-image absolute inset-0 z-0" />}
     >
-      <main className="w-full p-6 sm:p-10">
-        <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-4xl text-content sm:text-5xl">
-              {journey ? `${journey.name} Intro Pages` : "Intro Pages"}
+      <main className="flex min-h-0 w-full flex-1 flex-col px-4 pt-6 pb-4 sm:px-6">
+        <header className="mb-5 flex shrink-0 flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-3xl text-content sm:text-4xl">
+              Intro Pages Editor{journey ? ` - ${journey.name}` : ""}
             </h1>
             <Link
               to={`/series/${seriesId}/journeys/${journeyId}`}
+              onClick={(event) => {
+                if (!dirty && !busy) return;
+                event.preventDefault();
+                void allowDiscard().then((allowed) => {
+                  if (allowed)
+                    navigate(`/series/${seriesId}/journeys/${journeyId}`);
+                });
+              }}
               className="text-sm text-content-secondary hover:text-brand-hover"
             >
-              ← Back to journey
+              ← Back to journey editor
             </Link>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span role="status" className="mr-2 text-xs text-content-muted">
+              {isSavingOrder
+                ? "Saving order…"
+                : isDeleting
+                  ? "Deleting page…"
+                  : dirty
+                    ? "Unsaved changes"
+                    : editing
+                      ? "Saved"
+                      : ""}
+            </span>
             <Button
-              onClick={openOrder}
-              disabled={pages.length < 2}
-              variant="utility"
-              size="lg"
+              disabled={busy || isLoading || Boolean(error)}
+              leftIcon={<FontAwesomeIcon icon={faPlus} />}
+              onClick={() => setIsChoosingType(true)}
+              className="h-11 bg-surface/90"
             >
-              Page Order
+              Add Page
             </Button>
             <Button
-              onClick={() => setIsChoosingType(true)}
-              variant="add"
-              size="lg"
+              disabled={busy || dirty || pages.length === 0}
+              title={
+                dirty
+                  ? "Save your page before previewing the intro"
+                  : "Preview the full intro"
+              }
+              onClick={() => setViewingPageId(pages[0]?.id)}
+              leftIcon={<FontAwesomeIcon icon={faPlay} />}
+              className="h-11 bg-surface/90"
             >
-              New Intro Page
+              Preview Intro
+            </Button>
+            <Button
+              className="h-11 bg-surface/90"
+              disabled={busy || !editing || !dirty}
+              onClick={() => {
+                void allowDiscard().then((allowed) => {
+                  if (!allowed || !editing) return;
+                  const original = editing.page
+                    ? pages.find((page) => page.id === editing.page?.id)
+                    : pages[0];
+                  setEditing(original ? { type: original.type, page: original } : undefined);
+                  setDirty(false);
+                  setRevision((value) => value + 1);
+                });
+              }}
+            >
+              {editing && !editing.page ? "Cancel New Page" : "Discard Changes"}
+            </Button>
+            <Button
+              type="submit"
+              form="intro-page-editor"
+              variant="add"
+              className="h-11"
+              disabled={busy || !editing || !dirty}
+              leftIcon={
+                <FontAwesomeIcon
+                  icon={isSaving ? faSpinner : faSave}
+                  spin={isSaving}
+                />
+              }
+            >
+              Save Page
             </Button>
           </div>
         </header>
-
         {isLoading && <p role="status">Loading intro pages...</p>}
         {!isLoading && error && <ApiLoadError error={error} onRetry={load} />}
-
-        {!isLoading && !error && pages.length === 0 && (
-          <div className="rounded-xl border border-border bg-surface/80 p-8 text-center">
-            <h2 className="text-2xl font-semibold text-content">
-              No intro pages yet
-            </h2>
-            <p className="mt-2 text-content-muted">
-              Create the opening slideshow for this journey.
-            </p>
-          </div>
-        )}
-
-        {!isLoading && !error && pages.length > 0 && (
-          <div className="grid gap-6 xl:grid-cols-2">
-            {pages.map((page, index) => (
-              <article
-                key={page.id}
-                className="rounded-2xl border border-border bg-surface/90 p-4"
-              >
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <span className="text-xs text-content-muted">
-                      Page {index + 1}
-                    </span>
-                    <h2 className="font-semibold text-content">
-                      {introPageTypeLabels[page.type]}
-                    </h2>
+        {!isLoading && !error && (
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto lg:flex-row lg:overflow-hidden">
+            <div className="flex min-w-0 shrink-0 flex-col lg:min-h-0 lg:flex-1 lg:overflow-y-auto xl:overflow-hidden">
+              {editing ? (
+                <>
+                  <div
+                    inert={isSavingOrder || isDeleting}
+                    className="flex shrink-0 flex-col xl:min-h-0 xl:flex-1"
+                  >
+                    <IntroPageEditor
+                      key={`${editing.page?.id ?? "new"}-${revision}`}
+                      type={editing.type}
+                      page={editing.page}
+                      previewToolbar={
+                        <div className="flex min-h-10 shrink-0 items-center justify-between gap-3 px-1">
+                          <h2 className="text-lg">
+                            {editing.page
+                              ? `Page ${pages.findIndex((page) => page.id === editing.page?.id) + 1}`
+                              : "New Page"}
+                            <span className="text-sm text-content-secondary">
+                              {" · "}
+                              {introPageTypeLabels[editing.type]}
+                            </span>
+                          </h2>
+                          {editing.page && (
+                            <Button
+                              disabled={busy}
+                              variant="danger"
+                              aria-label="Delete intro page"
+                              className="h-10 w-10 shrink-0 p-0"
+                              onClick={() => void removePage()}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </Button>
+                          )}
+                        </div>
+                      }
+                      onSave={savePage}
+                      onDirtyChange={setDirty}
+                      onBusyChange={setIsSaving}
+                      pageNavigation={
+                        pages.length > 0 && (
+                          <IntroPageRail
+                            pages={pages}
+                            selectedId={editing.page?.id}
+                            disabled={busy}
+                            onSelect={(page) => void selectPage(page)}
+                            onReorder={(ordered) => void saveOrder(ordered)}
+                          />
+                        )
+                      }
+                    />
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="accent"
-                      onClick={() => setViewingPageId(page.id)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setEditing({ type: page.type, page })}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => void removePage(page)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                </>
+              ) : (
+                <div className="flex min-h-64 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface/90 p-8 text-center">
+                  <h2 className="text-2xl">Create your journey’s opening</h2>
+                  <p className="mt-3 max-w-md text-content-secondary">
+                    Combine images and story text into the intro players see
+                    when a new playthrough begins.
+                  </p>
+                  <Button
+                    variant="add"
+                    className="mt-6"
+                    onClick={() => setIsChoosingType(true)}
+                  >
+                    Add Your First Page
+                  </Button>
                 </div>
-                <IntroPagePreview
-                  type={page.type}
-                  config={parseIntroPageConfig(page.config)}
-                  imageUrl={page.previewPhotoUrl}
-                />
-              </article>
-            ))}
+              )}
+            </div>
           </div>
         )}
       </main>
-
       {isChoosingType && (
         <Drawer
-          title="Choose an Intro Page Type"
+          title="Choose a Page Layout"
           onClose={() => setIsChoosingType(false)}
         >
-          <div className="grid gap-3">
-            {introPageTypes.map((type) => (
-              <Button
-                key={type}
-                size="lg"
-                className="justify-start py-5 text-left"
-                onClick={() => {
-                  setIsChoosingType(false);
-                  setEditing({ type });
-                }}
-              >
-                {introPageTypeLabels[type]}
-              </Button>
-            ))}
-          </div>
-        </Drawer>
-      )}
-
-      {editing && (
-        <Drawer
-          title={editing.page ? "Edit Intro Page" : "Create Intro Page"}
-          onClose={() => setEditing(undefined)}
-        >
-          <IntroPageEditor
-            type={editing.type}
-            page={editing.page}
-            onCancel={() => setEditing(undefined)}
-            onSave={async (config: IntroPageConfig, image?: File) => {
-              if (editing.page) {
-                const updated = await updateIntroPage(editing.page.id, {
-                  journeyId,
-                  type: editing.type,
-                  config: JSON.stringify(config),
-                  image,
-                });
-                setPages((current) =>
-                  current.map((page) =>
-                    page.id === updated.id ? updated : page,
-                  ),
-                );
-                toast.success("Intro page was updated.");
-              } else {
-                if (!image) throw new Error("An image is required.");
-                const created = await createIntroPage({
-                  journeyId,
-                  type: editing.type,
-                  config: JSON.stringify(config),
-                  image,
-                });
-                setPages((current) => [...current, created]);
-                toast.success("Intro page was created.");
-              }
-              setEditing(undefined);
+          <p className="mb-5 text-sm text-content-secondary">
+            Choose how your image and story will appear.
+          </p>
+          <IntroPageLayoutPicker
+            onSelect={(type) => {
+              void allowDiscard().then((allowed) => {
+                if (!allowed) return;
+                setEditing({ type });
+                setRevision((value) => value + 1);
+                setDirty(true);
+                setIsChoosingType(false);
+              });
             }}
           />
         </Drawer>
       )}
-
-      {isOrdering && (
-        <Drawer
-          title="Page Order"
-          onClose={() => setIsOrdering(false)}
-          closeDisabled={isSavingOrder}
-        >
-          <div className="flex min-h-full flex-col">
-            <p className="mb-5 text-sm text-content-secondary">
-              Drag pages into slideshow order, then save.
-            </p>
-            {orderError && (
-              <p className="mb-4 rounded-lg border border-danger/40 p-3 text-danger" role="alert">
-                {orderError}
-              </p>
-            )}
-            <ol className="flex-1 space-y-3">
-              {orderedPages.map((page, index) => (
-                <li
-                  key={page.id}
-                  draggable={!isSavingOrder}
-                  onDragStart={() => setDraggedPageId(page.id)}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    moveDraggedPage(page.id);
-                  }}
-                  onDragEnd={() => setDraggedPageId(undefined)}
-                  className={`flex cursor-grab items-center gap-4 rounded-xl border bg-surface p-3 transition active:cursor-grabbing ${
-                    draggedPageId === page.id
-                      ? "border-brand opacity-50"
-                      : "border-border"
-                  }`}
-                >
-                  <FontAwesomeIcon
-                    icon={faGripVertical}
-                    className="shrink-0 text-content-muted"
-                  />
-                  <span className="w-7 shrink-0 text-center text-sm text-content-muted">
-                    {index + 1}
-                  </span>
-                  {page.previewPhotoUrl && (
-                    <img
-                      src={page.previewPhotoUrl}
-                      alt=""
-                      className="size-12 shrink-0 rounded-lg object-cover"
-                    />
-                  )}
-                  <span className="min-w-0 flex-1 truncate font-semibold text-content">
-                    {introPageTypeLabels[page.type]}
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-6 flex justify-end gap-3 border-t border-border pt-4">
-              <Button
-                onClick={() => setIsOrdering(false)}
-                disabled={isSavingOrder}
-                size="lg"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                disabled={isSavingOrder}
-                size="lg"
-                onClick={() => void saveOrder()}
-              >
-                {isSavingOrder ? "Saving..." : "Save Order"}
-              </Button>
-            </div>
-          </div>
-        </Drawer>
-      )}
-
       {viewingPageId !== undefined && (
         <IntroPageViewer
           pages={pages}
           initialPageId={viewingPageId}
-          title={`${journey?.name ?? "Journey"} Intro Pages`}
+          title={`${journey?.name ?? "Journey"} Intro`}
           onClose={() => setViewingPageId(undefined)}
         />
       )}
