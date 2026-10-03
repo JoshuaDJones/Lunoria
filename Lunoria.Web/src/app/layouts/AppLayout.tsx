@@ -11,6 +11,7 @@ interface AppLayoutProps {
   pane?: ReactNode;
   bottomPadding?: boolean;
   scrolling?: boolean;
+  fixedViewport?: boolean;
 }
 
 const AppLayout = ({
@@ -19,10 +20,18 @@ const AppLayout = ({
   pane,
   bottomPadding,
   scrolling,
+  fixedViewport = false,
   children,
 }: PropsWithChildren<AppLayoutProps>) => {
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden bg-slate-800">
+    <div
+      className={clsx(
+        "flex overflow-hidden bg-slate-800",
+        fixedViewport
+          ? "fixed inset-0 h-dvh w-full overscroll-none"
+          : "relative h-screen w-screen",
+      )}
+    >
       {background}
       {pane}
       {sidebar ?? <Sidebar />}
@@ -31,6 +40,7 @@ const AppLayout = ({
         className={clsx("relative z-10 flex min-w-0 flex-1 flex-col", {
           "pb-20": !bottomPadding,
           "overflow-y-auto scrollbar-hide": scrolling,
+          "min-h-0 overflow-hidden": fixedViewport && !scrolling,
         })}
       >
         {children}

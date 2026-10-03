@@ -10,7 +10,7 @@ export function SceneObjectivesPanel({
   busy = false,
   error,
   visible = true,
-  guest = false,
+  aboveNavigation = false,
 }: {
   objective?: SceneObjective | null;
   index?: number;
@@ -19,7 +19,7 @@ export function SceneObjectivesPanel({
   busy?: boolean;
   error?: string;
   visible?: boolean;
-  guest?: boolean;
+  aboveNavigation?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const contentId = useId();
@@ -28,7 +28,7 @@ export function SceneObjectivesPanel({
     <aside
       aria-label="Scene objectives"
       inert={!visible}
-      className={`fixed right-4 z-30 max-w-[calc(100vw-2rem)] transition-opacity duration-600 motion-reduce:transition-none ${guest ? "bottom-20 md:bottom-4" : "bottom-4"} ${visible ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      className={`fixed right-4 z-30 max-w-[calc(100vw-2rem)] transition-opacity duration-600 motion-reduce:transition-none ${aboveNavigation ? "bottom-[calc(5rem+env(safe-area-inset-bottom))]" : "bottom-4"} ${visible ? "opacity-100" : "pointer-events-none opacity-0"}`}
     >
       {!open ? (
         <Button

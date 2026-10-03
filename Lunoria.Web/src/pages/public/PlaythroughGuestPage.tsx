@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useParams } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faChevronRight,
-  faCircleInfo,
-} from "@fortawesome/free-solid-svg-icons";
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { GuestEventToast } from "@/features/playthroughSession/components/GuestEventToast";
+import type { PublicPlaythroughEventLog } from "@/features/playthroughSession/types";
+import { useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
-import { Button, Drawer } from "@/components/ui";
+import { Drawer } from "@/components/ui";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import { CharacterType } from "@/features/characters";
 import {
   createPlaythroughSessionConnection,
@@ -20,14 +25,12 @@ import {
 } from "@/features/playthroughSession";
 import { getApiError } from "@/lib/apiClient";
 import { SceneObjectivesPanel } from "@/features/sceneplaythrough/components/SceneObjectivesPanel";
+import { GuestCardDeck } from "@/features/playthroughSession/components/GuestCardDeck";
 
-type DeckEntry =
-  | {
-      key: string;
-      type: "character";
-      character: PublicPlaythroughCharacter;
-    }
-  | { key: "events"; type: "events" };
+type DeckEntry = {
+  key: string;
+  character: PublicPlaythroughCharacter;
+};
 
 export function PlaythroughGuestPage() {
   const { token = "" } = useParams<{ token: string }>();
@@ -38,22 +41,42 @@ export function PlaythroughGuestPage() {
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
   const [showEventLogs, setShowEventLogs] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const logsButtonRef = useRef<HTMLButtonElement>(null);
+  const closeEventLogs = useCallback(() => {
+    setShowEventLogs(false);
+    logsButtonRef.current?.focus();
+  }, []);
+  const [eventQueue, setEventQueue] = useState<{
+    token: string;
+    events: PublicPlaythroughEventLog[];
+  }>({ token, events: [] });
+  const activeEvent =
+    eventQueue.token === token ? eventQueue.events[0] : undefined;
+  const dismissEvent = useCallback(
+    (id: number) => {
+      setEventQueue((current) =>
+        current.token === token
+          ? {
+              ...current,
+              events: current.events.filter((event) => event.id !== id),
+            }
+          : current,
+      );
+    },
+    [token],
+  );
 
   const entries = useMemo<DeckEntry[]>(() => {
     if (!snapshot) return [];
     return [
       ...snapshot.journeyCharacters.map((character) => ({
         key: `journey:${character.id}`,
-        type: "character" as const,
         character,
       })),
       ...snapshot.sceneCharacters.map((character) => ({
         key: `scene:${character.id}`,
-        type: "character" as const,
         character,
       })),
-      { key: "events" as const, type: "events" as const },
     ];
   }, [snapshot]);
 
@@ -61,7 +84,6 @@ export function PlaythroughGuestPage() {
     0,
     entries.findIndex((entry) => entry.key === selectedKey),
   );
-  const selectedEntry = entries[selectedIndex];
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -80,12 +102,39 @@ export function PlaythroughGuestPage() {
     let isCurrent = true;
     const connection = createPlaythroughSessionConnection(token);
     let latestRefresh = 0;
+    let seenEventIds: Set<number> | undefined;
 
     const refresh = async () => {
       const refreshId = ++latestRefresh;
       try {
         const nextSnapshot = await getPublicPlaythroughSnapshot(token);
         if (isCurrent && refreshId === latestRefresh) {
+          if (seenEventIds) {
+            const newEvents = nextSnapshot.eventLogs
+              .filter((event) => !seenEventIds!.has(event.id))
+              .sort(
+                (a, b) =>
+                  Date.parse(a.eventTime) - Date.parse(b.eventTime) ||
+                  a.id - b.id,
+              );
+            nextSnapshot.eventLogs.forEach((event) =>
+              seenEventIds!.add(event.id),
+            );
+            if (newEvents.length > 0) {
+              setEventQueue((current) => ({
+                token,
+                events: [
+                  ...(current.token === token ? current.events : []),
+                  ...newEvents,
+                ],
+              }));
+            }
+          } else {
+            // Joining establishes a baseline; never replay the existing event history.
+            seenEventIds = new Set(
+              nextSnapshot.eventLogs.map((event) => event.id),
+            );
+          }
           setSnapshot(nextSnapshot);
           setError("");
         }
@@ -138,17 +187,11 @@ export function PlaythroughGuestPage() {
     };
   }, [token]);
 
-  const navigateDeck = (index: number) => {
-    const nextEntry = entries[index];
-    if (!nextEntry) return;
-    setSelectedKey(nextEntry.key);
-    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
     <AppLayout
       sidebar={<></>}
       bottomPadding
+      fixedViewport
       background={
         <GuestSceneBackground
           key={snapshot?.activeScenePhotoUrl?.trim() ?? ""}
@@ -156,7 +199,14 @@ export function PlaythroughGuestPage() {
         />
       }
     >
-      <main className="flex h-full w-full flex-col overflow-hidden pb-14 md:pb-0">
+      <main className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+        {!isClosed && activeEvent && (
+          <GuestEventToast
+            key={`${token}:${activeEvent.id}`}
+            event={activeEvent}
+            onDismiss={dismissEvent}
+          />
+        )}
         {isLoading && (
           <div className="flex min-h-full items-center justify-center p-8">
             <p className="rounded-2xl bg-surface/75 p-6 text-xl text-content backdrop-blur-sm">
@@ -180,111 +230,54 @@ export function PlaythroughGuestPage() {
           </div>
         )}
 
-        {!isLoading && !error && !isClosed && snapshot && selectedEntry && (
+        {!isLoading && !error && !isClosed && snapshot && (
           <>
-            <header className="z-20 flex flex-none items-center justify-between gap-2 border-b border-border bg-surface/85 px-3 py-1.5 backdrop-blur-md sm:px-4">
-              <div className="min-w-0">
-                <h1 className="truncate text-sm font-semibold leading-tight text-content sm:text-base">
-                  {snapshot.name}
-                </h1>
-                {snapshot.activeSceneName && (
-                  <p className="truncate text-[10px] leading-tight text-content-muted sm:text-xs">
-                    Active scene: {snapshot.activeSceneName}
-                  </p>
-                )}
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    isRealtimeConnected ? "bg-add" : "bg-danger"
-                  }`}
-                />
-                <span className="text-[10px] text-content-secondary sm:text-xs">
-                  {isRealtimeConnected ? "Live" : "Reconnecting"}
-                </span>
-                <button
-                  type="button"
-                  aria-label="Show event logs"
-                  title="Event logs"
-                  onClick={() => setShowEventLogs(true)}
-                  className="ml-2 hidden h-11 w-11 items-center justify-center rounded-full bg-transparent text-content-muted hover:text-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility md:flex"
-                >
-                  <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5" />
-                </button>
-              </div>
-            </header>
-
-            <div
-              ref={scrollContainerRef}
-              className="min-h-0 w-full flex-1 overflow-y-auto px-2 py-2 scrollbar-hide sm:px-4 sm:py-3"
+            <h1 className="sr-only">{snapshot.name}</h1>
+            <span className="sr-only" role="status">
+              {isRealtimeConnected ? "Live" : "Reconnecting"}
+            </span>
+            <button
+              ref={logsButtonRef}
+              type="button"
+              aria-label="Show event logs"
+              aria-haspopup="dialog"
+              aria-expanded={showEventLogs}
+              title="Event logs"
+              onClick={() => setShowEventLogs(true)}
+              className="fixed right-0 top-[env(safe-area-inset-top)] z-40 flex h-11 w-11 items-center justify-center rounded-full bg-transparent text-content drop-shadow-md hover:text-utility-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility"
             >
-              <div className="md:hidden">
-                {selectedEntry.type === "character" ? (
-                  <PublicCharacterView character={selectedEntry.character} />
-                ) : (
-                  <PublicEventLogView snapshot={snapshot} />
-                )}
-              </div>
-              <div className="mx-auto hidden w-full max-w-6xl space-y-3 md:block">
-                <h2 className="px-2 py-2 text-xl font-semibold text-content">
-                  Characters
-                </h2>
-                {entries
-                  .filter((entry) => entry.type === "character")
-                  .map((entry) => (
-                    <TabletCharacter
-                      key={entry.key}
-                      character={entry.character}
-                    />
-                  ))}
-                {!snapshot.journeyCharacters.length &&
-                  !snapshot.sceneCharacters.length && (
-                    <EmptyCollection label="No characters available." />
-                  )}
-              </div>
-            </div>
+              <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5" />
+            </button>
 
-            <nav
-              aria-label="Playthrough cards"
-              className="fixed inset-x-0 bottom-0 z-30 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-border bg-surface/90 px-3 py-2 backdrop-blur-md sm:px-4 md:hidden"
-            >
-              <Button
-                aria-label="Previous card"
-                size="sm"
-                className="h-10 w-12 justify-self-start gap-2 sm:w-32"
-                disabled={selectedIndex === 0}
-                onClick={() => navigateDeck(selectedIndex - 1)}
-              >
-                <FontAwesomeIcon icon={faChevronLeft} />
-                <span className="hidden sm:inline">Previous</span>
-              </Button>
-              <span className="text-xs font-semibold text-content">
-                {selectedIndex + 1} / {entries.length}
-              </span>
-              <Button
-                aria-label="Next card"
-                size="sm"
-                className="h-10 w-12 justify-self-end gap-2 sm:w-32"
-                disabled={selectedIndex === entries.length - 1}
-                onClick={() => navigateDeck(selectedIndex + 1)}
-              >
-                <span className="hidden sm:inline">Next</span>
-                <FontAwesomeIcon icon={faChevronRight} />
-              </Button>
-            </nav>
-            <SceneObjectivesPanel
-              key={snapshot.activeSceneId}
-              objective={snapshot.currentObjective}
-              guest
-            />
+            {entries.length === 0 ? (
+              <div className="p-6">
+                <EmptyCollection label="No characters available." />
+              </div>
+            ) : (
+              <GuestCardDeck
+                key={token}
+                selectedIndex={selectedIndex}
+                onSelect={setSelectedKey}
+                cards={entries.map((entry) => ({
+                  key: entry.key,
+                  label: entry.character.name,
+                  imageUrl:
+                    entry.character.portraitUrl?.trim() ||
+                    entry.character.photoUrl?.trim(),
+                  content: <PublicCharacterView character={entry.character} />,
+                }))}
+              />
+            )}
             {showEventLogs && (
-              <Drawer
-                title="Event logs"
-                onClose={() => setShowEventLogs(false)}
-              >
+              <Drawer title="Event Logs" onClose={closeEventLogs}>
                 <PublicEventLogView snapshot={snapshot} />
               </Drawer>
             )}
+            <SceneObjectivesPanel
+              aboveNavigation={entries.length > 0}
+              key={snapshot.activeSceneId}
+              objective={snapshot.currentObjective}
+            />
           </>
         )}
       </main>
@@ -315,158 +308,6 @@ function GuestSceneBackground({ photoUrl }: { photoUrl?: string }) {
   );
 }
 
-function Accordion({
-  title,
-  children,
-}: {
-  title: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <details className="rounded-xl border border-border bg-surface/85 text-content [&[open]>summary>svg]:rotate-90">
-      <summary className="flex min-h-12 cursor-pointer select-none list-none items-center justify-between gap-3 p-4 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility [&::-webkit-details-marker]:hidden">
-        <span className="min-w-0 flex-1">{title}</span>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="h-5 w-5 shrink-0 transition-transform motion-reduce:transition-none"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="m9 5 7 7-7 7" />
-        </svg>
-      </summary>
-      <div className="space-y-3 border-t border-border p-4">{children}</div>
-    </details>
-  );
-}
-
-function TabletCharacter({
-  character: c,
-}: {
-  character: PublicPlaythroughCharacter;
-}) {
-  const consumables = groupPublicConsumables(c.consumableItems);
-  const alternate = c.alternateForm;
-  return (
-    <Accordion
-      title={
-        <span className="flex flex-wrap items-center gap-x-5 gap-y-1">
-          <span className="text-xl">{c.name}</span>
-          <span className="text-sm text-content-secondary">
-            {getCharacterTypeLabel(c.characterType)} · HP {c.currentHp}/
-            {c.maxHp} · MP {c.currentMp}/{c.maxMp}
-          </span>
-          {!c.isActive && <StatusBadge label="Inactive" />}
-          {c.isDown && <StatusBadge label="Down" danger />}
-          {c.isDead && <StatusBadge label="Dead" danger />}
-          {c.isInAlternateForm && <StatusBadge label="Alternate form" />}
-        </span>
-      }
-    >
-      {c.description && (
-        <p className="whitespace-pre-wrap text-content-secondary">
-          {c.description}
-        </p>
-      )}
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <PublicStat label="Movement" value={c.movement} />
-        <PublicStat
-          label="Melee"
-          value={c.meleeAttackDamage ?? "Unavailable"}
-        />
-        <PublicStat label="Bow" value={c.bowAttackDamage ?? "Unavailable"} />
-        <PublicStat
-          label="Capacity: consumables / equipment"
-          value={`${c.maxConsumableInventory} / ${c.maxEquippableInventory}`}
-        />
-      </dl>
-      <Accordion title={`Spells (${c.spells.length})`}>
-        {c.spells.length ? (
-          c.spells.map((spell) => <SpellCard key={spell.id} spell={spell} />)
-        ) : (
-          <EmptyCollection label="No spells available." />
-        )}
-      </Accordion>
-      <Accordion title={`Equipment (${c.equippableItems.length})`}>
-        {c.equippableItems.length ? (
-          c.equippableItems.map((item, index) => (
-            <EquipmentCard key={`${item.id}-${index}`} item={item} />
-          ))
-        ) : (
-          <EmptyCollection label="No equipment carried." />
-        )}
-      </Accordion>
-      <Accordion title={`Consumables (${c.consumableItems.length})`}>
-        {consumables.length ? (
-          consumables.map(({ item, quantity }) => (
-            <ConsumableCard
-              key={`${item.id}-${item.isUsed}`}
-              item={item}
-              quantity={quantity}
-            />
-          ))
-        ) : (
-          <EmptyCollection label="No consumables carried." />
-        )}
-      </Accordion>
-      <Accordion
-        title={
-          alternate
-            ? `Alternate character: ${alternate.name}`
-            : "Alternate character"
-        }
-      >
-        {alternate ? (
-          <>
-            <p className="whitespace-pre-wrap text-content-secondary">
-              {alternate.description}
-            </p>
-            <p className="text-sm text-content-muted">
-              Saved base stats. Transformation uses this form’s movement, melee,
-              bow, and spells. HP, MP, and inventory are preserved; equipment
-              effects still apply.
-            </p>
-            <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <PublicStat label="Base max HP" value={alternate.maxHp} />
-              <PublicStat label="Base max MP" value={alternate.maxMp} />
-              <PublicStat label="Base movement" value={alternate.movement} />
-              <PublicStat
-                label="Base melee"
-                value={alternate.meleeAttackDamage ?? "Unavailable"}
-              />
-              <PublicStat
-                label="Base bow"
-                value={alternate.bowAttackDamage ?? "Unavailable"}
-              />
-              <PublicStat
-                label="Base consumable capacity"
-                value={alternate.maxConsumableInventory}
-              />
-              <PublicStat
-                label="Base equipment capacity"
-                value={alternate.maxEquippableInventory}
-              />
-            </dl>
-            <Accordion title={`Base spells (${alternate.spells.length})`}>
-              {alternate.spells.length ? (
-                alternate.spells.map((spell) => (
-                  <SpellCard key={spell.id} spell={spell} />
-                ))
-              ) : (
-                <EmptyCollection label="No base spells." />
-              )}
-            </Accordion>
-          </>
-        ) : (
-          <EmptyCollection label="No alternate character assigned." />
-        )}
-      </Accordion>
-    </Accordion>
-  );
-}
-
 function PublicCharacterView({
   character,
 }: {
@@ -483,7 +324,7 @@ function PublicCharacterView({
             <img
               src={imageUrl}
               alt=""
-              className="w-1/2 object-contain rounded-xl"
+              className="w-2/5 object-contain rounded-xl"
             />
           ) : (
             <span className="text-content-muted">No image</span>
@@ -491,30 +332,25 @@ function PublicCharacterView({
         </div>
 
         <div className="p-6 sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-utility-hover">
-            {character.isSceneCharacter
-              ? `Active scene ${getCharacterTypeLabel(character.characterType)}`
-              : "Journey character"}
-          </p>
-          <h2 className="mt-1 text-4xl font-semibold text-content sm:text-5xl">
+          <h2 className="text-2xl font-semibold text-content sm:text-3xl">
             {character.name}
           </h2>
-          {character.description && (
-            <p className="mt-4 text-content-secondary">
-              {character.description}
-            </p>
-          )}
+          <p className="break-words text-content-secondary">
+            <span className="font-semibold text-utility-hover">
+              {character.isSceneCharacter
+                ? getCharacterTypeLabel(character.characterType)
+                : "Player"}
+            </span>
+            {character.description && ` - ${character.description}`}
+          </p>
 
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {!character.isActive && <StatusBadge label="Inactive" />}
             {character.isDown && <StatusBadge label="Down" danger />}
             {character.isDead && <StatusBadge label="Dead" danger />}
-            {character.isInAlternateForm && (
-              <StatusBadge label="Alternate form" />
-            )}
           </div>
 
-          <dl className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <PublicStat
               label="HP"
               value={`${character.currentHp} / ${character.maxHp}`}
@@ -529,16 +365,12 @@ function PublicCharacterView({
               value={character.meleeAttackDamage ?? "—"}
             />
             <PublicStat label="Bow" value={character.bowAttackDamage ?? "—"} />
-            <PublicStat
-              label="Inventory"
-              value={`${character.maxConsumableInventory} / ${character.maxEquippableInventory}`}
-            />
           </dl>
         </div>
       </div>
 
       <div className="space-y-8 border-t border-border p-6 sm:p-8">
-        <PublicSection title={`Spells (${character.spells.length})`}>
+        <PublicSection title="Spells">
           {character.spells.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {character.spells.map((spell) => (
@@ -550,9 +382,7 @@ function PublicCharacterView({
           )}
         </PublicSection>
 
-        <PublicSection
-          title={`Equipment (${character.equippableItems.length})`}
-        >
+        <PublicSection title="Equipment">
           {character.equippableItems.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {character.equippableItems.map((item) => (
@@ -564,9 +394,7 @@ function PublicCharacterView({
           )}
         </PublicSection>
 
-        <PublicSection
-          title={`Consumables (${character.consumableItems.length})`}
-        >
+        <PublicSection title="Consumables">
           {consumableGroups.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {consumableGroups.map(({ item, quantity }) => (
@@ -592,28 +420,30 @@ function PublicEventLogView({
   snapshot: PublicPlaythroughSnapshot;
 }) {
   return (
-    <section className="min-h-full w-full rounded-3xl bg-surface/75 p-6 backdrop-blur-[2px] sm:p-8">
-      <p className="text-sm font-semibold uppercase tracking-wider text-utility-hover">
-        Live playthrough
-      </p>
-      <h2 className="mt-1 text-4xl font-semibold text-content sm:text-5xl">
-        Event Log
-      </h2>
+    <section>
       {snapshot.eventLogs.length === 0 ? (
-        <p className="mt-6 text-content-muted">No events have been recorded.</p>
+        <p className="text-content-muted">No events have been recorded.</p>
       ) : (
-        <ol className="mt-7 space-y-4">
-          {snapshot.eventLogs.map((eventLog) => (
-            <li
-              key={eventLog.id}
-              className="rounded-2xl border border-border bg-surface/80 p-4"
-            >
-              <p className="font-semibold text-content">{eventLog.message}</p>
-              <time className="mt-1 block text-sm text-content-muted">
-                {formatDate(eventLog.eventTime)}
-              </time>
-            </li>
-          ))}
+        <ol className="space-y-4">
+          {[...snapshot.eventLogs]
+            .sort(
+              (a, b) =>
+                Date.parse(b.eventTime) - Date.parse(a.eventTime) ||
+                b.id - a.id,
+            )
+            .map((eventLog) => (
+              <li
+                key={eventLog.id}
+                className="rounded-2xl border border-border bg-surface/80 p-4"
+              >
+                <p className="break-words font-semibold text-content">
+                  {eventLog.message}
+                </p>
+                <time className="mt-1 block text-sm text-content-muted">
+                  {formatDate(eventLog.eventTime)}
+                </time>
+              </li>
+            ))}
         </ol>
       )}
     </section>
@@ -624,6 +454,7 @@ function SpellCard({ spell }: { spell: PublicPlaythroughSpell }) {
   return (
     <ItemCard
       imageUrl={spell.photoUrl}
+      imageAbove
       name={spell.name}
       description={spell.description}
     >
@@ -664,6 +495,7 @@ function EquipmentCard({ item }: { item: PublicPlaythroughEquippableItem }) {
   return (
     <ItemCard
       imageUrl={item.photoUrl}
+      imageAbove
       name={item.name}
       description={item.description}
     >
@@ -708,6 +540,7 @@ function ConsumableCard({
   return (
     <ItemCard
       imageUrl={item.photoUrl}
+      imageAbove
       name={item.name}
       description={item.description}
     >
@@ -746,24 +579,28 @@ function groupPublicConsumables(items: PublicPlaythroughConsumableItem[]) {
 
 function ItemCard({
   imageUrl,
+  imageAbove = false,
   name,
   description,
   children,
 }: {
   imageUrl: string | null;
+  imageAbove?: boolean;
   name: string;
   description: string;
   children: ReactNode;
 }) {
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-surface/80">
-      <div className="flex min-h-36">
-        <div className="flex w-1/3 shrink-0 items-center justify-center bg-canvas/70 p-2">
+      <div className={`flex min-h-36 ${imageAbove ? "flex-col" : ""}`}>
+        <div
+          className={`flex shrink-0 items-center justify-center bg-canvas/70 p-2 ${imageAbove ? "w-full" : "w-1/3"}`}
+        >
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              className="max-h-40 w-full object-contain"
+              className={`${imageAbove ? "max-h-20 w-1/2" : "max-h-40 w-full"} object-contain`}
             />
           ) : (
             <span className="text-xs text-content-muted">No image</span>
@@ -856,9 +693,9 @@ function getCharacterTypeLabel(type: CharacterType) {
     case CharacterType.NPC:
       return "NPC";
     case CharacterType.Enemy:
-      return "enemy";
+      return "Enemy";
     default:
-      return "character";
+      return "Player";
   }
 }
 
