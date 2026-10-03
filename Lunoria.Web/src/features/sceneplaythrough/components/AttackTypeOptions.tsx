@@ -29,7 +29,9 @@ const AttackTypeOptions = ({
       )}
       {participant.spells.some(
         (spell) =>
-          spell.damageEffect !== null || spell.isSupport || spell.isUtility,
+          (spell.damageEffect !== null || spell.isSupport || spell.isUtility) &&
+          (participant.lockedAttackTargetId == null ||
+            (!spell.isSupport && !spell.isUtility)),
       ) && (
         <TurnActionButton
           label="Cast Spell"

@@ -22,6 +22,7 @@ public sealed class ScenePTParticipantConfig : IEntityTypeConfiguration<ScenePTP
                 "[AttacksRemaining] >= 0");
         });
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.LockedAttackTargetId).IsRequired(false);
         builder.Property(x => x.AttacksRemaining)
             .IsRequired()
             .HasDefaultValue(1);

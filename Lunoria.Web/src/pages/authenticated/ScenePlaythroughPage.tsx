@@ -358,6 +358,10 @@ export function ScenePlaythroughPage() {
       content: (
         <TurnActionOptions
           participantType={participant.participantType}
+          attacksOnly={
+            participant.lockedAttackTargetId != null ||
+            participant.attacksRemaining < participant.attacksPerTurn
+          }
           canTransform={participant.canTransform}
           isInAlternateForm={participant.isInAlternateForm}
           hasUnopenedChests={unopenedChests.length > 0}
@@ -762,7 +766,10 @@ export function ScenePlaythroughPage() {
                 <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {scene.participants.map((participant) => {
                     const turnKey = `${scene.roundNumber}:${participant.id}`;
-                    const isAwaitingAction = awaitingActionTurnKey === turnKey;
+                    const isAwaitingAction =
+                      awaitingActionTurnKey === turnKey ||
+                      (participant.isCurrentParticipant &&
+                        participant.lockedAttackTargetId != null);
                     const hasBegunTurn = begunTurnKey === turnKey;
                     const turnPromptLabel = isAwaitingAction
                       ? "Select Action"

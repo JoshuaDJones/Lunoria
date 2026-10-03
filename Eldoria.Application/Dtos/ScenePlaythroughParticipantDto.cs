@@ -11,6 +11,7 @@ public sealed class ScenePlaythroughParticipantDto
     public bool IsCurrentParticipant { get; set; }
     public int AttacksPerTurn { get; set; }
     public int AttacksRemaining { get; set; }
+    public int? LockedAttackTargetId { get; set; }
     public int? JourneyPlaythroughCharacterId { get; set; }
     public int? ScenePlaythroughCharacterId { get; set; }
     public int PlaythroughCharacterId { get; set; }

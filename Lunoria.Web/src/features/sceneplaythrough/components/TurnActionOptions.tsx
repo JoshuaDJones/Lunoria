@@ -7,6 +7,7 @@ function TurnActionOptions({
   isInAlternateForm,
   hasUnopenedChests,
   hasConsumables,
+  attacksOnly = false,
   onSelect,
   onForfeit,
 }: {
@@ -15,12 +16,14 @@ function TurnActionOptions({
   isInAlternateForm: boolean;
   hasUnopenedChests: boolean;
   hasConsumables: boolean;
+  attacksOnly?: boolean;
   onSelect: (
     title: "Attack" | "Open Chest" | "Use Potion" | "Trade Item" | "Transform",
   ) => void;
   onForfeit: () => void;
 }) {
-  const canManageItems = participantType === ParticipantType.Player;
+  const canManageItems =
+    !attacksOnly && participantType === ParticipantType.Player;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -29,14 +32,14 @@ function TurnActionOptions({
         imageSrc="/Attack_Action.png"
         onClick={() => onSelect("Attack")}
       />
-      {canTransform && (
+      {!attacksOnly && canTransform && (
         <TurnActionButton
           label={isInAlternateForm ? "Revert" : "Transform"}
           imageSrc="/Transform_Action.png"
           onClick={() => onSelect("Transform")}
         />
       )}
-      {hasConsumables && (
+      {!attacksOnly && hasConsumables && (
         <TurnActionButton
           label="Use Potion"
           imageSrc="/Use_Potion_Action.png"
@@ -60,7 +63,7 @@ function TurnActionOptions({
         </>
       )}
       <TurnActionButton
-        label="Forfeit Action"
+        label={attacksOnly ? "Forfeit Remaining Attacks" : "Forfeit Action"}
         imageSrc="/Forfeit_Action.png"
         onClick={onForfeit}
       />

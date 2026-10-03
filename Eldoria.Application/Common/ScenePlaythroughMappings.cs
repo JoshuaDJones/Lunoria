@@ -262,6 +262,8 @@ public static class ScenePlaythroughMappings
             IsActive = participant.IsActive,
             IsCurrentParticipant = participant.Id == currentParticipantId,
             AttacksPerTurn = equipmentEffects.GetAttacksPerTurn(),
+            LockedAttackTargetId = participant.Id == currentParticipantId
+                ? participant.LockedAttackTargetId : null,
             AttacksRemaining = participant.Id == currentParticipantId
                 ? Math.Min(
                     participant.AttacksRemaining,

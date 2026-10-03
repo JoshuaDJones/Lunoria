@@ -35,10 +35,14 @@ const AttackResolutionOptions = ({
 }) => {
   const availableSpells = attacker.spells.filter(
     (spell) =>
-      spell.damageEffect !== null || spell.isSupport || spell.isUtility,
+      (spell.damageEffect !== null || spell.isSupport || spell.isUtility) &&
+      (attacker.lockedAttackTargetId == null ||
+        (!spell.isSupport && !spell.isUtility)),
   );
   const [chosenTargetId, setSelectedTargetId] = useState<number>();
-  const selectedTargetId = fixedTargetId ?? chosenTargetId;
+  const lockedTargetId =
+    fixedTargetId ?? attacker.lockedAttackTargetId ?? undefined;
+  const selectedTargetId = lockedTargetId ?? chosenTargetId;
   const [selectedRoll, setSelectedRoll] = useState<number>();
   const [selectedSpellId, setSelectedSpellId] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,7 +144,15 @@ const AttackResolutionOptions = ({
         />
       )}
 
-      {!isUtility && fixedTargetId === undefined && (
+      {fixedTargetId === undefined && attacker.lockedAttackTargetId != null && (
+        <p className="mt-4 text-content-secondary">
+          Remaining attacks target{" "}
+          {participants.find((p) => p.id === attacker.lockedAttackTargetId)
+            ?.name ?? "the original defender"}
+          .
+        </p>
+      )}
+      {!isUtility && lockedTargetId === undefined && (
         <section className="mt-6">
           <h3 className="text-lg font-semibold text-content">
             Select a target

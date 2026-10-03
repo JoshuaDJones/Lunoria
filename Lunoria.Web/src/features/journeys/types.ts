@@ -245,6 +245,7 @@ export interface ScenePlaythroughParticipant {
   isCurrentParticipant: boolean;
   attacksPerTurn: number;
   attacksRemaining: number;
+  lockedAttackTargetId: number | null;
   journeyPlaythroughCharacterId: number | null;
   scenePlaythroughCharacterId: number | null;
   playthroughCharacterId: number;

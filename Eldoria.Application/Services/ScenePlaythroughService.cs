@@ -71,6 +71,11 @@ public sealed partial class ScenePlaythroughService(
 
         var endedAt = DateTime.UtcNow;
         scene.Status = ScenePlaythroughStatus.Completed;
+        foreach (var participant in scene.SceneParticipants)
+        {
+            participant.LockedAttackTargetId = null;
+            participant.AttacksRemaining = 0;
+        }
         scene.EndedAt = endedAt;
         scene.CurrentParticipantId = null;
         scene.CurrentParticipant = null;
@@ -425,6 +430,7 @@ public sealed partial class ScenePlaythroughService(
             AddEvent(scene, $"Adjusted stats for {sceneCharacter.PlaythroughCharacter.Name}");
         }
 
+        ForfeitUnavailableAttackSequence(scene);
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return Result.Ok();
@@ -563,6 +569,13 @@ public sealed partial class ScenePlaythroughService(
             : null;
         var isUtility = selectedSpell is not null && selectedSpell.DamageEffect.GetValueOrDefault() == 0
             && selectedSpell.HealthEffect.GetValueOrDefault() == 0 && selectedSpell.MagicEffect.GetValueOrDefault() == 0;
+        if (!isCounterattack && attacker.LockedAttackTargetId is int lockedTargetId &&
+            (targetParticipantId != lockedTargetId || isUtility ||
+                (selectedSpell is not null && selectedSpell.DamageEffect.GetValueOrDefault() <= 0 &&
+                    (selectedSpell.HealthEffect > 0 || selectedSpell.MagicEffect > 0))))
+            return Result<SceneAttackResultDto>.Fail(new Error(
+                "ScenePlaythrough.TargetLocked",
+                "Remaining attacks must target the original defender. Attack that character or forfeit the remaining attacks."));
         if (isCounterattack && attackType == SceneAttackType.Spell &&
             (selectedSpell?.DamageEffect is null || isUtility ||
              (selectedSpell.DamageEffect <= 0 && (selectedSpell.HealthEffect > 0 || selectedSpell.MagicEffect > 0))))
@@ -817,16 +830,12 @@ public sealed partial class ScenePlaythroughService(
         }
         else
         {
+            attacker.LockedAttackTargetId ??= target.Id;
             attacker.AttacksRemaining--;
-            if (!targetDefeated)
-            {
-                scene.CounterattackerId = target.Id;
-                scene.CounterattackTargetId = attacker.Id;
-                scene.CounterattackToken = Guid.NewGuid();
-                AddEvent(scene, $"{targetName} may counterattack {attackerName}");
-            }
-            else if (attacker.AttacksRemaining == 0)
+            if (targetDefeated)
                 AdvanceTurn(scene, attacker);
+            else if (attacker.AttacksRemaining == 0)
+                FinishAttackSequence(scene, attacker);
         }
 
         await playthroughRepository.SaveChangesAsync(ct);
@@ -1419,7 +1428,7 @@ public sealed partial class ScenePlaythroughService(
             ?? participant.ScenePlaythroughCharacter?.PlaythroughCharacter.Name
             ?? "Unknown character";
         AddEvent(scene, $"{characterName} forfeited their action");
-        AdvanceTurn(scene, participant);
+        FinishAttackSequence(scene, participant);
 
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
@@ -2077,7 +2086,7 @@ public sealed partial class ScenePlaythroughService(
 
     private static Error? ValidateGeneralAction(ScenePTParticipant participant)
     {
-        return participant.AttacksRemaining <
+        return participant.LockedAttackTargetId is not null || participant.AttacksRemaining <
             ScenePlaythroughEquipmentEffects.For(participant).GetAttacksPerTurn()
             ? new Error("ScenePlaythrough.AttacksOnly", "Only attacks or spell casts are available after the first attack. You may also forfeit the remaining attacks.")
             : null;
@@ -2088,6 +2097,7 @@ public sealed partial class ScenePlaythroughService(
         ScenePTParticipant currentParticipant)
     {
         currentParticipant.AttacksRemaining = 0;
+        currentParticipant.LockedAttackTargetId = null;
         var participants = scene.SceneParticipants
             .Where(participant => participant.IsActive)
             .Append(currentParticipant)
@@ -2126,6 +2136,7 @@ public sealed partial class ScenePlaythroughService(
 
     private static void ResetAttacksForTurn(ScenePTParticipant participant)
     {
+        participant.LockedAttackTargetId = null;
         participant.AttacksRemaining =
             ScenePlaythroughEquipmentEffects.For(participant).GetAttacksPerTurn();
     }

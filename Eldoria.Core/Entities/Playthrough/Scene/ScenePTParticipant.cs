@@ -12,6 +12,8 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
         public ParticipantType ParticipantType { get; set; }
         public int? DownedTurnsRemaining { get; set; }
         public int AttacksRemaining { get; set; } = 1;
+        // A turn-scoped target, not a foreign key: defeated participants can be removed.
+        public int? LockedAttackTargetId { get; set; }
 
         public int ScenePlaythroughId { get; set; }
         public ScenePT ScenePlaythrough { get; set; } = null!;

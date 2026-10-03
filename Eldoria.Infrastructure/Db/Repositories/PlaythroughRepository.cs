@@ -230,6 +230,7 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
     {
         return dbContext.ScenePTs
             .AsSplitQuery()
+            .Include(scene => scene.SceneParticipants)
             .Include(scene => scene.SceneCharacters)
             .Include(scene => scene.Playthrough)
                 .ThenInclude(playthrough => playthrough.JourneyCharacters)

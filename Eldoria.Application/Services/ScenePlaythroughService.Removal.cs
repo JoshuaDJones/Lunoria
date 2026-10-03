@@ -25,6 +25,8 @@ public sealed partial class ScenePlaythroughService
         scene.SceneParticipants.Remove(participant);
         if (scene.CurrentParticipantId == participant.Id)
             AdvanceTurn(scene, participant);
+        else
+            ForfeitUnavailableAttackSequence(scene);
 
         AddEvent(scene, $"Removed {character.PlaythroughCharacter.Name} from {scene.Name}");
         await playthroughRepository.SaveChangesAsync(ct);

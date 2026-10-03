@@ -38,16 +38,47 @@ public sealed partial class ScenePlaythroughService
 
     private static void ResumeTurnAfterCounterattack(ScenePT scene, ScenePTParticipant turnOwner)
     {
-        var currentHp = turnOwner.JourneyPlaythroughCharacter?.CurrentHp
-            ?? turnOwner.ScenePlaythroughCharacter?.CurrentHp ?? 0;
-        if (!turnOwner.IsActive || currentHp <= 0 ||
-            turnOwner.JourneyPlaythroughCharacter?.IsDown == true ||
-            turnOwner.ScenePlaythroughCharacter?.IsDead == true ||
-            turnOwner.AttacksRemaining <= 0)
+        AdvanceTurn(scene, turnOwner);
+    }
+
+    private static bool CanContinueAttacking(ScenePTParticipant participant) =>
+        participant.IsActive &&
+        (participant.JourneyPlaythroughCharacter?.CurrentHp ??
+            participant.ScenePlaythroughCharacter?.CurrentHp ?? 0) > 0 &&
+        participant.JourneyPlaythroughCharacter?.IsDown != true &&
+        participant.ScenePlaythroughCharacter?.IsDead != true;
+
+    private static void FinishAttackSequence(ScenePT scene, ScenePTParticipant attacker)
+    {
+        attacker.AttacksRemaining = 0;
+        var defender = scene.SceneParticipants.SingleOrDefault(p => p.Id == attacker.LockedAttackTargetId);
+        if (defender is null || !CanContinueAttacking(attacker) || !CanContinueAttacking(defender) ||
+            !IsValidAttackTarget(attacker, defender))
         {
-            AdvanceTurn(scene, turnOwner);
+            AdvanceTurn(scene, attacker);
+            return;
         }
-        // Otherwise preserve the current participant and their remaining attacks.
+
+        scene.CounterattackerId = defender.Id;
+        scene.CounterattackTargetId = attacker.Id;
+        scene.CounterattackToken = Guid.NewGuid();
+        var defenderName = defender.JourneyPlaythroughCharacter?.PlaythroughCharacter.Name
+            ?? defender.ScenePlaythroughCharacter?.PlaythroughCharacter.Name;
+        var attackerName = attacker.JourneyPlaythroughCharacter?.PlaythroughCharacter.Name
+            ?? attacker.ScenePlaythroughCharacter?.PlaythroughCharacter.Name;
+        AddEvent(scene, $"{defenderName} may counterattack {attackerName}");
+    }
+
+    // GM changes/removals can invalidate a target between attacks.
+    private static void ForfeitUnavailableAttackSequence(ScenePT scene)
+    {
+        var attacker = scene.SceneParticipants.SingleOrDefault(p => p.Id == scene.CurrentParticipantId);
+        if (attacker?.LockedAttackTargetId is not int targetId || scene.CounterattackToken is not null)
+            return;
+        var target = scene.SceneParticipants.SingleOrDefault(p => p.Id == targetId);
+        if (target is null || !CanContinueAttacking(attacker) || !CanContinueAttacking(target) ||
+            !IsValidAttackTarget(attacker, target))
+            AdvanceTurn(scene, attacker);
     }
 
     private static void ClearCounterattack(ScenePT scene)
