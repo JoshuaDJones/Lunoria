@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { prepareSceneEntry } from "@/features/sceneplaythrough/utils/sceneEntry";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useModalStack, useToast } from "@/app/providers";
 import { Button, Card } from "@/components/ui";
@@ -255,6 +255,12 @@ export function PlaythroughPage() {
                 ? `${playthrough.playthrough.name}`
                 : ""}
             </h1>
+            <Link
+              to={`/series/${seriesId}/journeys/${journeyId}/play`}
+              className="text-sm text-content-secondary hover:text-brand-hover"
+            >
+              ← Back to Play Hub
+            </Link>
           </div>
           {playthrough && (
             <div className="flex flex-wrap gap-3">

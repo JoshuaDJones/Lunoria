@@ -105,13 +105,14 @@ export function PlayHubPage() {
 
   return (
     <AppLayout
-      scrolling
+      fixedViewport
+      bottomPadding
       background={
         <div className="stone-image absolute inset-0 z-0 h-full w-full" />
       }
     >
-      <main className="w-full p-6 sm:p-10">
-        <header className="mb-6 flex flex-wrap items-end justify-between gap-5">
+      <main className="flex min-h-0 w-full flex-1 flex-col px-6 pt-6 pb-4 sm:px-10 sm:pt-10">
+        <header className="mb-6 flex shrink-0 flex-wrap items-end justify-between gap-5">
           <div>
             <h1 className="text-4xl text-content sm:text-5xl lg:text-6xl">
               Play Hub{journeyName ? ` - ${journeyName}` : ""}
@@ -134,7 +135,7 @@ export function PlayHubPage() {
           </Button>
         </header>
 
-        <section className="min-h-[30rem] rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] sm:p-6">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] sm:p-6">
           {isLoading && (
             <p className="text-content-secondary" role="status">
               Loading playthroughs...
@@ -149,7 +150,7 @@ export function PlayHubPage() {
           )}
 
           {!isLoading && !error && (
-            <div className="grid gap-8 xl:grid-cols-2">
+            <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-8 xl:grid-cols-2 xl:grid-rows-1">
               <PlaythroughSection
                 title="In Progress"
                 emptyMessage="No playthroughs are currently in progress."
@@ -158,6 +159,7 @@ export function PlayHubPage() {
               />
               <PlaythroughSection
                 title="Completed"
+                scrollItems
                 emptyMessage="No playthroughs have been completed yet."
                 playthroughs={completed}
                 onResume={navigateToPlaythrough}
@@ -171,6 +173,7 @@ export function PlayHubPage() {
 }
 
 interface PlaythroughSectionProps {
+  scrollItems?: boolean;
   title: string;
   emptyMessage: string;
   playthroughs: PlaythroughSummary[];
@@ -178,27 +181,33 @@ interface PlaythroughSectionProps {
 }
 
 function PlaythroughSection({
+  scrollItems = false,
   title,
   emptyMessage,
   playthroughs,
   onResume,
 }: PlaythroughSectionProps) {
   return (
-    <section>
-      <div className="flex items-center justify-between gap-3">
+    <section className="flex min-h-0 min-w-0 flex-col">
+      <div className="flex shrink-0 items-center justify-between gap-3">
         <h2 className="text-3xl font-semibold text-content">{title}</h2>
         <span className="rounded-full bg-surface px-3 py-1 text-sm text-content-secondary">
           {playthroughs.length}
         </span>
       </div>
-      <div className="mt-3 h-px w-full bg-border" />
+      <div className="mt-3 h-px w-full shrink-0 bg-border" />
 
       {playthroughs.length === 0 ? (
         <p className="mt-5 rounded-xl border border-border bg-surface/50 p-5 text-content-muted">
           {emptyMessage}
         </p>
       ) : (
-        <div className="mt-5 space-y-4">
+        <div
+          className={`mt-5 space-y-4 ${scrollItems ? "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-2" : ""}`}
+          tabIndex={scrollItems ? 0 : undefined}
+          role={scrollItems ? "region" : undefined}
+          aria-label={scrollItems ? "Completed playthroughs" : undefined}
+        >
           {playthroughs.map((playthrough) => (
             <article
               key={playthrough.id}
