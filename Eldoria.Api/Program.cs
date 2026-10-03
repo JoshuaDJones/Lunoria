@@ -1,5 +1,4 @@
 using Eldoria.Application;
-using Eldoria.Api.GridPrototype;
 using Eldoria.Api.PlaythroughRealtime;
 using Eldoria.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -79,12 +78,8 @@ builder.Services.AddAuthorization(options =>
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddInfrastructure(conn);
 builder.Services.AddApplication();
-builder.Services.AddSingleton<GridPrototypeSessionStore>();
 builder.Services.AddSingleton<IPlaythroughRealtimeNotifier, PlaythroughRealtimeNotifier>();
-builder.Services.AddSignalR(options =>
-{
-    options.MaximumReceiveMessageSize = 4 * 1024 * 1024;
-});
+builder.Services.AddSignalR();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -187,7 +182,6 @@ app.Use(async (ctx, next) =>
 });
 
 app.MapControllers();
-app.MapHub<GridPrototypeHub>("/hubs/grid-prototype").AllowAnonymous();
 app.MapHub<PlaythroughHub>("/hubs/playthrough")
     .AllowAnonymous()
     .RequireRateLimiting("public-playthrough");

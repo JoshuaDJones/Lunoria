@@ -19,15 +19,10 @@ import { JourneyIntroPagesPage } from "@/pages/authenticated/JourneyIntroPagesPa
 import { PlayHubPage } from "@/pages/authenticated/PlayHubPage";
 import { PlaythroughPage } from "@/pages/authenticated/PlaythroughPage";
 import { ScenePlaythroughPage } from "@/pages/authenticated/ScenePlaythroughPage";
-import { GridPrototypePage } from "@/pages/public/GridPrototypePage";
 import { PlaythroughGuestPage } from "@/pages/public/PlaythroughGuestPage";
 import { SceneGridPage } from "@/pages/authenticated/SceneGridPage";
 
 export const router = createBrowserRouter([
-  {
-    path: "/grid-prototype",
-    element: <GridPrototypePage />,
-  },
   {
     path: "/join/:token",
     element: <PlaythroughGuestPage />,
