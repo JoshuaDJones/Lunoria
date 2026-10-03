@@ -68,7 +68,7 @@ export function PlayHubPage() {
 
   const navigateToPlaythrough = (
     playthroughId: number,
-    showIntroPages = false,
+    showIntroPages = true,
   ) => {
     navigate(
       `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}`,
