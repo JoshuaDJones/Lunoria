@@ -201,6 +201,7 @@ export enum SceneAttackType {
 }
 
 export interface ScenePlaythroughSpell {
+  photoUrl: string | null;
   range: number;
   isRadius: boolean;
   isUtility: boolean;
@@ -226,6 +227,8 @@ export interface ScenePlaythroughParticipant {
     id: number;
     name: string;
     description: string;
+    photoUrl: string | null;
+    portraitUrl: string | null;
     maxHp: number;
     maxMp: number;
     movement: number;

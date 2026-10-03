@@ -47,6 +47,8 @@ public sealed class SceneAlternateFormDetailsDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? PhotoUrl { get; set; }
+    public string? PortraitUrl { get; set; }
     public int MaxHp { get; set; }
     public int MaxMp { get; set; }
     public int Movement { get; set; }

@@ -1,9 +1,9 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ParticipantType,
   type ScenePlaythroughParticipant,
   type ScenePlaythroughSpell,
-} from "../types";
+} from "@/features/journeys/types";
 
 export function ParticipantDetails({
   participant: p,
@@ -56,11 +56,12 @@ export function ParticipantDetails({
   ];
   return (
     <div className="space-y-6 text-content">
-      {p.description && (
-        <p className="whitespace-pre-wrap text-content-secondary">
-          {p.description}
-        </p>
-      )}
+      <DetailHeading
+        name={p.name}
+        description={p.description}
+        imageUrl={p.portraitUrl?.trim() || p.photoUrl}
+        character
+      />
       <Section title="Stats">
         <p className="mb-3 text-sm text-content-muted">
           Current values include equipment effects.
@@ -70,15 +71,14 @@ export function ParticipantDetails({
       <Section title="Transformation character">
         {p.alternateForm ? (
           <>
-            <h4 className="font-semibold">
-              {p.alternateForm.name}
-              {p.isInAlternateForm ? " (current form)" : ""}
-            </h4>
-            {p.alternateForm.description && (
-              <p className="whitespace-pre-wrap text-sm text-content-secondary">
-                {p.alternateForm.description}
-              </p>
-            )}
+            <DetailHeading
+              name={`${p.alternateForm.name}${p.isInAlternateForm ? " (current form)" : ""}`}
+              description={p.alternateForm.description}
+              imageUrl={
+                p.alternateForm.portraitUrl?.trim() || p.alternateForm.photoUrl
+              }
+              character
+            />
             <p className="text-sm text-content-muted">
               Saved base character data, not the participant’s live stats.
               Transformation uses this form’s movement, melee, bow, and spells.
@@ -106,7 +106,7 @@ export function ParticipantDetails({
               ]}
             />
             <h5 className="font-semibold">
-              Base spells ({p.alternateForm.spells.length})
+              Base spells
             </h5>
             {p.alternateForm.spells.length ? (
               p.alternateForm.spells.map((spell) => (
@@ -120,14 +120,14 @@ export function ParticipantDetails({
           <Empty>No alternate form assigned.</Empty>
         )}
       </Section>
-      <Section title={`Spells (${p.spells.length})`}>
+      <Section title="Spells">
         {p.spells.length ? (
           p.spells.map((spell) => <SpellData key={spell.id} spell={spell} />)
         ) : (
           <Empty>No spells.</Empty>
         )}
       </Section>
-      <Section title={`Equipment (${p.equippableItems.length})`}>
+      <Section title="Equipment">
         {p.equippableItems.length ? (
           p.equippableItems.map((link) => {
             const item = link.item;
@@ -136,7 +136,7 @@ export function ParticipantDetails({
                 key={link.inventoryItemId}
                 className="rounded-lg border border-border p-3"
               >
-                <h4 className="font-semibold">{item.name}</h4>
+                <DetailHeading name={item.name} imageUrl={item.photoUrl} />
                 {item.description && (
                   <p className="my-2 whitespace-pre-wrap text-sm text-content-secondary">
                     {item.description}
@@ -187,14 +187,17 @@ export function ParticipantDetails({
           <Empty>No equipment.</Empty>
         )}
       </Section>
-      <Section title={`Consumables (${p.consumableItems.length})`}>
+      <Section title="Consumables">
         {p.consumableItems.length ? (
           p.consumableItems.map((link) => (
             <article
               key={link.inventoryItemId}
               className="rounded-lg border border-border p-3"
             >
-              <h4 className="font-semibold">{link.item.name}</h4>
+              <DetailHeading
+                name={link.item.name}
+                imageUrl={link.item.photoUrl}
+              />
               {link.item.description && (
                 <p className="my-2 whitespace-pre-wrap text-sm text-content-secondary">
                   {link.item.description}
@@ -219,7 +222,7 @@ export function ParticipantDetails({
 function SpellData({ spell }: { spell: ScenePlaythroughSpell }) {
   return (
     <article className="rounded-lg border border-border p-3">
-      <h4 className="font-semibold">{spell.name}</h4>
+      <DetailHeading name={spell.name} imageUrl={spell.photoUrl} />
       {spell.description && (
         <p className="my-2 whitespace-pre-wrap text-sm text-content-secondary">
           {spell.description}
@@ -244,6 +247,74 @@ function SpellData({ spell }: { spell: ScenePlaythroughSpell }) {
         ]}
       />
     </article>
+  );
+}
+
+function DetailHeading({
+  name,
+  description,
+  imageUrl,
+  character = false,
+}: {
+  name: string;
+  description?: string;
+  imageUrl?: string | null;
+  character?: boolean;
+}) {
+  const [failedUrl, setFailedUrl] = useState<string>();
+  const src = imageUrl?.trim();
+  return (
+    <div
+      className={
+        character
+          ? "mb-8 flex flex-col items-center gap-4 text-center"
+          : "mb-3 flex items-start gap-4"
+      }
+    >
+      <div
+        className={
+          character
+            ? "flex w-full justify-center"
+            : "flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-canvas"
+        }
+      >
+        {src && src !== failedUrl ? (
+          <img
+            src={src}
+            alt={name}
+            loading="lazy"
+            className={
+              character
+                ? "h-auto w-auto max-h-64 max-w-full rounded-xl sm:max-h-80"
+                : "h-full w-full object-contain"
+            }
+            onError={() => setFailedUrl(src)}
+          />
+        ) : (
+          <span className="p-2 text-center text-xs text-content-muted">
+            No image
+          </span>
+        )}
+      </div>
+      <div
+        className={character ? "w-full min-w-0 text-center" : "min-w-0 flex-1"}
+      >
+        <h4
+          className={
+            character
+              ? "break-words text-xl font-semibold"
+              : "break-words font-semibold"
+          }
+        >
+          {name}
+        </h4>
+        {description && (
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm text-content-secondary">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 

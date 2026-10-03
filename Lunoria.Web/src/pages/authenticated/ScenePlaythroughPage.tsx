@@ -720,7 +720,7 @@ export function ScenePlaythroughPage() {
                         participant={participant}
                         onShowDetails={() =>
                           modalStack.push({
-                            title: `${participant.name} — Details`,
+                            title: "Character Details",
                             placement: "center",
                             content: (
                               <ParticipantDetails participant={participant} />

@@ -214,6 +214,9 @@ public static class ScenePlaythroughMappings
                     Id = spell.Id,
                     Name = spell.Name,
                     Description = spell.Description,
+                    PhotoUrl = string.IsNullOrWhiteSpace(spell.PhotoUrl)
+                        ? spell.PlaythroughSpellType?.PhotoUrl
+                        : spell.PhotoUrl,
                     MpCost = spell.MpCost,
                     Range = spell.Range,
                     IsRadius = spell.IsRadius,
@@ -303,6 +306,8 @@ public static class ScenePlaythroughMappings
                 Id = alternateForm.Id,
                 Name = alternateForm.Name,
                 Description = alternateForm.Description,
+                PhotoUrl = alternateForm.PhotoUrl,
+                PortraitUrl = alternateForm.PortraitUrl,
                 MaxHp = alternateForm.BaseMaxHp,
                 MaxMp = alternateForm.BaseMaxMp,
                 Movement = alternateForm.BaseMovement,
@@ -315,6 +320,9 @@ public static class ScenePlaythroughMappings
                     .Select(spell => new ScenePlaythroughSpellDto
                     {
                         Id = spell.Id, Name = spell.Name, Description = spell.Description,
+                        PhotoUrl = string.IsNullOrWhiteSpace(spell.PhotoUrl)
+                            ? spell.PlaythroughSpellType?.PhotoUrl
+                            : spell.PhotoUrl,
                         MpCost = spell.MpCost, Range = spell.Range, IsRadius = spell.IsRadius,
                         DamageEffect = spell.DamageEffect, HealthEffect = spell.HealthEffect, MagicEffect = spell.MagicEffect,
                         IsSupport = spell.DamageEffect.GetValueOrDefault() <= 0 && (spell.HealthEffect > 0 || spell.MagicEffect > 0),
@@ -341,6 +349,9 @@ public static class ScenePlaythroughMappings
                     Id = spell.Id,
                     Name = spell.Name,
                     Description = spell.Description,
+                    PhotoUrl = string.IsNullOrWhiteSpace(spell.PhotoUrl)
+                        ? spell.PlaythroughSpellType?.PhotoUrl
+                        : spell.PhotoUrl,
                     MpCost = spell.MpCost,
                     Range = spell.Range,
                     IsRadius = spell.IsRadius,
