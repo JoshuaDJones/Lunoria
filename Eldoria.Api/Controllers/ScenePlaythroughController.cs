@@ -12,6 +12,7 @@ namespace Eldoria.Api.Controllers;
 [ApiController]
 public sealed class ScenePlaythroughController(
     IScenePlaythroughService scenePlaythroughService,
+    ISceneObjectiveService objectiveService,
     IPlaythroughRealtimeNotifier realtimeNotifier) : ControllerBase
 {
     [HttpGet]
@@ -34,6 +35,15 @@ public sealed class ScenePlaythroughController(
             "ScenePlaythrough.NotFound" => NotFound(result.Error),
             _ => BadRequest(result.Error)
         };
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPut("objectives/current")]
+    public async Task<IActionResult> SelectObjective(int playthroughId, int sceneId,
+        SelectSceneObjectiveInput input, CancellationToken ct)
+    {
+        var result = await objectiveService.SelectAsync(User.GetUserId(), playthroughId, sceneId, input.Index, ct);
+        return await CompleteMutationAsync(result, playthroughId, "ObjectivesChanged", ct);
     }
 
     [HttpPost("start")]

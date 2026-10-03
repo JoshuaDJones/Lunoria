@@ -20,6 +20,10 @@ public static class PublicPlaythroughMappings
         return new PublicPlaythroughSnapshotDto
         {
             Name = playthrough.Name,
+            ActiveSceneId = activeScenes.LastOrDefault()?.Id,
+            CurrentObjective = activeScenes.LastOrDefault() is { } objectiveScene
+                ? objectiveScene.ToObjectiveDtos().ElementAtOrDefault(objectiveScene.CurrentObjectiveIndex)
+                : null,
             ActiveScenePhotoUrl = activeScenes.LastOrDefault()?.PhotoUrl,
             ActiveSceneName = activeScenes.Count == 0
                 ? null

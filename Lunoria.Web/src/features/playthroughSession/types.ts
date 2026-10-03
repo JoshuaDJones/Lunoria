@@ -96,6 +96,9 @@ export interface PublicPlaythroughEventLog {
 }
 
 export interface PublicPlaythroughSnapshot {
+  activeSceneId: number | null;
+  currentObjective:
+    import("@/features/scenes/objectives").SceneObjective | null;
   name: string;
   activeSceneName: string | null;
   activeScenePhotoUrl: string | null;

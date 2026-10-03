@@ -16,6 +16,7 @@ import {
 interface SceneCardProps {
   scene: Scene;
   onViewEvents: (scene: Scene) => void;
+  onViewObjectives: (scene: Scene) => void;
   onViewChests: (scene: Scene) => void;
   onViewCharacters: (scene: Scene) => void;
   onViewDialogs: (scene: Scene) => void;
@@ -26,6 +27,7 @@ interface SceneCardProps {
 export function SceneCard({
   scene,
   onViewEvents,
+  onViewObjectives,
   onViewChests,
   onViewCharacters,
   onViewDialogs,
@@ -123,6 +125,17 @@ export function SceneCard({
           leftIcon={<FontAwesomeIcon icon={faBolt} />}
         >
           Events
+        </Button>
+        <Button
+          variant="utility"
+          inverted
+          size="md"
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewObjectives(scene);
+          }}
+        >
+          Objectives
         </Button>
         <Button
           onClick={(event) => {

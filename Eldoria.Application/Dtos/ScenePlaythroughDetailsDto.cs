@@ -13,6 +13,8 @@ public sealed class ScenePlaythroughDetailsDto
     public ScenePlaythroughGridDto? Grid { get; set; }
     public ScenePlaythroughStatus Status { get; set; }
     public int RoundNumber { get; set; }
+    public int CurrentObjectiveIndex { get; set; }
+    public List<SceneObjectiveDto> Objectives { get; set; } = [];
     public int? CounterattackerId { get; set; }
     public int? CounterattackTargetId { get; set; }
     public Guid? CounterattackToken { get; set; }

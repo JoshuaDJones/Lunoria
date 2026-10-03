@@ -6,6 +6,7 @@ interface SceneGridProps {
   scenes: Scene[];
   className?: string;
   onViewEvents: (scene: Scene) => void;
+  onViewObjectives: (scene: Scene) => void;
   onViewChests: (scene: Scene) => void;
   onViewCharacters: (scene: Scene) => void;
   onViewDialogs: (scene: Scene) => void;
@@ -17,6 +18,7 @@ export function SceneGrid({
   scenes,
   className,
   onViewEvents,
+  onViewObjectives,
   onViewChests,
   onViewCharacters,
   onViewDialogs,
@@ -30,6 +32,7 @@ export function SceneGrid({
           key={scene.id}
           scene={scene}
           onViewEvents={onViewEvents}
+          onViewObjectives={onViewObjectives}
           onViewChests={onViewChests}
           onViewCharacters={onViewCharacters}
           onViewDialogs={onViewDialogs}

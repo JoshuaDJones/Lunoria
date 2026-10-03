@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { SceneObjectivesPanel } from "@/features/sceneplaythrough/components/SceneObjectivesPanel";
+import { selectSceneObjective } from "@/features/scenes/objectives";
 import { useSceneEntrance } from "@/features/sceneplaythrough/hooks/useSceneEntrance";
 import {
   getPreparedScene,
@@ -91,6 +93,9 @@ export function ScenePlaythroughPage() {
   );
   const [isLoading, setIsLoading] = useState(!preparedScene);
   const [isTitleHovered, setIsTitleHovered] = useState(false);
+  const [objectiveBusy, setObjectiveBusy] = useState(false);
+  const [objectiveError, setObjectiveError] = useState("");
+  const objectiveSubmitting = useRef(false);
   const [error, setError] = useState("");
   const entrance = useSceneEntrance(
     `${playthroughId}:${sceneId}`,
@@ -801,6 +806,36 @@ export function ScenePlaythroughPage() {
         )}
       </main>
 
+      {scene && !isLoading && !error && (
+        <SceneObjectivesPanel
+          key={scene.id}
+          objective={scene.objectives?.[scene.currentObjectiveIndex]}
+          index={scene.currentObjectiveIndex}
+          count={scene.objectives?.length ?? 0}
+          busy={objectiveBusy}
+          error={objectiveError}
+          visible={entrance.isReady && !isTitleHovered}
+          onSelect={(index) => {
+            if (objectiveSubmitting.current) return;
+            objectiveSubmitting.current = true;
+            setObjectiveBusy(true);
+            setObjectiveError("");
+            void selectSceneObjective(playthroughId, sceneId, index)
+              .then(() =>
+                setScene((current) =>
+                  current?.id === sceneId
+                    ? { ...current, currentObjectiveIndex: index }
+                    : current,
+                ),
+              )
+              .catch((e) => setObjectiveError(getApiError(e).message))
+              .finally(() => {
+                objectiveSubmitting.current = false;
+                setObjectiveBusy(false);
+              });
+          }}
+        />
+      )}
       {isOptionsOpen && entrance.isReady && (
         <Drawer title="Scene Options" onClose={() => setIsOptionsOpen(false)}>
           {scene && (

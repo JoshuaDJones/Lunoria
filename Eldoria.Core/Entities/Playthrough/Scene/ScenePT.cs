@@ -13,6 +13,8 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
         public string? FileName { get; set; } = string.Empty;
         public string? GridUrl { get; set; } = string.Empty;
         public int SortOrder { get; set; }
+        public int CurrentObjectiveIndex { get; set; }
+        public ICollection<ScenePTObjective> Objectives { get; set; } = [];
 
         public ScenePlaythroughStatus Status { get; set; } = ScenePlaythroughStatus.NotStarted;        
         public int RoundNumber { get; set; }

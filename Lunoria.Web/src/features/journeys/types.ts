@@ -390,6 +390,8 @@ export interface ScenePlaythroughDialog {
 }
 
 export interface ScenePlaythroughDetails {
+  objectives: import("@/features/scenes/objectives").SceneObjective[];
+  currentObjectiveIndex: number;
   counterattackerId: number | null;
   counterattackTargetId: number | null;
   counterattackToken: string | null;

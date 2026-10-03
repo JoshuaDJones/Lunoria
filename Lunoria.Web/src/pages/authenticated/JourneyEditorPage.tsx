@@ -24,6 +24,7 @@ import {
   type Scene,
 } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
+import { SceneObjectiveEditor } from "@/features/scenes/components/SceneObjectiveEditor";
 
 export function JourneyEditorPage() {
   const { confirm } = useConfirmDialog();
@@ -44,6 +45,8 @@ export function JourneyEditorPage() {
   const [isOrderingScenes, setIsOrderingScenes] = useState(false);
   const [isManagingCharacters, setIsManagingCharacters] = useState(false);
   const [eventsScene, setEventsScene] = useState<Scene>();
+  const [objectivesScene, setObjectivesScene] = useState<Scene>();
+  const [objectivesBusy, setObjectivesBusy] = useState(false);
   const [chestsScene, setChestsScene] = useState<Scene>();
   const [charactersScene, setCharactersScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
@@ -227,6 +230,7 @@ export function JourneyEditorPage() {
                     scenes={scenes}
                     className="sm:grid-cols-1 xl:grid-cols-2"
                     onViewEvents={setEventsScene}
+                    onViewObjectives={setObjectivesScene}
                     onViewChests={setChestsScene}
                     onViewCharacters={setCharactersScene}
                     onEdit={setEditingScene}
@@ -303,6 +307,20 @@ export function JourneyEditorPage() {
         </Drawer>
       )}
 
+      {objectivesScene && (
+        <Drawer
+          title={`${objectivesScene.name} Objectives`}
+          onClose={() => {
+            if (!objectivesBusy) setObjectivesScene(undefined);
+          }}
+        >
+          <SceneObjectiveEditor
+            key={objectivesScene.id}
+            sceneId={objectivesScene.id}
+            onBusyChange={setObjectivesBusy}
+          />
+        </Drawer>
+      )}
       {eventsScene && (
         <Drawer
           title={`${eventsScene.name} Events`}

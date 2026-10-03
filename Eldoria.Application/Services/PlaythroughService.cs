@@ -351,6 +351,14 @@ public sealed class PlaythroughService(
         foreach (var sourceScene in sourceJourney.Scenes)
         {
             var scenePT = scenePTsBySourceId[sourceScene.Id];
+            scenePT.Objectives = sourceScene.Objectives.OrderBy(o => o.SortOrder).ThenBy(o => o.Id)
+                .Select((o, index) => new ScenePTObjective {
+                    SortOrder = index,
+                    Points = o.Points.OrderBy(p => p.SortOrder).ThenBy(p => p.Id)
+                        .Select((p, pointIndex) => new ScenePTObjectivePoint {
+                            Text = p.Text, SortOrder = pointIndex
+                        }).ToList()
+                }).ToList();
 
             if (sourceScene.Grid is not null)
             {

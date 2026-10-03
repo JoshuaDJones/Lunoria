@@ -19,6 +19,7 @@ import {
   type PublicPlaythroughSpell,
 } from "@/features/playthroughSession";
 import { getApiError } from "@/lib/apiClient";
+import { SceneObjectivesPanel } from "@/features/sceneplaythrough/components/SceneObjectivesPanel";
 
 type DeckEntry =
   | {
@@ -78,18 +79,21 @@ export function PlaythroughGuestPage() {
 
     let isCurrent = true;
     const connection = createPlaythroughSessionConnection(token);
+    let latestRefresh = 0;
 
     const refresh = async () => {
+      const refreshId = ++latestRefresh;
       try {
         const nextSnapshot = await getPublicPlaythroughSnapshot(token);
-        if (isCurrent) {
+        if (isCurrent && refreshId === latestRefresh) {
           setSnapshot(nextSnapshot);
           setError("");
         }
       } catch (requestError: unknown) {
-        if (isCurrent) setError(getApiError(requestError).message);
+        if (isCurrent && refreshId === latestRefresh)
+          setError(getApiError(requestError).message);
       } finally {
-        if (isCurrent) setIsLoading(false);
+        if (isCurrent && refreshId === latestRefresh) setIsLoading(false);
       }
     };
 
@@ -118,7 +122,11 @@ export function PlaythroughGuestPage() {
       .start()
       .then(() => connection.invoke("JoinPlaythrough", token))
       .then(() => {
-        if (isCurrent) setIsRealtimeConnected(true);
+        if (isCurrent) {
+          setIsRealtimeConnected(true);
+          // Catch objective changes between the initial fetch and joining the group.
+          void refresh();
+        }
       })
       .catch(() => {
         if (isCurrent) setIsRealtimeConnected(false);
@@ -264,6 +272,11 @@ export function PlaythroughGuestPage() {
                 <FontAwesomeIcon icon={faChevronRight} />
               </Button>
             </nav>
+            <SceneObjectivesPanel
+              key={snapshot.activeSceneId}
+              objective={snapshot.currentObjective}
+              guest
+            />
             {showEventLogs && (
               <Drawer
                 title="Event logs"

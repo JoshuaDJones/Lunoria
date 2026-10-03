@@ -11,6 +11,7 @@ namespace Eldoria.Core.Entities
         public string? FileName { get; set; } = string.Empty;
         public string? GridUrl { get; set; } = string.Empty;
         public int SortOrder { get; set; }
+        public ICollection<SceneObjective> Objectives { get; set; } = [];
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

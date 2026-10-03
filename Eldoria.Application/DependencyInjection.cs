@@ -22,6 +22,7 @@ namespace Eldoria.Application
             services.AddScoped<IPlaythroughJoinSessionService, PlaythroughJoinSessionService>();
             services.AddScoped<IScenePlaythroughService, ScenePlaythroughService>();
             services.AddScoped<ISceneService, SceneService>();
+            services.AddScoped<ISceneObjectiveService, SceneObjectiveService>();
             services.AddScoped<ISceneEventService, SceneEventService>();
             services.AddScoped<ISceneGridService, SceneGridService>();
             services.AddScoped<ISceneChestService, SceneChestService>();

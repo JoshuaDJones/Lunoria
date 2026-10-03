@@ -5,6 +5,8 @@ public sealed class PublicPlaythroughSnapshotDto
     public string Name { get; set; } = string.Empty;
     public string? ActiveSceneName { get; set; }
     public string? ActiveScenePhotoUrl { get; set; }
+    public int? ActiveSceneId { get; set; }
+    public SceneObjectiveDto? CurrentObjective { get; set; }
     public List<PublicPlaythroughCharacterDto> JourneyCharacters { get; set; } = [];
     public List<PublicPlaythroughCharacterDto> SceneCharacters { get; set; } = [];
     public List<PlaythroughEventLogDto> EventLogs { get; set; } = [];

@@ -58,6 +58,8 @@ public sealed class PlaythroughJoinSessionRepository(ApplicationDbContext dbCont
         return dbContext.Playthroughs
             .AsNoTrackingWithIdentityResolution()
             .AsSplitQuery()
+            .Include(playthrough => playthrough.Scenes)
+                .ThenInclude(scene => scene.Objectives).ThenInclude(objective => objective.Points)
             .Where(playthrough =>
                 playthrough.CompletedAt == null &&
                 playthrough.JoinSession != null &&

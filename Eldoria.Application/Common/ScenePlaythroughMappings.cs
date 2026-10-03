@@ -12,6 +12,8 @@ public static class ScenePlaythroughMappings
         return new ScenePlaythroughDetailsDto
         {
             Id = scene.Id,
+            CurrentObjectiveIndex = scene.CurrentObjectiveIndex,
+            Objectives = scene.ToObjectiveDtos(),
             PlaythroughId = scene.PlaythroughId,
             Name = scene.Name,
             Description = scene.Description,
