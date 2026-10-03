@@ -5,15 +5,17 @@ interface DrawerProps {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  closeDisabled?: boolean;
 }
 
-export function Drawer({ title, children, onClose }: DrawerProps) {
+export function Drawer({ title, children, onClose, closeDisabled = false }: DrawerProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === "Escape" &&
+        !closeDisabled &&
         !document.querySelector(
           '[data-nested-dialog="true"], [data-confirm-dialog="true"]',
         )
@@ -31,13 +33,13 @@ export function Drawer({ title, children, onClose }: DrawerProps) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose]);
+  }, [onClose, closeDisabled]);
 
   return (
     <div
       className="fixed inset-0 z-50 bg-canvas/70 backdrop-blur-xs"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (!closeDisabled && event.target === event.currentTarget) {
           onClose();
         }
       }}
@@ -52,7 +54,7 @@ export function Drawer({ title, children, onClose }: DrawerProps) {
           <h2 id="drawer-title" className="text-2xl font-semibold text-content">
             {title}
           </h2>
-          <Button ref={closeButtonRef} onClick={onClose} aria-label="Close">
+          <Button ref={closeButtonRef} onClick={onClose} aria-label="Close" disabled={closeDisabled}>
             Close
           </Button>
         </header>

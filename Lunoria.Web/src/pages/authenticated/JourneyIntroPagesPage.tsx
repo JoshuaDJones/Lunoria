@@ -119,12 +119,14 @@ export function JourneyIntroPagesPage() {
   };
 
   const openOrder = () => {
+    setDraggedPageId(undefined);
     setOrderedPages([...pages].sort((a, b) => a.sortOrder - b.sortOrder));
     setOrderError("");
     setIsOrdering(true);
   };
 
   const moveDraggedPage = (targetId: number) => {
+    if (isSavingOrder) return;
     if (draggedPageId === undefined || draggedPageId === targetId) return;
     setOrderedPages((current) => {
       const from = current.findIndex((page) => page.id === draggedPageId);
@@ -138,6 +140,7 @@ export function JourneyIntroPagesPage() {
   };
 
   const saveOrder = async () => {
+    if (isSavingOrder) return;
     setIsSavingOrder(true);
     setOrderError("");
     try {
@@ -150,6 +153,7 @@ export function JourneyIntroPagesPage() {
       toast.success("Intro page order was updated.");
     } catch (requestError) {
       setOrderError(getApiError(requestError).message);
+    } finally {
       setIsSavingOrder(false);
     }
   };
@@ -319,13 +323,17 @@ export function JourneyIntroPagesPage() {
       )}
 
       {isOrdering && (
-        <Drawer title="Page Order" onClose={() => setIsOrdering(false)}>
+        <Drawer
+          title="Page Order"
+          onClose={() => setIsOrdering(false)}
+          closeDisabled={isSavingOrder}
+        >
           <div className="flex min-h-full flex-col">
             <p className="mb-5 text-sm text-content-secondary">
               Drag pages into slideshow order, then save.
             </p>
             {orderError && (
-              <p className="mb-4 text-danger" role="alert">
+              <p className="mb-4 rounded-lg border border-danger/40 p-3 text-danger" role="alert">
                 {orderError}
               </p>
             )}
@@ -370,12 +378,14 @@ export function JourneyIntroPagesPage() {
               <Button
                 onClick={() => setIsOrdering(false)}
                 disabled={isSavingOrder}
+                size="lg"
               >
                 Cancel
               </Button>
               <Button
                 variant="primary"
                 disabled={isSavingOrder}
+                size="lg"
                 onClick={() => void saveOrder()}
               >
                 {isSavingOrder ? "Saving..." : "Save Order"}

@@ -49,6 +49,7 @@ export function JourneyEditorPage() {
   const [areScenesLoading, setAreScenesLoading] = useState(true);
   const [editingScene, setEditingScene] = useState<Scene | null | undefined>();
   const [isOrderingScenes, setIsOrderingScenes] = useState(false);
+  const [isSavingSceneOrder, setIsSavingSceneOrder] = useState(false);
   const [isManagingCharacters, setIsManagingCharacters] = useState(false);
   const [eventsScene, setEventsScene] = useState<Scene>();
   const [objectivesScene, setObjectivesScene] = useState<Scene>();
@@ -362,9 +363,14 @@ export function JourneyEditorPage() {
       )}
 
       {isOrderingScenes && (
-        <Drawer title="Scene Order" onClose={() => setIsOrderingScenes(false)}>
+        <Drawer
+          title="Scene Order"
+          onClose={() => setIsOrderingScenes(false)}
+          closeDisabled={isSavingSceneOrder}
+        >
           <SceneOrderEditor
             scenes={scenes}
+            onBusyChange={setIsSavingSceneOrder}
             onCancel={() => setIsOrderingScenes(false)}
             onSave={async (orderedScenes) => {
               await reorderScenes(

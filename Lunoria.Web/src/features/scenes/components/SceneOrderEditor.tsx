@@ -9,12 +9,14 @@ interface SceneOrderEditorProps {
   scenes: Scene[];
   onSave: (scenes: Scene[]) => Promise<void>;
   onCancel: () => void;
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function SceneOrderEditor({
   scenes,
   onSave,
   onCancel,
+  onBusyChange,
 }: SceneOrderEditorProps) {
   const [orderedScenes, setOrderedScenes] = useState(() =>
     [...scenes].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -24,6 +26,7 @@ export function SceneOrderEditor({
   const [error, setError] = useState("");
 
   const moveDraggedScene = (targetSceneId: number) => {
+    if (isSaving) return;
     if (draggedSceneId === undefined || draggedSceneId === targetSceneId)
       return;
 
@@ -45,14 +48,18 @@ export function SceneOrderEditor({
   };
 
   const save = async () => {
+    if (isSaving) return;
     setIsSaving(true);
+    onBusyChange?.(true);
     setError("");
 
     try {
       await onSave(orderedScenes);
     } catch (requestError) {
       setError(getApiError(requestError).message);
+    } finally {
       setIsSaving(false);
+      onBusyChange?.(false);
     }
   };
 
