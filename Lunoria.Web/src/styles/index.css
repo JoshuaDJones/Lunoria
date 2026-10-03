@@ -227,7 +227,7 @@
 @layer images {
   .stone-image {
     background-image:
-      linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+      linear-gradient(rgba(0, 0, 0, 0.52), rgba(0, 0, 0, 0.52)),
       url("/Stone_Background_Lighter.png");
 
     background-size: cover;

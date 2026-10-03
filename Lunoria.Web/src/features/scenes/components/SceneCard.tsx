@@ -1,13 +1,14 @@
-import { MediaCard } from "@/components/ui/MediaCard";
-import { Stat, StatGrid } from "@/components/ui/StatGrid";
-import { Button } from "@/components/ui";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Button, Card } from "@/components/ui";
 import type { Scene } from "@/features/scenes/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBolt,
+  faBullseye,
   faBoxOpen,
   faComments,
   faPen,
+  faEllipsis,
   faTableCells,
   faTrash,
   faUsers,
@@ -34,10 +35,6 @@ export function SceneCard({
   onEdit,
   onDelete,
 }: SceneCardProps) {
-  const createdAt = new Date(scene.createdAt);
-  const formattedCreatedAt = Number.isNaN(createdAt.getTime())
-    ? "Unknown"
-    : new Intl.DateTimeFormat().format(createdAt);
   const gridUrl = scene.gridUrl
     ? /^https?:\/\//i.test(scene.gridUrl)
       ? scene.gridUrl
@@ -56,121 +53,101 @@ export function SceneCard({
     );
   };
 
+  const contentActions = [
+    { label: "Characters", icon: faUsers, onSelect: onViewCharacters },
+    { label: "Chests", icon: faBoxOpen, onSelect: onViewChests },
+    { label: "Events", icon: faBolt, onSelect: onViewEvents },
+    { label: "Objectives", icon: faBullseye, onSelect: onViewObjectives },
+    { label: "Dialogs", icon: faComments, onSelect: onViewDialogs },
+  ];
+
   return (
-    <MediaCard
-      title={scene.name}
-      description={scene.description}
-      imageUrl={scene.photoUrl}
-    >
-      <StatGrid className="mt-4 px-4">
-        <Stat
-          label="Grid"
-          value={
-            scene.grid
-              ? `${scene.grid.rows} × ${scene.grid.columns} Lunoria grid`
-              : gridUrl
-                ? scene.gridUrl
-                : "None"
-          }
-        />
-        <Stat label="Created" value={formattedCreatedAt} />
-      </StatGrid>
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
-        {(scene.grid || gridUrl) && (
-          <Button
-            onClick={(event) => {
-              event.stopPropagation();
-              openGrid();
-            }}
-            variant="primary"
-            inverted
-            size="md"
-            leftIcon={<FontAwesomeIcon icon={faTableCells} />}
-          >
-            Show grid
-          </Button>
+    <Card className="shadow-sm">
+      <div className="flex flex-col gap-5 p-5 sm:flex-row">
+        {scene.photoUrl && (
+          <img
+            src={scene.photoUrl}
+            alt=""
+            className="aspect-[4/3] w-full shrink-0 self-start rounded-lg object-cover sm:w-44 lg:w-52"
+          />
         )}
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onViewCharacters(scene);
-          }}
-          variant="secondary"
-          inverted
-          size="md"
-          leftIcon={<FontAwesomeIcon icon={faUsers} />}
-        >
-          Characters
-        </Button>
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onViewChests(scene);
-          }}
-          variant="add"
-          inverted
-          size="md"
-          leftIcon={<FontAwesomeIcon icon={faBoxOpen} />}
-        >
-          Chests
-        </Button>
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onViewEvents(scene);
-          }}
-          variant="utility"
-          inverted
-          size="md"
-          leftIcon={<FontAwesomeIcon icon={faBolt} />}
-        >
-          Events
-        </Button>
-        <Button
-          variant="utility"
-          inverted
-          size="md"
-          onClick={(event) => {
-            event.stopPropagation();
-            onViewObjectives(scene);
-          }}
-        >
-          Objectives
-        </Button>
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onViewDialogs(scene);
-          }}
-          variant="magic"
-          inverted
-          size="md"
-          leftIcon={<FontAwesomeIcon icon={faComments} />}
-        >
-          View dialogs
-        </Button>
-        <Button
-          onClick={() => onDelete(scene)}
-          variant="danger"
-          inverted
-          size="md"
-          leftIcon={<FontAwesomeIcon icon={faTrash} />}
-        >
-          Delete
-        </Button>
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onEdit(scene);
-          }}
-          variant="primary"
-          inverted
-          size="md"
-          leftIcon={<FontAwesomeIcon icon={faPen} />}
-        >
-          Edit
-        </Button>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+              <h2 className="wrap-break-word text-2xl font-semibold text-content">
+                {scene.name}
+              </h2>
+              {(scene.grid || gridUrl) && (
+                <Button
+                  onClick={openGrid}
+                  size="sm"
+                  className="shrink-0 border-border/60 text-content-secondary"
+                  leftIcon={<FontAwesomeIcon icon={faTableCells} />}
+                >
+                  Open Grid
+                </Button>
+              )}
+            </div>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <Button
+                  aria-label={`Options for ${scene.name}`}
+                  className="h-11 w-11 shrink-0 border-content-muted/50 bg-content/10 p-0 text-content hover:border-content-secondary hover:bg-content/20 hover:text-content"
+                >
+                  <FontAwesomeIcon icon={faEllipsis} className="text-xl" />
+                </Button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  align="end"
+                  sideOffset={6}
+                  className="z-50 min-w-36 rounded-xl border border-border bg-surface p-1.5 shadow-xl"
+                >
+                  <DropdownMenu.Item
+                    onSelect={() => onEdit(scene)}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-content outline-none data-highlighted:bg-content/10"
+                  >
+                    <FontAwesomeIcon icon={faPen} />
+                    Edit
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Separator className="my-1 h-px bg-border" />
+                  <DropdownMenu.Item
+                    onSelect={() => onDelete(scene)}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-300 outline-none data-highlighted:bg-red-400/10"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                    Delete
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          </div>
+          <p className="mt-2 line-clamp-4 wrap-break-word text-sm leading-relaxed text-content-secondary">
+            {scene.description}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-content-muted">
+            <span className="font-semibold text-content-secondary">
+              Scene {String(scene.sortOrder + 1).padStart(2, "0")}
+            </span>
+            {scene.grid && (
+              <span>{scene.grid.rows} × {scene.grid.columns} grid</span>
+            )}
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+            {contentActions.map(({ label, icon, onSelect }) => (
+              <Button
+                key={label}
+                onClick={() => onSelect(scene)}
+                size="md"
+                className="min-h-11 border-border/60 bg-content/5 text-content-secondary hover:border-content-muted hover:bg-content/10 hover:text-content"
+                leftIcon={<FontAwesomeIcon icon={icon} />}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
-    </MediaCard>
+    </Card>
   );
 }

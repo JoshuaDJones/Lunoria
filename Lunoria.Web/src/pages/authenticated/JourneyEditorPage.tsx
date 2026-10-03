@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlay } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBookOpen,
+  faPlay,
+  faPlus,
+  faSort,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useConfirmDialog, useToast } from "@/app/providers";
@@ -151,14 +157,15 @@ export function JourneyEditorPage() {
 
   return (
     <AppLayout
-      scrolling
+      fixedViewport
+      bottomPadding
       background={
         <div className="stone-image absolute inset-0 z-0 h-full w-full" />
       }
     >
-      <main className="w-full p-6 sm:p-10">
-        <header className="mb-6 flex items-center justify-between">
-          <div>
+      <main className="flex min-h-0 w-full flex-1 flex-col px-6 pt-6 pb-4 sm:px-10 sm:pt-10">
+        <header className="mb-6 flex shrink-0 flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
             <h1 className="text-4xl text-content sm:text-5xl lg:text-6xl">
               {journey?.name ?? (isLoading ? "Loading journey..." : "Journey")}
             </h1>
@@ -169,6 +176,40 @@ export function JourneyEditorPage() {
               ← Back to Journeys
             </Link>
           </div>
+          {!isLoading && !error && journey && (
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <Button
+                onClick={() =>
+                  navigate(
+                    `/series/${seriesId}/journeys/${journeyId}/intro-pages`,
+                  )
+                }
+                variant="secondary"
+                className="h-11 border-border bg-surface/90 text-content-secondary hover:border-content-muted hover:bg-surface hover:text-content"
+                leftIcon={<FontAwesomeIcon icon={faBookOpen} />}
+              >
+                Intro Pages
+              </Button>
+              <Button
+                onClick={() => setIsManagingCharacters(true)}
+                variant="secondary"
+                className="h-11 border-border bg-surface/90 text-content-secondary hover:border-content-muted hover:bg-surface hover:text-content"
+                leftIcon={<FontAwesomeIcon icon={faUsers} />}
+              >
+                Players
+              </Button>
+              <Button
+                onClick={() =>
+                  navigate(`/series/${seriesId}/journeys/${journeyId}/play`)
+                }
+                variant="add"
+                className="ml-2 h-11 sm:ml-3"
+                leftIcon={<FontAwesomeIcon icon={faPlay} />}
+              >
+                Play
+              </Button>
+            </div>
+          )}
         </header>
 
         {!isLoading && error && (
@@ -176,34 +217,37 @@ export function JourneyEditorPage() {
         )}
 
         {!isLoading && !error && journey && (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <section className="min-h-[30rem] rounded-3xl bg-surface/65 p-4 backdrop-blur-[2px] sm:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-surface/65 p-4 backdrop-blur-[2px] sm:p-6">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-4">
                 <h2 className="text-4xl text-content">Scenes</h2>
                 <div className="flex flex-wrap gap-3">
                   <Button
                     onClick={() => setIsOrderingScenes(true)}
                     disabled={scenes.length < 2}
                     variant="secondary"
-                    inverted
-                    size="lg"
-                    className="min-w-40"
+                    className="h-11 border-border bg-surface/90 text-content-secondary hover:border-content-muted hover:bg-surface hover:text-content"
+                    leftIcon={<FontAwesomeIcon icon={faSort} />}
                   >
                     Scene Order
                   </Button>
                   <Button
                     onClick={() => setEditingScene(null)}
-                    variant="add"
-                    inverted
-                    size="lg"
-                    className="min-w-40"
+                    variant="secondary"
+                    className="h-11 border-border bg-surface/90 text-content hover:border-content-muted hover:bg-surface hover:text-content"
+                    leftIcon={<FontAwesomeIcon icon={faPlus} />}
                   >
                     Add Scene
                   </Button>
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div
+                className="mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2"
+                role="region"
+                aria-label="Scene list"
+                tabIndex={0}
+              >
                 {areScenesLoading && (
                   <p className="text-content-secondary" role="status">
                     Loading scenes...
@@ -245,44 +289,6 @@ export function JourneyEditorPage() {
               </div>
             </section>
 
-            <aside className="flex min-h-72 flex-col gap-4 rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] self-start">
-              <Button
-                onClick={() =>
-                  navigate(`/series/${seriesId}/journeys/${journeyId}/play`)
-                }
-                variant="add"
-                size="lg"
-                className="w-full py-4"
-                leftIcon={<FontAwesomeIcon icon={faPlay} />}
-              >
-                Play
-              </Button>
-
-              <div className="mt-auto space-y-4 pt-2">
-                <Button
-                  onClick={() =>
-                    navigate(
-                      `/series/${seriesId}/journeys/${journeyId}/intro-pages`,
-                    )
-                  }
-                  variant="secondary"
-                  inverted
-                  size="lg"
-                  className="w-full py-4"
-                >
-                  Intro Pages
-                </Button>
-                <Button
-                  onClick={() => setIsManagingCharacters(true)}
-                  variant="secondary"
-                  inverted
-                  size="lg"
-                  className="w-full py-4"
-                >
-                  Characters
-                </Button>
-              </div>
-            </aside>
           </div>
         )}
       </main>
