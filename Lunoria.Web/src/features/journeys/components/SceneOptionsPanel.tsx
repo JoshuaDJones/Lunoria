@@ -1,4 +1,11 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { SceneEventLogs } from "@/features/sceneplaythrough/components/SceneEventLogs";
 import { Button, FormField, Input, Select } from "@/components/ui";
 import type {
   ScenePlaythroughDetails,
@@ -36,6 +43,12 @@ export function SceneOptionsPanel({
   onViewDialog,
   onEndScene,
 }: SceneOptionsPanelProps) {
+  const [showLogs, setShowLogs] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // Each drawer page starts at the top, even after scrolling through options.
+    panelRef.current?.parentElement?.scrollTo({ top: 0 });
+  }, [showLogs]);
   const journeyCharacters = scene.journeyCharacters ?? [];
   const playthroughCharacters = scene.playthroughCharacters ?? [];
   const participants = scene.participants ?? [];
@@ -72,195 +85,215 @@ export function SceneOptionsPanel({
     busyAction !== undefined || !!scene.counterattackToken;
 
   return (
-    <div className="space-y-8">
-      <OptionSection title="Scene Grid">
-        {scene.grid || gridUrl ? (
-          <Button onClick={openGrid} variant="primary">
-            Open grid
-          </Button>
-        ) : (
-          <EmptyMessage>No grid is assigned to this scene.</EmptyMessage>
-        )}
-      </OptionSection>
-      <OptionSection title="Activate Journey Characters">
-        {availableJourneyCharacters.length === 0 ? (
-          <EmptyMessage>All journey characters are participating.</EmptyMessage>
-        ) : (
-          <div className="space-y-3">
-            {availableJourneyCharacters.map((character) => (
-              <OptionRow
-                key={character.id}
-                name={character.name}
-                imageUrl={character.portraitUrl || character.photoUrl}
-                actionLabel={character.isActive ? "Add" : "Activate"}
-                disabled={busyAction !== undefined}
-                busy={busyAction === `activate-${character.id}`}
-                onAction={() => onActivateJourneyCharacter(character.id)}
-              />
-            ))}
-          </div>
-        )}
-      </OptionSection>
-
-      <OptionSection title="Add Scene Character">
-        {playthroughCharacters.length === 0 ? (
-          <EmptyMessage>No NPC or enemy characters are available.</EmptyMessage>
-        ) : (
-          <div className="space-y-3">
-            {playthroughCharacters.map((character) => (
-              <OptionRow
-                key={character.id}
-                name={character.name}
-                imageUrl={character.portraitUrl || character.photoUrl}
-                actionLabel="Add"
-                disabled={busyAction !== undefined}
-                busy={busyAction === `add-${character.id}`}
-                onAction={() => onAddPlaythroughCharacter(character.id)}
-              />
-            ))}
-          </div>
-        )}
-      </OptionSection>
-
-      <OptionSection title="Remove Scene Character">
-        <p className="mb-3 text-sm text-content-secondary">
-          Remove a scene character from participation, without a defeat or loot
-          reward. Journey characters cannot be removed here.
-        </p>
-        {scene.counterattackToken && (
-          <p className="mb-3 text-sm text-content-muted">
-            Resolve or pass the counterattack first.
-          </p>
-        )}
-        {removableParticipants.length === 0 ? (
-          <EmptyMessage>
-            No scene characters are available to remove.
-          </EmptyMessage>
-        ) : (
-          <div className="space-y-3">
-            {removableParticipants.map((item) => (
-              <OptionRow
-                key={item.id}
-                name={`${item.name} (#${item.id})`}
-                imageUrl={item.portraitUrl || item.photoUrl}
-                actionLabel="Remove"
-                disabled={removalDisabled}
-                busy={busyAction === `remove-${item.id}`}
-                onAction={() => setRemovalId(item.id)}
-              />
-            ))}
-          </div>
-        )}
-        {removal && (
-          <div className="mt-3 rounded-xl border border-danger/40 p-4">
-            <p>
-              Remove {removal.name} (#{removal.id}) from this scene?
-              {removal.isCurrentParticipant &&
-                " Their turn will end and the rotation will advance."}
-            </p>
-            <div className="mt-3 flex gap-3">
-              <Button
-                variant="danger"
-                disabled={removalDisabled}
-                onClick={() => {
-                  onRemoveParticipant(removal.id);
-                  setRemovalId(undefined);
-                }}
-              >
-                Confirm removal
-              </Button>
-              <Button
-                disabled={busyAction !== undefined}
-                onClick={() => setRemovalId(undefined)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
-      </OptionSection>
-
-      <OptionSection title="Add Chest">
-        <LiveChestForm
-          scene={scene}
-          disabled={busyAction !== undefined}
-          busy={busyAction === "add-chest"}
-          onSubmit={onAddChest}
+    <div ref={panelRef}>
+      {showLogs && (
+        <SceneEventLogs
+          logs={scene.eventLogs}
+          onBack={() => setShowLogs(false)}
         />
-      </OptionSection>
+      )}
+      <div className="space-y-8" hidden={showLogs}>
+        <OptionSection title="Scene Grid">
+          {scene.grid || gridUrl ? (
+            <Button onClick={openGrid} variant="primary">
+              Open grid
+            </Button>
+          ) : (
+            <EmptyMessage>No grid is assigned to this scene.</EmptyMessage>
+          )}
+        </OptionSection>
+        <OptionSection title="Activate Journey Characters">
+          {availableJourneyCharacters.length === 0 ? (
+            <EmptyMessage>
+              All journey characters are participating.
+            </EmptyMessage>
+          ) : (
+            <div className="space-y-3">
+              {availableJourneyCharacters.map((character) => (
+                <OptionRow
+                  key={character.id}
+                  name={character.name}
+                  imageUrl={character.portraitUrl || character.photoUrl}
+                  actionLabel={character.isActive ? "Add" : "Activate"}
+                  disabled={busyAction !== undefined}
+                  busy={busyAction === `activate-${character.id}`}
+                  onAction={() => onActivateJourneyCharacter(character.id)}
+                />
+              ))}
+            </div>
+          )}
+        </OptionSection>
 
-      <OptionSection title="Correct Participant Stats">
-        {participants.length === 0 ? (
-          <EmptyMessage>No participants are available.</EmptyMessage>
-        ) : (
-          <>
-            <FormField htmlFor="participant-option" label="Participant">
-              <Select
-                id="participant-option"
-                value={participantId}
-                onChange={(event) =>
-                  setParticipantId(Number(event.target.value))
-                }
-              >
-                {participants.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} (#{item.id})
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-            {participant && (
-              <ParticipantStatsEditor
-                key={participant.id}
-                participant={participant}
-                disabled={busyAction !== undefined}
-                busy={busyAction === `stats-${participant.id}`}
-                onSubmit={(input) => onUpdateParticipant(participant.id, input)}
-              />
-            )}
-          </>
-        )}
-      </OptionSection>
+        <OptionSection title="Add Scene Character">
+          {playthroughCharacters.length === 0 ? (
+            <EmptyMessage>
+              No NPC or enemy characters are available.
+            </EmptyMessage>
+          ) : (
+            <div className="space-y-3">
+              {playthroughCharacters.map((character) => (
+                <OptionRow
+                  key={character.id}
+                  name={character.name}
+                  imageUrl={character.portraitUrl || character.photoUrl}
+                  actionLabel="Add"
+                  disabled={busyAction !== undefined}
+                  busy={busyAction === `add-${character.id}`}
+                  onAction={() => onAddPlaythroughCharacter(character.id)}
+                />
+              ))}
+            </div>
+          )}
+        </OptionSection>
 
-      <OptionSection title="Dialogs">
-        {dialogs.length === 0 ? (
-          <EmptyMessage>This scene has no dialogs.</EmptyMessage>
-        ) : (
-          <div className="space-y-3">
-            {dialogs.map((dialog) => (
-              <div
-                key={dialog.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3"
-              >
-                <div>
-                  <p className="font-semibold text-content">{dialog.title}</p>
-                  <p className="text-sm text-content-muted">
-                    {dialog.dialogPages.length} pages
-                  </p>
-                </div>
-                <Button onClick={() => onViewDialog(dialog)}>View</Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </OptionSection>
-
-      <OptionSection title="End Scene">
-        <div className="rounded-xl border border-danger/40 bg-danger/5 p-4">
-          <p className="text-sm text-content-secondary">
-            Complete this scene and return to the journey playthrough.
+        <OptionSection title="Remove Scene Character">
+          <p className="mb-3 text-sm text-content-secondary">
+            Remove a scene character from participation, without a defeat or
+            loot reward. Journey characters cannot be removed here.
           </p>
-          <Button
-            variant="danger"
-            inverted
-            className="mt-4 w-full"
+          {scene.counterattackToken && (
+            <p className="mb-3 text-sm text-content-muted">
+              Resolve or pass the counterattack first.
+            </p>
+          )}
+          {removableParticipants.length === 0 ? (
+            <EmptyMessage>
+              No scene characters are available to remove.
+            </EmptyMessage>
+          ) : (
+            <div className="space-y-3">
+              {removableParticipants.map((item) => (
+                <OptionRow
+                  key={item.id}
+                  name={`${item.name} (#${item.id})`}
+                  imageUrl={item.portraitUrl || item.photoUrl}
+                  actionLabel="Remove"
+                  disabled={removalDisabled}
+                  busy={busyAction === `remove-${item.id}`}
+                  onAction={() => setRemovalId(item.id)}
+                />
+              ))}
+            </div>
+          )}
+          {removal && (
+            <div className="mt-3 rounded-xl border border-danger/40 p-4">
+              <p>
+                Remove {removal.name} (#{removal.id}) from this scene?
+                {removal.isCurrentParticipant &&
+                  " Their turn will end and the rotation will advance."}
+              </p>
+              <div className="mt-3 flex gap-3">
+                <Button
+                  variant="danger"
+                  disabled={removalDisabled}
+                  onClick={() => {
+                    onRemoveParticipant(removal.id);
+                    setRemovalId(undefined);
+                  }}
+                >
+                  Confirm removal
+                </Button>
+                <Button
+                  disabled={busyAction !== undefined}
+                  onClick={() => setRemovalId(undefined)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </OptionSection>
+
+        <OptionSection title="Add Chest">
+          <LiveChestForm
+            scene={scene}
             disabled={busyAction !== undefined}
-            onClick={onEndScene}
-          >
-            End Scene
+            busy={busyAction === "add-chest"}
+            onSubmit={onAddChest}
+          />
+        </OptionSection>
+
+        <OptionSection title="Correct Participant Stats">
+          {participants.length === 0 ? (
+            <EmptyMessage>No participants are available.</EmptyMessage>
+          ) : (
+            <>
+              <FormField htmlFor="participant-option" label="Participant">
+                <Select
+                  id="participant-option"
+                  value={participantId}
+                  onChange={(event) =>
+                    setParticipantId(Number(event.target.value))
+                  }
+                >
+                  {participants.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} (#{item.id})
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+              {participant && (
+                <ParticipantStatsEditor
+                  key={participant.id}
+                  participant={participant}
+                  disabled={busyAction !== undefined}
+                  busy={busyAction === `stats-${participant.id}`}
+                  onSubmit={(input) =>
+                    onUpdateParticipant(participant.id, input)
+                  }
+                />
+              )}
+            </>
+          )}
+        </OptionSection>
+
+        <OptionSection title="Dialogs">
+          {dialogs.length === 0 ? (
+            <EmptyMessage>This scene has no dialogs.</EmptyMessage>
+          ) : (
+            <div className="space-y-3">
+              {dialogs.map((dialog) => (
+                <div
+                  key={dialog.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3"
+                >
+                  <div>
+                    <p className="font-semibold text-content">{dialog.title}</p>
+                    <p className="text-sm text-content-muted">
+                      {dialog.dialogPages.length} pages
+                    </p>
+                  </div>
+                  <Button onClick={() => onViewDialog(dialog)}>View</Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </OptionSection>
+
+        <OptionSection title="Event Logs">
+          <Button onClick={() => setShowLogs(true)} className="w-full">
+            View Logs
           </Button>
-        </div>
-      </OptionSection>
+        </OptionSection>
+
+        <OptionSection title="End Scene">
+          <div className="rounded-xl border border-danger/40 bg-danger/5 p-4">
+            <p className="text-sm text-content-secondary">
+              Complete this scene and return to the journey playthrough.
+            </p>
+            <Button
+              variant="danger"
+              inverted
+              className="mt-4 w-full"
+              disabled={busyAction !== undefined}
+              onClick={onEndScene}
+            >
+              End Scene
+            </Button>
+          </div>
+        </OptionSection>
+      </div>
     </div>
   );
 }

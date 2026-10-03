@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { useSceneEntrance } from "@/features/sceneplaythrough/hooks/useSceneEntrance";
+import {
+  getPreparedScene,
+  clearPreparedScene,
+} from "@/features/sceneplaythrough/utils/sceneEntry";
 import { useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useModalStack, useToast } from "@/app/providers";
@@ -56,7 +61,6 @@ import {
   getAttackResultMessage,
 } from "@/features/sceneplaythrough/utils/sceneCombatUtils";
 import { getEligibleTradePartners } from "@/features/sceneplaythrough/utils/sceneInventoryUtils";
-import { formatDate } from "@/features/sceneplaythrough/utils/sceneDisplayUtils";
 import {
   playAttackSlashSounds,
   delay,
@@ -79,9 +83,20 @@ export function ScenePlaythroughPage() {
   }>();
   const playthroughId = Number(playthroughIdParam);
   const sceneId = Number(sceneIdParam);
-  const [scene, setScene] = useState<ScenePlaythroughDetails>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [preparedScene] = useState(() =>
+    getPreparedScene(playthroughId, sceneId),
+  );
+  const [scene, setScene] = useState<ScenePlaythroughDetails | undefined>(
+    preparedScene,
+  );
+  const [isLoading, setIsLoading] = useState(!preparedScene);
+  const [isTitleHovered, setIsTitleHovered] = useState(false);
   const [error, setError] = useState("");
+  const entrance = useSceneEntrance(
+    `${playthroughId}:${sceneId}`,
+    scene?.photoUrl?.trim(),
+    !isLoading && !error && scene?.id === sceneId,
+  );
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [begunTurnKey, setBegunTurnKey] = useState("");
   const [awaitingActionTurnKey, setAwaitingActionTurnKey] = useState("");
@@ -367,8 +382,8 @@ export function ScenePlaythroughPage() {
                 content: (
                   <AttackTypeOptions
                     participant={participant}
-                    onSelect={(attackType) =>
-                      modalStack.push({
+                    onSelect={(attackType) => {
+                      const attackModalId = modalStack.push({
                         title: getAttackTypeLabel(attackType),
                         placement: "center",
                         content: (
@@ -376,6 +391,12 @@ export function ScenePlaythroughPage() {
                             attacker={participant}
                             targets={scene?.participants ?? []}
                             attackType={attackType}
+                            onSubmittingChange={(isSubmitting) =>
+                              modalStack.setDismissible(
+                                attackModalId,
+                                !isSubmitting,
+                              )
+                            }
                             onAttack={(targetId, roll, spellId) =>
                               attack(
                                 participant,
@@ -387,8 +408,8 @@ export function ScenePlaythroughPage() {
                             }
                           />
                         ),
-                      })
-                    }
+                      });
+                    }}
                   />
                 ),
               });
@@ -612,6 +633,14 @@ export function ScenePlaythroughPage() {
       return;
     }
 
+    if (
+      preparedScene?.id === sceneId &&
+      preparedScene.playthroughId === playthroughId
+    ) {
+      clearPreparedScene(preparedScene);
+      return;
+    }
+
     let isCurrent = true;
     setIsLoading(true);
     setError("");
@@ -630,11 +659,15 @@ export function ScenePlaythroughPage() {
     return () => {
       isCurrent = false;
     };
-  }, [playthroughId, sceneId]);
+  }, [playthroughId, sceneId, preparedScene]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
+      if (
+        entrance.isReady &&
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === "o"
+      ) {
         event.preventDefault();
         setIsOptionsOpen(true);
       }
@@ -642,7 +675,7 @@ export function ScenePlaythroughPage() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [entrance.isReady]);
 
   return (
     <AppLayout
@@ -651,6 +684,7 @@ export function ScenePlaythroughPage() {
       bottomPadding={false}
       background={
         <SceneBackground
+          visible={entrance.showBackground}
           key={scene?.photoUrl?.trim() ?? ""}
           photoUrl={scene?.photoUrl?.trim()}
         />
@@ -658,11 +692,21 @@ export function ScenePlaythroughPage() {
     >
       <main className="w-full flex-1">
         <header className="flex flex-wrap items-end justify-between gap-5 p-10">
-          <h1 className="text-4xl text-content sm:text-5xl lg:text-6xl">
+          <h1
+            onPointerEnter={(event) => {
+              if (event.pointerType === "mouse") setIsTitleHovered(true);
+            }}
+            onPointerLeave={() => setIsTitleHovered(false)}
+            onPointerCancel={() => setIsTitleHovered(false)}
+            className={`text-4xl text-content transition-opacity duration-700 motion-reduce:transition-none sm:text-5xl lg:text-6xl ${entrance.showTitle ? "opacity-100" : "opacity-0"}`}
+          >
             {scene?.name ?? ""}
           </h1>
           {scene && (
-            <div className="flex items-center gap-3">
+            <div
+              inert={!entrance.isReady}
+              className={`flex items-center gap-3 transition-opacity duration-600 motion-reduce:transition-none ${entrance.showContent ? "opacity-100" : "opacity-0"}`}
+            >
               <p className="text-2xl font-semibold text-content sm:text-3xl">
                 Round {scene.roundNumber}
               </p>
@@ -687,7 +731,11 @@ export function ScenePlaythroughPage() {
           )}
         </header>
 
-        {isLoading && <p className="px-10 text-content">Loading scene...</p>}
+        {isLoading && (
+          <span role="status" className="sr-only">
+            Loading scene
+          </span>
+        )}
 
         {!isLoading && error && (
           <p className="px-10 text-danger" role="alert">
@@ -696,7 +744,10 @@ export function ScenePlaythroughPage() {
         )}
 
         {!isLoading && !error && scene && (
-          <div className="grid gap-6 px-6 pb-10 sm:px-10 lg:grid-cols-[minmax(0,4fr)_minmax(14rem,1fr)]">
+          <div
+            inert={!entrance.isReady || isTitleHovered}
+            className={`px-6 pb-10 transition-opacity duration-600 motion-reduce:transition-none sm:px-10 ${entrance.showContent && !isTitleHovered ? "opacity-100" : "opacity-0"}`}
+          >
             <section className="rounded-3xl  p-5 ">
               {scene.participants.length === 0 ? (
                 <p className="mt-5 text-content-muted">
@@ -746,37 +797,11 @@ export function ScenePlaythroughPage() {
                 </div>
               )}
             </section>
-
-            <aside className="self-start rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
-              <h2 className="text-3xl font-semibold text-content">Event Log</h2>
-
-              {scene.eventLogs.length === 0 ? (
-                <p className="mt-5 text-content-muted">
-                  No events have been recorded.
-                </p>
-              ) : (
-                <ol className="mt-5 space-y-3">
-                  {scene.eventLogs.map((eventLog) => (
-                    <li
-                      key={eventLog.id}
-                      className="rounded-xl border border-border bg-surface/75 p-3"
-                    >
-                      <p className="font-semibold text-content">
-                        {eventLog.message}
-                      </p>
-                      <time className="mt-1 block text-xs text-content-muted">
-                        {formatDate(eventLog.eventTime)}
-                      </time>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </aside>
           </div>
         )}
       </main>
 
-      {isOptionsOpen && (
+      {isOptionsOpen && entrance.isReady && (
         <Drawer title="Scene Options" onClose={() => setIsOptionsOpen(false)}>
           {scene && (
             <SceneOptionsPanel
@@ -857,7 +882,7 @@ export function ScenePlaythroughPage() {
         />
       )}
 
-      {scene?.counterattackToken && (
+      {scene?.counterattackToken && entrance.isReady && (
         <CounterAttackDialog
           key={scene.counterattackToken}
           scene={scene}

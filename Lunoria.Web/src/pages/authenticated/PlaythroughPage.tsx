@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { prepareSceneEntry } from "@/features/sceneplaythrough/utils/sceneEntry";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
 import { useModalStack, useToast } from "@/app/providers";
@@ -56,10 +57,21 @@ export function PlaythroughPage() {
   const [isCreatingJoinSession, setIsCreatingJoinSession] = useState(false);
   const hasHandledAutomaticIntro = useRef(false);
 
-  const navigateToScene = (sceneId: number) => {
-    navigate(
-      `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}/scenes/${sceneId}`,
-    );
+  const navigateToScene = async (sceneId: number) => {
+    setStartingSceneId(sceneId);
+    try {
+      await prepareSceneEntry(playthroughId, sceneId);
+      navigate(
+        `/series/${seriesId}/journeys/${journeyId}/playthroughs/${playthroughId}/scenes/${sceneId}`,
+      );
+    } catch (requestError) {
+      toast.error(getApiError(requestError).message, "Unable to open scene");
+      setStartingSceneId(undefined);
+      // Starting may have succeeded even if loading its details failed.
+      void getPlaythrough(playthroughId)
+        .then(setPlaythrough)
+        .catch(() => {});
+    }
   };
 
   const startScene = async (sceneId: number) => {
@@ -67,17 +79,20 @@ export function PlaythroughPage() {
 
     try {
       const result = await startScenePlaythrough(playthroughId, sceneId);
-      handleStartResult(sceneId, result);
+      await handleStartResult(sceneId, result);
     } catch (requestError: unknown) {
       toast.error(getApiError(requestError).message, "Unable to start scene");
       setStartingSceneId(undefined);
     }
   };
 
-  const handleStartResult = (sceneId: number, result: SceneStartResult) => {
+  const handleStartResult = async (
+    sceneId: number,
+    result: SceneStartResult,
+  ) => {
     if (result.started) {
       setPendingInventory(undefined);
-      navigateToScene(sceneId);
+      await navigateToScene(sceneId);
     } else if (result.pendingInventory) {
       setPendingInventory({ sceneId, inventory: result.pendingInventory });
       setStartingSceneId(undefined);
@@ -99,7 +114,7 @@ export function PlaythroughPage() {
             input,
           )
         : await getSceneStartInventory(playthroughId, pendingInventory.sceneId);
-      handleStartResult(pendingInventory.sceneId, result);
+      await handleStartResult(pendingInventory.sceneId, result);
     } catch (requestError: unknown) {
       setInventoryError(getApiError(requestError).message);
     } finally {
@@ -264,7 +279,9 @@ export function PlaythroughPage() {
           )}
         </header>
         {isLoading && (
-          <p className="px-10 text-content">Loading playthrough...</p>
+          <p className="sr-only" role="status">
+            Loading playthrough
+          </p>
         )}
 
         {!isLoading && error && (
@@ -337,13 +354,17 @@ export function PlaythroughPage() {
                             variant="primary"
                             className="mt-5 self-end px-10"
                             disabled={startingSceneId !== undefined}
+                            aria-busy={startingSceneId === scene.id}
+                            leftIcon={
+                              startingSceneId === scene.id ? (
+                                <SceneButtonSpinner />
+                              ) : undefined
+                            }
                             onClick={() => void startScene(scene.id)}
                           >
-                            {startingSceneId === scene.id
-                              ? "Starting..."
-                              : scene.hasPendingInventory
-                                ? "Resolve inventory"
-                                : "Start"}
+                            {scene.hasPendingInventory
+                              ? "Resolve inventory"
+                              : "Start"}
                           </Button>
                         )}
 
@@ -351,7 +372,14 @@ export function PlaythroughPage() {
                           <Button
                             variant="primary"
                             className="mt-5 self-end px-10"
-                            onClick={() => navigateToScene(scene.id)}
+                            disabled={startingSceneId !== undefined}
+                            aria-busy={startingSceneId === scene.id}
+                            leftIcon={
+                              startingSceneId === scene.id ? (
+                                <SceneButtonSpinner />
+                              ) : undefined
+                            }
+                            onClick={() => void navigateToScene(scene.id)}
                           >
                             Resume
                           </Button>
@@ -401,6 +429,15 @@ export function PlaythroughPage() {
         />
       )}
     </AppLayout>
+  );
+}
+
+function SceneButtonSpinner() {
+  return (
+    <span
+      aria-hidden="true"
+      className="block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+    />
   );
 }
 

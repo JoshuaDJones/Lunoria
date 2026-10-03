@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui";
 import {
   SceneAttackType,
@@ -16,11 +16,17 @@ const AttackResolutionOptions = ({
   attacker,
   targets: participants,
   attackType,
+  fixedTargetId,
+  footerActions,
+  onSubmittingChange,
   onAttack,
 }: {
   attacker: ScenePlaythroughParticipant;
   targets: ScenePlaythroughParticipant[];
   attackType: SceneAttackType;
+  fixedTargetId?: number;
+  footerActions?: ReactNode;
+  onSubmittingChange?: (isSubmitting: boolean) => void;
   onAttack: (
     targetParticipantId: number | null,
     roll: number,
@@ -31,7 +37,8 @@ const AttackResolutionOptions = ({
     (spell) =>
       spell.damageEffect !== null || spell.isSupport || spell.isUtility,
   );
-  const [selectedTargetId, setSelectedTargetId] = useState<number>();
+  const [chosenTargetId, setSelectedTargetId] = useState<number>();
+  const selectedTargetId = fixedTargetId ?? chosenTargetId;
   const [selectedRoll, setSelectedRoll] = useState<number>();
   const [selectedSpellId, setSelectedSpellId] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,7 +80,7 @@ const AttackResolutionOptions = ({
     !isSubmitting;
 
   return (
-    <div>
+    <fieldset disabled={isSubmitting}>
       {isUtility ? (
         <p className="rounded-xl border border-border bg-surface p-4 text-content">
           Utility spell: uses {selectedSpell?.mpCost} MP and one action. No
@@ -133,7 +140,7 @@ const AttackResolutionOptions = ({
         />
       )}
 
-      {!isUtility && (
+      {!isUtility && fixedTargetId === undefined && (
         <section className="mt-6">
           <h3 className="text-lg font-semibold text-content">
             Select a target
@@ -207,11 +214,22 @@ const AttackResolutionOptions = ({
           </div>
         </section>
       )}
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+        {footerActions}
         <Button
           variant="danger"
-          size="lg"
+          size={fixedTargetId !== undefined ? "md" : "lg"}
+          className={fixedTargetId !== undefined ? "min-w-24" : undefined}
           disabled={!canAttack}
+          aria-busy={isSubmitting}
+          leftIcon={
+            isSubmitting ? (
+              <span
+                aria-hidden="true"
+                className="block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+              />
+            ) : undefined
+          }
           onClick={() => {
             if (
               (!isUtility &&
@@ -223,21 +241,24 @@ const AttackResolutionOptions = ({
             }
 
             setIsSubmitting(true);
+            onSubmittingChange?.(true);
             void onAttack(
               isUtility ? null : selectedTargetId!,
               isUtility ? 1 : selectedRoll!,
               selectedSpell?.id ?? null,
-            ).finally(() => setIsSubmitting(false));
+            ).finally(() => {
+              setIsSubmitting(false);
+              onSubmittingChange?.(false);
+            });
           }}
         >
-          {isSubmitting
-            ? "Resolving..."
-            : attackType === SceneAttackType.Spell
-              ? "Cast spell"
-              : "Attack"}
+          {attackType === SceneAttackType.Spell ? "Cast spell" : "Attack"}
         </Button>
       </div>
-    </div>
+      <span role="status" className="sr-only">
+        {isSubmitting ? "Resolving attack" : ""}
+      </span>
+    </fieldset>
   );
 };
 

@@ -28,6 +28,7 @@ const CounterAttackDialog = ({
   const dialog = useRef<HTMLDialogElement>(null);
   const [attackType, setAttackType] = useState<SceneAttackType>();
   const [busy, setBusy] = useState(false);
+  const [skipping, setSkipping] = useState(false);
   const [error, setError] = useState("");
   const pending = useRef(false);
 
@@ -62,6 +63,7 @@ const CounterAttackDialog = ({
     if (pending.current) return;
     pending.current = true;
     setBusy(true);
+    setSkipping(!input);
     setError("");
     try {
       await onResolve(input);
@@ -70,24 +72,60 @@ const CounterAttackDialog = ({
     } finally {
       pending.current = false;
       setBusy(false);
+      setSkipping(false);
     }
   };
+
+  const footerActions = (
+    <>
+      {attackType !== undefined && (
+        <Button onClick={() => setAttackType(undefined)}>Back</Button>
+      )}
+      {error && (
+        <Button
+          onClick={() =>
+            void onReload().catch((e) => setError(getApiError(e).message))
+          }
+        >
+          Reload scene
+        </Button>
+      )}
+      <Button
+        className="ml-auto min-w-24"
+        disabled={busy}
+        aria-busy={busy && skipping}
+        leftIcon={
+          busy && skipping ? (
+            <span
+              aria-hidden="true"
+              className="block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+            />
+          ) : undefined
+        }
+        onClick={() => void resolve()}
+      >
+        Skip
+      </Button>
+    </>
+  );
 
   return (
     <dialog
       ref={dialog}
       onCancel={(event) => event.preventDefault()}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
       aria-labelledby="counterattack-title"
       className="m-auto max-h-[90dvh] w-[min(95vw,48rem)] overflow-y-auto rounded-xl border border-border bg-surface-raised p-6 text-content backdrop:bg-black/70"
     >
-      <h2 id="counterattack-title" className="text-2xl font-semibold">
-        {defender?.name ?? "Defender"}: counterattack
+      <h2 id="counterattack-title" className="mb-5 text-2xl font-semibold">
+        {defender?.name ?? "Defender"} counterattacks{" "}
+        {target?.name ?? "the original attacker"}
       </h2>
-      <p className="my-4">
-        You may attack {target?.name ?? "the original attacker"} once. Normal MP
-        costs apply. This does not use your regular turn and cannot trigger
-        another counterattack.
-      </p>
       {error && (
         <p role="alert" className="my-3 text-danger">
           {error}
@@ -105,29 +143,23 @@ const CounterAttackDialog = ({
             <AttackResolutionOptions
               attacker={offensiveDefender}
               targets={[target]}
+              fixedTargetId={target.id}
               attackType={attackType}
+              footerActions={footerActions}
               onAttack={(_target, roll, spellId) =>
                 resolve({ attackType, roll, playthroughSpellId: spellId })
               }
             />
           ))}
-        <div className="mt-5 flex flex-wrap gap-3">
-          {attackType !== undefined && (
-            <Button onClick={() => setAttackType(undefined)}>Back</Button>
-          )}
-          <Button onClick={() => void resolve()}>Pass counterattack</Button>
-          {error && (
-            <Button
-              onClick={() =>
-                void onReload().catch((e) => setError(getApiError(e).message))
-              }
-            >
-              Reload scene
-            </Button>
-          )}
-        </div>
+        {(attackType === undefined || !offensiveDefender || !target) && (
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            {footerActions}
+          </div>
+        )}
       </fieldset>
-      {busy && <p role="status">Resolving counterattack…</p>}
+      <span role="status" className="sr-only">
+        {busy ? "Processing counterattack" : ""}
+      </span>
       {attackAnimation && (
         <AttackAnimationOverlay animation={attackAnimation} inline />
       )}
