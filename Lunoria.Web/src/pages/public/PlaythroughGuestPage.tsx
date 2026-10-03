@@ -261,6 +261,9 @@ export function PlaythroughGuestPage() {
                 cards={entries.map((entry) => ({
                   key: entry.key,
                   label: entry.character.name,
+                  characterType: entry.character.isSceneCharacter
+                    ? entry.character.characterType
+                    : CharacterType.Player,
                   imageUrl:
                     entry.character.portraitUrl?.trim() ||
                     entry.character.photoUrl?.trim(),
@@ -319,17 +322,34 @@ function PublicCharacterView({
   return (
     <article className="w-full overflow-hidden rounded-3xl bg-surface/75 backdrop-blur-[2px]">
       <div className="grid lg:grid-cols-[minmax(17rem,2fr)_minmax(0,3fr)]">
-        <div className="flex items-center justify-center bg-canvas/80 p-4">
+        <figure className="flex flex-col items-center justify-center bg-canvas/80 p-4">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              className="w-2/5 object-contain rounded-xl"
+              className={`w-2/5 object-contain rounded-xl ${character.isInAlternateForm ? "ring-1 ring-violet-400/50 shadow-[0_0_18px_rgba(167,139,250,0.3)]" : ""}`}
             />
           ) : (
             <span className="text-content-muted">No image</span>
           )}
-        </div>
+          {character.isInAlternateForm && (
+            <figcaption className="mt-2 flex items-center justify-center gap-1 text-xs font-semibold text-violet-300">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-4 w-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              >
+                <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" />
+                <path d="M20 2v4m-2-2h4" />
+              </svg>
+              <span>Transformed</span>
+            </figcaption>
+          )}
+        </figure>
 
         <div className="p-6 sm:p-8">
           <h2 className="text-2xl font-semibold text-content sm:text-3xl">
@@ -364,7 +384,9 @@ function PublicCharacterView({
               label="Melee"
               value={character.meleeAttackDamage ?? "—"}
             />
-            <PublicStat label="Bow" value={character.bowAttackDamage ?? "—"} />
+            {character.bowAttackDamage !== null && (
+              <PublicStat label="Bow" value={character.bowAttackDamage} />
+            )}
           </dl>
         </div>
       </div>
@@ -640,12 +662,24 @@ function PublicStat({
   label: string;
   value: string | number;
 }) {
+  const labelColor =
+    label === "HP"
+      ? "font-bold text-red-400"
+      : label === "MP"
+        ? "font-bold text-green-400"
+        : "text-content-muted";
+  const valueColor =
+    label === "HP"
+      ? "text-red-200"
+      : label === "MP"
+        ? "text-green-200"
+        : "text-content";
   return (
     <div className="rounded-xl bg-surface/80 p-3">
-      <dt className="text-xs uppercase tracking-wide text-content-muted">
+      <dt className={`text-xs uppercase tracking-wide ${labelColor}`}>
         {label}
       </dt>
-      <dd className="mt-1 text-lg font-semibold text-content">{value}</dd>
+      <dd className={`mt-1 text-lg font-semibold ${valueColor}`}>{value}</dd>
     </div>
   );
 }

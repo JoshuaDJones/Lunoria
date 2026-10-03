@@ -1,10 +1,12 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import type { CharacterType } from "@/features/characters";
 import { CharacterThumbnail } from "@/features/playthroughSession/components/CharacterThumbnail";
 
 interface GuestCardDeckProps {
   cards: {
     key: string;
     label: string;
+    characterType: CharacterType;
     imageUrl?: string | null;
     content: ReactNode;
   }[];
@@ -121,6 +123,7 @@ export function GuestCardDeck({
               key={card.key}
               name={card.label}
               imageUrl={card.imageUrl}
+              characterType={card.characterType}
               selected={selectedIndex === index}
               onSelect={() => navigate(index)}
             />

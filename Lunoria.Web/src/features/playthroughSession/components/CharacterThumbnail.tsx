@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { CharacterType } from "@/features/characters";
 
 interface CharacterThumbnailProps {
   name: string;
+  characterType: CharacterType;
   imageUrl?: string | null;
   selected: boolean;
   onSelect: () => void;
@@ -9,11 +11,18 @@ interface CharacterThumbnailProps {
 
 export function CharacterThumbnail({
   name,
+  characterType,
   imageUrl,
   selected,
   onSelect,
 }: CharacterThumbnailProps) {
   const [failedUrl, setFailedUrl] = useState<string>();
+  const borderColor =
+    characterType === CharacterType.Enemy
+      ? "border-red-400"
+      : characterType === CharacterType.NPC
+        ? "border-green-400"
+        : "border-blue-400";
   return (
     <button
       type="button"
@@ -21,7 +30,7 @@ export function CharacterThumbnail({
       aria-current={selected ? "true" : undefined}
       title={name}
       onClick={onSelect}
-      className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 bg-surface/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility ${selected ? "border-utility" : "border-transparent hover:border-border"}`}
+      className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 bg-surface/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility ${borderColor} ${selected ? "ring-2 ring-white/80 ring-offset-2 ring-offset-surface" : "opacity-75 hover:opacity-100"}`}
     >
       {imageUrl && imageUrl !== failedUrl ? (
         <img

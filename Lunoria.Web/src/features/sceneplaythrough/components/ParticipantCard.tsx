@@ -31,43 +31,60 @@ const ParticipantCard = ({
           isWaitingForTurn ? "pointer-events-none select-none blur-[1.5px]" : ""
         }`}
       >
-        <div className="flex w-2/5 shrink-0 items-start justify-center p-2">
+        <figure className="m-2 w-fit max-w-[calc(40%-1rem)] shrink-0 self-start">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              className="h-auto max-h-56 w-auto rounded-xl object-contain object-top"
+              className={`h-auto max-h-56 w-auto max-w-full rounded-xl object-contain object-top ${participant.isInAlternateForm ? "ring-1 ring-violet-400/50 shadow-[0_0_18px_rgba(167,139,250,0.3)]" : ""}`}
             />
           ) : (
             <span className="text-content-muted">No image</span>
           )}
-        </div>
+          {participant.isInAlternateForm && (
+            <figcaption className="mt-2 flex w-0 min-w-full flex-wrap items-center justify-center gap-1 text-center text-xs font-semibold text-violet-300">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-4 w-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              >
+                <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" />
+                <path d="M20 2v4m-2-2h4" />
+              </svg>
+              <span className="min-w-0 break-words">Transformed</span>
+            </figcaption>
+          )}
+        </figure>
 
         <div className="flex min-w-0 flex-1 flex-col p-4">
           <div>
-            <h3 className="pr-6 text-xl font-semibold text-content">
+            <h3 className="break-words pr-6 text-2xl font-semibold text-content">
               {participant.name}
             </h3>
-            <p className="text-sm text-content-muted">
+            <p className="text-base text-content-muted">
               {getParticipantTypeLabel(participant.participantType)}
             </p>
             {participant.description && (
-              <p className="mt-2 text-sm text-content-secondary">
+              <p className="mt-2 break-words text-base text-content-secondary">
                 {participant.description}
               </p>
             )}
           </div>
 
-          <dl className="mt-4 flex min-w-0 flex-col gap-2 text-sm">
+          <dl className="mt-4 flex min-w-0 flex-col gap-2 text-base">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
-              <dt className="text-content-muted">HP</dt>
-              <dd className="font-semibold text-content">
+              <dt className="font-bold text-red-400">HP</dt>
+              <dd className="font-semibold text-red-200">
                 {participant.currentHp} / {participant.maxHp}
               </dd>
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-surface/75 p-2">
-              <dt className="text-content-muted">MP</dt>
-              <dd className="font-semibold text-content">
+              <dt className="font-bold text-green-400">MP</dt>
+              <dd className="font-semibold text-green-200">
                 {participant.currentMp} / {participant.maxMp}
               </dd>
             </div>
@@ -93,9 +110,7 @@ const ParticipantCard = ({
             )}
           </dl>
 
-          {(participant.isDown ||
-            participant.isDead ||
-            participant.isInAlternateForm) && (
+          {(participant.isDown || participant.isDead) && (
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
               {participant.isDown && (
                 <span className="rounded-full border border-border px-3 py-1 text-content-secondary">
@@ -108,11 +123,6 @@ const ParticipantCard = ({
               {participant.isDead && (
                 <span className="rounded-full border border-danger px-3 py-1 text-danger">
                   Dead
-                </span>
-              )}
-              {participant.isInAlternateForm && (
-                <span className="rounded-full border border-border px-3 py-1 text-content-secondary">
-                  Alternate form
                 </span>
               )}
             </div>
