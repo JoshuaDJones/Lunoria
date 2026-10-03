@@ -127,12 +127,6 @@ export function PlayHubPage() {
         </header>
 
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-surface/65 p-5 backdrop-blur-[2px] sm:p-6">
-          {isLoading && (
-            <p className="text-content-secondary" role="status">
-              Loading playthroughs...
-            </p>
-          )}
-
           {!isLoading && error && (
             <ApiLoadError
               error={error}
@@ -140,10 +134,11 @@ export function PlayHubPage() {
             />
           )}
 
-          {!isLoading && !error && (
+          {(isLoading || !error) && (
             <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-8 xl:grid-cols-2 xl:grid-rows-1">
               <PlaythroughSection
                 title="In Progress"
+                loading={isLoading}
                 newPlaythroughAction={
                   <Button
                     variant="add"
@@ -169,6 +164,7 @@ export function PlayHubPage() {
               />
               <PlaythroughSection
                 title="Completed"
+                loading={isLoading}
                 scrollItems
                 emptyMessage="No playthroughs have been completed yet."
                 playthroughs={completed}
@@ -183,6 +179,7 @@ export function PlayHubPage() {
 }
 
 interface PlaythroughSectionProps {
+  loading?: boolean;
   scrollItems?: boolean;
   newPlaythroughAction?: ReactNode;
   busy?: boolean;
@@ -193,6 +190,7 @@ interface PlaythroughSectionProps {
 }
 
 function PlaythroughSection({
+  loading = false,
   scrollItems = false,
   newPlaythroughAction,
   busy = false,
@@ -205,13 +203,28 @@ function PlaythroughSection({
     <section className="flex min-h-0 min-w-0 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-3">
         <h2 className="text-3xl font-semibold text-content">{title}</h2>
-        <span className="rounded-full bg-surface px-3 py-1 text-sm text-content-secondary">
-          {playthroughs.length}
-        </span>
+        {!loading && (
+          <span className="rounded-full bg-surface px-3 py-1 text-sm text-content-secondary">
+            {playthroughs.length}
+          </span>
+        )}
       </div>
       <div className="mt-3 h-px w-full shrink-0 bg-border" />
 
-      {playthroughs.length === 0 ? (
+      {loading ? (
+        <div
+          role="status"
+          className="mt-5 flex min-h-32 items-center justify-center rounded-xl border border-border bg-surface/50 p-5 text-content-secondary"
+        >
+          <span
+            aria-hidden="true"
+            className="h-7 w-7 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+          />
+          <span className="sr-only">
+            Loading {title.toLowerCase()} playthroughs...
+          </span>
+        </div>
+      ) : playthroughs.length === 0 ? (
         <div className="mt-5 rounded-xl border border-border bg-surface/50 p-5 text-content-muted">
           <p>{emptyMessage}</p>
           {newPlaythroughAction && (

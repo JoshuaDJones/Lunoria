@@ -34,8 +34,10 @@ export function useSceneEntrance(
       // Leave a black first frame even when the background is already cached.
       timers.push(setTimeout(() => show("background"), 75));
       timers.push(setTimeout(() => show("title"), 875));
-      timers.push(setTimeout(() => show("content"), 1625));
-      timers.push(setTimeout(() => show("ready"), 2275));
+      // Let the title's 700ms fade finish, then hold it alone for two seconds,
+      // matching the fully visible title hold in the journey entrance.
+      timers.push(setTimeout(() => show("content"), 3575));
+      timers.push(setTimeout(() => show("ready"), 4225));
     };
     const handleMotionChange = () => {
       if (motion.matches) {

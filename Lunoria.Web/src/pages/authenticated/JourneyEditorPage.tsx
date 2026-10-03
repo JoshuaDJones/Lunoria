@@ -217,7 +217,7 @@ export function JourneyEditorPage() {
           <ApiLoadError error={error} onRetry={loadJourney} />
         )}
 
-        {!isLoading && !error && journey && (
+        {(isLoading || (!error && journey)) && (
           <div className="flex min-h-0 flex-1 flex-col">
             <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-surface/65 p-4 backdrop-blur-[2px] sm:p-6">
               <div className="flex shrink-0 flex-wrap items-center justify-between gap-4">
@@ -225,7 +225,7 @@ export function JourneyEditorPage() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     onClick={() => setIsOrderingScenes(true)}
-                    disabled={scenes.length < 2}
+                    disabled={isLoading || areScenesLoading || Boolean(scenesError) || scenes.length < 2}
                     variant="secondary"
                     className="h-11 border-border bg-surface/90 text-content-secondary hover:border-content-muted hover:bg-surface hover:text-content"
                     leftIcon={<FontAwesomeIcon icon={faSort} />}
@@ -234,6 +234,7 @@ export function JourneyEditorPage() {
                   </Button>
                   <Button
                     onClick={() => setEditingScene(null)}
+                    disabled={isLoading || !journey}
                     variant="secondary"
                     className="h-11 border-border bg-surface/90 text-content hover:border-content-muted hover:bg-surface hover:text-content"
                     leftIcon={<FontAwesomeIcon icon={faPlus} />}
@@ -249,17 +250,18 @@ export function JourneyEditorPage() {
                 aria-label="Scene list"
                 tabIndex={0}
               >
-                {areScenesLoading && (
-                  <p className="text-content-secondary" role="status">
-                    Loading scenes...
-                  </p>
+                {(isLoading || areScenesLoading) && (
+                  <div role="status" className="flex min-h-32 items-center justify-center rounded-xl border border-border bg-surface/50 p-5 text-content-secondary">
+                    <span aria-hidden="true" className="h-7 w-7 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none" />
+                    <span className="sr-only">Loading scenes...</span>
+                  </div>
                 )}
 
-                {!areScenesLoading && scenesError && (
+                {!isLoading && !areScenesLoading && scenesError && (
                   <ApiLoadError error={scenesError} onRetry={retryScenes} />
                 )}
 
-                {!areScenesLoading && !scenesError && scenes.length === 0 && (
+                {!isLoading && !areScenesLoading && !scenesError && scenes.length === 0 && (
                   <div className="rounded-xl border border-border bg-surface/60 p-8 text-center">
                     <h3 className="text-2xl font-semibold text-content">
                       No scenes yet
@@ -270,7 +272,7 @@ export function JourneyEditorPage() {
                   </div>
                 )}
 
-                {!areScenesLoading && !scenesError && scenes.length > 0 && (
+                {!isLoading && !areScenesLoading && !scenesError && scenes.length > 0 && (
                   <SceneGrid
                     scenes={scenes}
                     className="sm:grid-cols-1 xl:grid-cols-2"
