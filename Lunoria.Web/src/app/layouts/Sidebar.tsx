@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { MobileNavigation } from "@/app/layouts/MobileNavigation";
 import clsx from "clsx";
 import { type IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,7 +12,6 @@ import {
   faBottleDroplet,
   faShield,
   faArrowRightFromBracket,
-  faTableCellsLarge,
   faScroll,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -22,6 +22,7 @@ export interface SidebarItem {
   href?: string;
   icon?: IconDefinition;
   active?: boolean;
+  group?: string;
 }
 
 interface SidebarProps {
@@ -34,11 +35,20 @@ interface SidebarProps {
 
 const defaultItems: SidebarItem[] = [
   { label: "Series", to: "/home", icon: faScroll },
-  { label: "Characters", to: "/characters", icon: faUser },
-  { label: "Spells", to: "/spells", icon: faWandMagicSparkles },
-  { label: "Consumables", to: "/consumables", icon: faBottleDroplet },
-  { label: "Equipment", to: "/equipment", icon: faShield },
-  { label: "Components", to: "/components", icon: faTableCellsLarge },
+  { label: "Characters", to: "/characters", icon: faUser, group: "Library" },
+  {
+    label: "Spells",
+    to: "/spells",
+    icon: faWandMagicSparkles,
+    group: "Library",
+  },
+  {
+    label: "Consumables",
+    to: "/consumables",
+    icon: faBottleDroplet,
+    group: "Library",
+  },
+  { label: "Equipment", to: "/equipment", icon: faShield, group: "Library" },
 ];
 
 const sidebarCollapsedKey = "lunoria.sidebar.collapsed";
@@ -60,11 +70,23 @@ const Sidebar = ({
 }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(getInitialCollapsedState);
   const { signOut } = useAuth();
-  const activePath = window.location.pathname;
+  const { pathname: activePath } = useLocation();
+  const matchesPath = (path: string) =>
+    activePath === path || activePath.startsWith(`${path}/`);
 
   const updatedItems = items.map((item) => ({
     ...item,
-    active: item.to === activePath,
+    active:
+      item.active ??
+      (item.to === "/home"
+        ? [
+            "/home",
+            "/series",
+            "/journeys",
+            "/playthroughs",
+            "/scene-grids",
+          ].some(matchesPath)
+        : Boolean(item.to && matchesPath(item.to))),
   }));
 
   const toggleCollapsed = () => {
@@ -81,94 +103,117 @@ const Sidebar = ({
     });
   };
 
-  return (
-    <aside
-      className={clsx(
-        "relative z-20 flex h-full shrink-0 flex-col border-r border-white/10 bg-stone-900/85 p-5 text-stone-100 shadow-xl backdrop-blur-sm transition-all duration-200",
-        collapsed ? "w-20" : "w-72",
-        className,
-      )}
-    >
-      <div className="mb-8 flex items-center gap-3">
-        {collapsed ? (
-          <p className="w-full text-center text-xl font-semibold text-white">
-            L
-          </p>
-        ) : (
-          <div>
-            <p className="text-md font-semibold text-white">{title}</p>
-            <p className="text-xs text-stone-400">{subtitle}</p>
-          </div>
-        )}
-      </div>
-
-      <nav className="flex flex-col gap-2">
-        {updatedItems.map((item) => {
+  const navigation = (compact: boolean) => (
+    <>
+      <nav
+        aria-label="Main navigation"
+        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto"
+      >
+        {updatedItems.map((item, index) => {
           const content = (
             <>
               <span className="text-base">
                 {item.icon ? <FontAwesomeIcon icon={item.icon} /> : null}
               </span>
-              {!collapsed && <span>{item.label}</span>}
+              {!compact && <span>{item.label}</span>}
             </>
           );
 
           const className = clsx(
-            "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-            collapsed ? "justify-center px-2" : "",
+            "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-400",
+            compact ? "justify-center px-2" : "",
             item.active
-              ? "text-blue-500 bg-white/10"
+              ? "text-blue-300 bg-white/10"
               : "text-stone-300 hover:bg-white/10 hover:text-white",
           );
 
-          if (item.to) {
-            return (
-              <Link key={item.label} to={item.to} className={className}>
-                {content}
-              </Link>
-            );
-          }
-
-          if (item.href) {
-            return (
-              <a key={item.label} href={item.href} className={className}>
-                {content}
-              </a>
-            );
-          }
-
+          const accessibility = {
+            "aria-label": item.label,
+            "aria-current": item.active ? ("page" as const) : undefined,
+            title: compact ? item.label : undefined,
+          };
           return (
-            <button key={item.label} type="button" className={className}>
-              {content}
-            </button>
+            <div key={item.label}>
+              {item.group &&
+                item.group !== updatedItems[index - 1]?.group &&
+                (compact ? (
+                  <div className="my-3 border-t border-white/10" />
+                ) : (
+                  <p className="mb-2 mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-stone-400">
+                    {item.group}
+                  </p>
+                ))}
+              {item.to ? (
+                <Link to={item.to} className={className} {...accessibility}>
+                  {content}
+                </Link>
+              ) : item.href ? (
+                <a href={item.href} className={className} {...accessibility}>
+                  {content}
+                </a>
+              ) : (
+                <button type="button" className={className} {...accessibility}>
+                  {content}
+                </button>
+              )}
+            </div>
           );
         })}
       </nav>
 
-      <div className="mt-auto pt-6">
+      <div className="mt-auto shrink-0 pt-6">
         {children}
         <button
           type="button"
           onClick={signOut}
+          aria-label="Sign out"
+          title={compact ? "Sign out" : undefined}
           className="rounded-lg border border-stone-600 px-5 py-2 w-full text-sm text-stone-200 transition hover:border-danger hover:text-danger cursor-pointer flex items-center justify-center"
         >
-          {collapsed ? (
+          {compact ? (
             <FontAwesomeIcon icon={faArrowRightFromBracket} />
           ) : (
             "Sign out"
           )}
         </button>
+      </div>
+    </>
+  );
 
+  return (
+    <>
+      <MobileNavigation title={title}>{navigation(false)}</MobileNavigation>
+      <aside
+        className={clsx(
+          "relative z-20 hidden h-full shrink-0 flex-col border-r border-white/10 bg-stone-900/85 p-5 text-stone-100 shadow-xl backdrop-blur-sm transition-[width] duration-200 motion-reduce:transition-none lg:flex",
+          collapsed ? "w-20" : "w-72",
+          className,
+        )}
+      >
+        <div className="mb-8 flex items-center gap-3">
+          {collapsed ? (
+            <p className="w-full text-center text-xl font-semibold text-white">
+              L
+            </p>
+          ) : (
+            <div>
+              <p className="text-md font-semibold text-white">{title}</p>
+              <p className="text-xs text-stone-400">{subtitle}</p>
+            </div>
+          )}
+        </div>
+        {navigation(collapsed)}
         <button
           type="button"
           onClick={toggleCollapsed}
           className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white cursor-pointer"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <FontAwesomeIcon icon={collapsed ? faAnglesRight : faAnglesLeft} />
         </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 

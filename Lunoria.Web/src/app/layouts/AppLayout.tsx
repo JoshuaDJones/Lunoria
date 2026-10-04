@@ -26,7 +26,7 @@ const AppLayout = ({
   return (
     <div
       className={clsx(
-        "flex overflow-hidden bg-slate-800",
+        "flex flex-col overflow-hidden bg-slate-800 lg:flex-row",
         fixedViewport
           ? "fixed inset-0 h-dvh w-full overscroll-none"
           : "relative h-screen w-screen",
@@ -37,7 +37,7 @@ const AppLayout = ({
       {sidebar ?? <Sidebar />}
 
       <div
-        className={clsx("relative z-10 flex min-w-0 flex-1 flex-col", {
+        className={clsx("relative z-10 flex min-h-0 min-w-0 flex-1 flex-col", {
           "pb-20": !bottomPadding,
           "overflow-y-auto scrollbar-hide": scrolling,
           "min-h-0 overflow-hidden": fixedViewport && !scrolling,
