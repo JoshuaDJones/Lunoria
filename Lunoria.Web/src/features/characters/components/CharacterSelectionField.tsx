@@ -41,6 +41,7 @@ export function CharacterSelectionField({
     modalStack.push({
       title: pickerTitle,
       placement: "center",
+      scrollContent: false,
       content: (
         <CharacterPicker
           loadCharacters={loadCharacters}

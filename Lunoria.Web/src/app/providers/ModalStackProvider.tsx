@@ -30,6 +30,7 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
         placement: options.placement ?? "drawer",
         closeOnBackdrop: options.closeOnBackdrop ?? true,
         dismissible: options.dismissible ?? true,
+        scrollContent: options.scrollContent ?? true,
       },
     ]);
 
@@ -138,10 +139,12 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
               style={
                 entry.placement === "drawer"
                   ? { transform: `translateX(-${offset}px)` }
-                  : undefined
+                  : entry.scrollContent
+                    ? undefined
+                    : { height: "85dvh" }
               }
             >
-              <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
+              <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-5">
                 <h2
                   id={`modal-stack-title-${entry.id}`}
                   className="text-2xl font-semibold text-content"
@@ -156,7 +159,9 @@ export function ModalStackProvider({ children }: PropsWithChildren) {
                   Close
                 </Button>
               </header>
-              <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <div
+                className={`min-h-0 flex-1 p-6 ${entry.scrollContent ? "overflow-y-auto" : "flex flex-col overflow-hidden"}`}
+              >
                 {entry.content}
               </div>
             </section>

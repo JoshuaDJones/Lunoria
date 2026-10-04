@@ -1,11 +1,5 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts/AppLayout";
 import {
   booleanValue,
@@ -47,6 +41,8 @@ import {
   DialogPageType,
   type SceneDialog,
 } from "@/features/scenes";
+import { InlineDialogForm } from "@/features/scenes/components/InlineDialogForm";
+import { DialogAccordion } from "@/features/scenes/components/DialogAccordion";
 import { getApiError } from "@/lib/apiClient";
 import { useConfirmDialog, useToast } from "@/app/providers";
 
@@ -68,93 +64,6 @@ const sectionFields: ResourceFormField[] = [
     label: "Character",
   },
 ];
-
-interface EditorColumnProps {
-  title: string;
-  addLabel: string;
-  canAdd: boolean;
-  onAdd: () => void;
-  emptyMessage: string;
-  hasItems: boolean;
-  children: ReactNode;
-}
-
-function EditorColumn({
-  title,
-  addLabel,
-  canAdd,
-  onAdd,
-  emptyMessage,
-  hasItems,
-  children,
-}: EditorColumnProps) {
-  return (
-    <section className="flex min-h-80 flex-col rounded-2xl border border-border bg-surface/90">
-      <header className="flex items-center justify-between gap-3 border-b border-border p-4">
-        <h2 className="text-xl font-semibold text-content">{title}</h2>
-        <Button
-          onClick={onAdd}
-          disabled={!canAdd}
-          variant="primary"
-          className="px-3"
-        >
-          {addLabel}
-        </Button>
-      </header>
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {hasItems ? (
-          children
-        ) : (
-          <p className="text-sm text-content-muted">{emptyMessage}</p>
-        )}
-      </div>
-    </section>
-  );
-}
-
-interface ItemActionsProps {
-  onView?: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-function ItemActions({ onView, onEdit, onDelete }: ItemActionsProps) {
-  return (
-    <div className="mt-3 flex gap-2">
-      {onView && (
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onView();
-          }}
-          variant="accent"
-          size="sm"
-        >
-          View
-        </Button>
-      )}
-      <Button
-        onClick={(event) => {
-          event.stopPropagation();
-          onEdit();
-        }}
-        size="sm"
-      >
-        Edit
-      </Button>
-      <Button
-        onClick={(event) => {
-          event.stopPropagation();
-          onDelete();
-        }}
-        variant="danger"
-        size="sm"
-      >
-        Delete
-      </Button>
-    </div>
-  );
-}
 
 const IMAGE_ACCEPT =
   ".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp";
@@ -205,9 +114,7 @@ function DialogPageForm({
 
     if (file) {
       const maximumBytes =
-        pageType === DialogPageType.Video
-          ? MAX_VIDEO_BYTES
-          : MAX_IMAGE_BYTES;
+        pageType === DialogPageType.Video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
       if (file.size > maximumBytes) {
         setError(
           `${pageType === DialogPageType.Video ? "Videos" : "Images"} must be ${maximumBytes / 1024 / 1024} MB or smaller.`,
@@ -228,7 +135,9 @@ function DialogPageForm({
       nextType === DialogPageType.Video &&
       (page?.dialogPageSections?.length ?? 0) > 0
     ) {
-      setError("Remove all dialog sections before changing this page to video.");
+      setError(
+        "Remove all dialog sections before changing this page to video.",
+      );
       return;
     }
 
@@ -304,7 +213,9 @@ function DialogPageForm({
           key={pageType}
           id="dialog-page-media"
           type="file"
-          accept={pageType === DialogPageType.Video ? VIDEO_ACCEPT : IMAGE_ACCEPT}
+          accept={
+            pageType === DialogPageType.Video ? VIDEO_ACCEPT : IMAGE_ACCEPT
+          }
           required={!page || pageType !== page.pageType}
           onChange={(event) => chooseMedia(event.target.files?.[0])}
         />
@@ -360,6 +271,7 @@ function DialogPageForm({
 }
 
 export function SceneDialogsPage() {
+  const navigate = useNavigate();
   const { confirm } = useConfirmDialog();
   const toast = useToast();
   const {
@@ -374,6 +286,7 @@ export function SceneDialogsPage() {
   const [dialogs, setDialogs] = useState<SceneDialog[]>([]);
   const [selectedDialogId, setSelectedDialogId] = useState<number>();
   const [selectedPageId, setSelectedPageId] = useState<number>();
+  const [openPageIds, setOpenPageIds] = useState<number[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [editingDialog, setEditingDialog] = useState<
@@ -386,6 +299,18 @@ export function SceneDialogsPage() {
     DialogPageSection | null | undefined
   >();
   const [viewingDialog, setViewingDialog] = useState<SceneDialog>();
+  const [formBusy, setFormBusy] = useState(false);
+
+  useEffect(() => {
+    if (editingPage === undefined && editingSection === undefined && !formBusy)
+      return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [editingPage, editingSection, formBusy]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -438,8 +363,10 @@ export function SceneDialogsPage() {
       : [];
 
   const refresh = async () => {
-    setDialogs(await listSceneDialogs(sceneId));
+    const loaded = await listSceneDialogs(sceneId);
+    setDialogs(loaded);
     setError("");
+    return loaded;
   };
 
   const retryLoad = async () => {
@@ -460,9 +387,13 @@ export function SceneDialogsPage() {
     successMessage: string,
     operation: () => Promise<void>,
   ) => {
+    if (formBusy) return;
     const confirmed = await confirm({
       title: message,
-      message: "This action cannot be undone.",
+      message:
+        editingPage !== undefined || editingSection !== undefined
+          ? "This action cannot be undone. Your unsaved page or section changes will also be discarded."
+          : "This action cannot be undone.",
       confirmLabel: "Delete",
       variant: "danger",
     });
@@ -473,6 +404,8 @@ export function SceneDialogsPage() {
 
     try {
       await operation();
+      setEditingPage(undefined);
+      setEditingSection(undefined);
       await refresh();
       toast.success(successMessage);
     } catch (requestError) {
@@ -480,13 +413,142 @@ export function SceneDialogsPage() {
     }
   };
 
+  const changeContext = async (action: () => void) => {
+    if (formBusy) return;
+    if (editingPage !== undefined || editingSection !== undefined) {
+      const discard = await confirm({
+        title: "Discard unsaved input?",
+        message: "Your page or section changes have not been saved.",
+        confirmLabel: "Discard",
+        variant: "danger",
+      });
+      if (!discard) return;
+      setEditingPage(undefined);
+      setEditingSection(undefined);
+    }
+    action();
+  };
+
+  const pageForm = selectedDialog ? (
+    <DialogPageForm
+      page={editingPage}
+      defaultOrderNum={pages.length + 1}
+      onSubmit={async ({ orderNum, pageType, media }) => {
+        setFormBusy(true);
+        try {
+          if (editingPage) {
+            await updateDialogPage(editingPage.id, {
+              orderNum,
+              pageType,
+              media,
+            });
+            toast.success(`Page ${orderNum} was updated.`);
+          } else {
+            await createDialogPage(
+              selectedDialog.id,
+              orderNum,
+              pageType,
+              media!,
+            );
+            toast.success(`Page ${orderNum} was created.`);
+          }
+
+          const loaded = await refresh();
+          const loadedPages =
+            loaded.find((dialog) => dialog.id === selectedDialog.id)
+              ?.dialogPages ?? [];
+          const saved = editingPage
+            ? loadedPages.find((page) => page.id === editingPage.id)
+            : loadedPages.find(
+                (page) => !pages.some((existing) => existing.id === page.id),
+              );
+          if (saved) {
+            setSelectedPageId(saved.id);
+            setOpenPageIds((current) =>
+              current.includes(saved.id) ? current : [...current, saved.id],
+            );
+          }
+          setEditingPage(undefined);
+        } finally {
+          setFormBusy(false);
+        }
+      }}
+    />
+  ) : null;
+  const sectionForm =
+    selectedPage?.pageType === DialogPageType.Image ? (
+      <ResourceForm
+        fields={sectionFields}
+        showPhoto={false}
+        initialValues={{
+          orderNum: String(editingSection?.orderNum ?? sections.length + 1),
+          readingText: editingSection?.readingText ?? "",
+          characterId: String(editingSection?.character?.id ?? ""),
+          isNarrator: editingSection?.isNarrator ?? false,
+        }}
+        customFields={{
+          characterId: ({ field, value, values, setValue }) => {
+            const selectedId = Number(value);
+
+            return (
+              <CharacterSelectionField
+                id={field.name}
+                selectedId={
+                  Number.isInteger(selectedId) && selectedId > 0
+                    ? selectedId
+                    : null
+                }
+                initialSelectedCharacter={editingSection?.character}
+                pickerTitle="Choose dialog character"
+                disabled={Boolean(values.isNarrator)}
+                disabledMessage="Narrator sections do not use a character."
+                loadCharacters={() =>
+                  listCharacters({ typeFilter: CharacterType.Any })
+                }
+                onChange={(characterId) =>
+                  setValue(characterId === null ? "" : String(characterId))
+                }
+              />
+            );
+          },
+        }}
+        onSubmit={async (values) => {
+          setFormBusy(true);
+          try {
+            const isNarrator = booleanValue(values, "isNarrator");
+            const request = {
+              orderNum: numberValue(values, "orderNum"),
+              readingText: textValue(values, "readingText"),
+              characterId: isNarrator
+                ? null
+                : nullableNumberValue(values, "characterId"),
+              isNarrator,
+            };
+
+            if (editingSection) {
+              await updateDialogPageSection(editingSection.id, request);
+              toast.success(`Section ${request.orderNum} was updated.`);
+            } else {
+              await createDialogPageSection(selectedPage.id, request);
+              toast.success(`Section ${request.orderNum} was created.`);
+            }
+
+            setEditingSection(undefined);
+            await refresh();
+          } finally {
+            setFormBusy(false);
+          }
+        }}
+      />
+    ) : null;
+
   return (
     <AppLayout
       scrolling
       bottomPadding
       background={<div className="stone-image absolute inset-0 z-0" />}
     >
-      <main className="flex min-h-full flex-col p-5 sm:p-8">
+      <main inert={formBusy} className="flex min-h-full flex-col p-5 sm:p-8">
         <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="mt-2 text-4xl font-semibold text-content">
@@ -494,11 +556,30 @@ export function SceneDialogsPage() {
             </h1>
             <Link
               to={`/series/${seriesId}/journeys/${journeyId}`}
+              onClick={(event) => {
+                if (
+                  editingPage === undefined &&
+                  editingSection === undefined &&
+                  !formBusy
+                )
+                  return;
+                event.preventDefault();
+                void changeContext(() =>
+                  navigate(`/series/${seriesId}/journeys/${journeyId}`),
+                );
+              }}
               className="text-sm text-content-secondary hover:text-brand-hover"
             >
               ← Back to journey
             </Link>
           </div>
+          <Button
+            onClick={() => void changeContext(() => setEditingDialog(null))}
+            disabled={isLoading}
+            variant="add"
+          >
+            Add Dialog
+          </Button>
         </header>
 
         {!isLoading && error && (
@@ -512,151 +593,173 @@ export function SceneDialogsPage() {
             Loading dialog editor...
           </p>
         ) : !error ? (
-          <div className="grid flex-1 gap-4 lg:grid-cols-3">
-            <EditorColumn
-              title="Dialogs"
-              addLabel="Add dialog"
-              canAdd
-              onAdd={() => setEditingDialog(null)}
-              emptyMessage="No dialogs yet."
-              hasItems={dialogs.length > 0}
-            >
-              {dialogs.map((dialog) => (
-                <article
-                  key={dialog.id}
-                  onClick={() => {
+          <div className="space-y-4">
+            {dialogs.length === 0 && (
+              <p className="rounded-xl border border-border bg-surface/90 p-6 text-content-muted">
+                No dialogs yet. Add a dialog to begin.
+              </p>
+            )}
+            {dialogs.map((dialog) => (
+              <DialogAccordion
+                key={dialog.id}
+                dialog={dialog}
+                expanded={dialog.id === selectedDialogId}
+                openPageIds={openPageIds}
+                onCollapse={() => {
+                  const collapse = () => {
+                    const pageIds = new Set(
+                      (dialog.dialogPages ?? []).map((page) => page.id),
+                    );
+                    setOpenPageIds((current) =>
+                      current.filter((id) => !pageIds.has(id)),
+                    );
+                    if (selectedDialogId === dialog.id) {
+                      setSelectedDialogId(undefined);
+                      setSelectedPageId(undefined);
+                    }
+                  };
+                  if (selectedDialogId === dialog.id)
+                    void changeContext(collapse);
+                  else if (!formBusy) collapse();
+                }}
+                onExpand={() => {
+                  const expand = () => {
                     setSelectedDialogId(dialog.id);
+                    setOpenPageIds((current) => [
+                      ...new Set([
+                        ...current,
+                        ...(dialog.dialogPages ?? []).map((page) => page.id),
+                      ]),
+                    ]);
+                  };
+                  if (selectedDialogId !== dialog.id)
+                    void changeContext(expand);
+                  else if (!formBusy) expand();
+                }}
+                pageFormPageId={editingPage?.id}
+                pageForm={
+                  dialog.id === selectedDialogId &&
+                  editingPage !== undefined ? (
+                    <InlineDialogForm
+                      key={`page-${editingPage?.id ?? "new"}`}
+                      title={
+                        editingPage
+                          ? `Edit Page ${editingPage.orderNum}`
+                          : "New Page"
+                      }
+                      busy={formBusy}
+                      onCancel={() => void changeContext(() => {})}
+                    >
+                      {pageForm}
+                    </InlineDialogForm>
+                  ) : undefined
+                }
+                sectionFormPageId={selectedPageId}
+                sectionFormSectionId={editingSection?.id}
+                sectionForm={
+                  dialog.id === selectedDialogId &&
+                  editingSection !== undefined ? (
+                    <InlineDialogForm
+                      key={`section-${editingSection?.id ?? "new"}`}
+                      title={
+                        editingSection
+                          ? `Edit Section ${editingSection.orderNum}`
+                          : "New Section"
+                      }
+                      busy={formBusy}
+                      onCancel={() => void changeContext(() => {})}
+                    >
+                      {sectionForm}
+                    </InlineDialogForm>
+                  ) : undefined
+                }
+                onToggle={() =>
+                  void changeContext(() => {
+                    setSelectedDialogId((current) =>
+                      current === dialog.id ? undefined : dialog.id,
+                    );
                     setSelectedPageId(undefined);
-                  }}
-                  className={`cursor-pointer rounded-xl border p-4 transition ${
-                    dialog.id === selectedDialogId
-                      ? "border-brand bg-brand/10"
-                      : "border-border bg-surface-raised/70 hover:border-brand-subtle/60"
-                  }`}
-                >
-                  <h3 className="font-semibold text-content">{dialog.title}</h3>
-                  <p className="mt-1 text-xs text-content-muted">
-                    {dialog.dialogPages?.length ?? 0} pages
-                  </p>
-                  <ItemActions
-                    onView={() => setViewingDialog(dialog)}
-                    onEdit={() => setEditingDialog(dialog)}
-                    onDelete={() =>
-                      void remove(
-                        `Delete "${dialog.title}"?`,
-                        `Dialog "${dialog.title}" was deleted.`,
-                        () => deleteSceneDialog(dialog.id),
-                      )
-                    }
-                  />
-                </article>
-              ))}
-            </EditorColumn>
-
-            <EditorColumn
-              title="Pages"
-              addLabel="Add page"
-              canAdd={Boolean(selectedDialog)}
-              onAdd={() => setEditingPage(null)}
-              emptyMessage={
-                selectedDialog ? "No pages yet." : "Select a dialog first."
-              }
-              hasItems={pages.length > 0}
-            >
-              {pages.map((page) => (
-                <article
-                  key={page.id}
-                  onClick={() => setSelectedPageId(page.id)}
-                  className={`cursor-pointer rounded-xl border p-3 transition ${
-                    page.id === selectedPageId
-                      ? "border-brand bg-brand/10"
-                      : "border-border bg-surface-raised/70 hover:border-brand-subtle/60"
-                  }`}
-                >
-                  {page.pageType === DialogPageType.Video ? (
-                    <video
-                      src={page.mediaUrl}
-                      muted
-                      playsInline
-                      preload="metadata"
-                      className="mb-3 h-24 w-32 rounded-lg bg-canvas object-contain"
-                    />
-                  ) : (
-                    <img
-                      src={page.mediaUrl}
-                      alt=""
-                      className="mb-3 h-24 w-32 rounded-lg bg-canvas object-contain"
-                    />
-                  )}
-                  <h3 className="font-semibold text-content">
-                    Page {page.orderNum}
-                  </h3>
-                  <p className="mt-1 text-xs text-content-muted">
-                    {page.pageType === DialogPageType.Video
-                      ? "Video"
-                      : `${page.dialogPageSections?.length ?? 0} sections`}
-                  </p>
-                  <ItemActions
-                    onEdit={() => setEditingPage(page)}
-                    onDelete={() =>
-                      void remove(
-                        `Delete page ${page.orderNum}?`,
-                        `Page ${page.orderNum} was deleted.`,
-                        () => deleteDialogPage(page.id),
-                      )
-                    }
-                  />
-                </article>
-              ))}
-            </EditorColumn>
-
-            <EditorColumn
-              title="Sections"
-              addLabel="Add section"
-              canAdd={Boolean(
-                selectedPage && selectedPage.pageType === DialogPageType.Image,
-              )}
-              onAdd={() => setEditingSection(null)}
-              emptyMessage={
-                selectedPage?.pageType === DialogPageType.Video
-                  ? "Video pages do not have dialog sections."
-                  : selectedPage
-                    ? "No sections yet."
-                    : "Select a page first."
-              }
-              hasItems={sections.length > 0}
-            >
-              {sections.map((section) => (
-                <article
-                  key={section.id}
-                  className="rounded-xl border border-border bg-surface-raised/70 p-4"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-semibold text-content">
-                      Section {section.orderNum}
-                    </h3>
-                    <span className="text-xs text-content-muted">
-                      {section.isNarrator
-                        ? "Narrator"
-                        : (section.character?.name ?? "No character")}
-                    </span>
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-content-secondary">
-                    {section.readingText}
-                  </p>
-                  <ItemActions
-                    onEdit={() => setEditingSection(section)}
-                    onDelete={() =>
-                      void remove(
-                        `Delete section ${section.orderNum}?`,
-                        `Section ${section.orderNum} was deleted.`,
-                        () => deleteDialogPageSection(section.id),
-                      )
-                    }
-                  />
-                </article>
-              ))}
-            </EditorColumn>
+                  })
+                }
+                onTogglePage={(id) => {
+                  const toggle = () =>
+                    setOpenPageIds((current) =>
+                      current.includes(id)
+                        ? current.filter((value) => value !== id)
+                        : [...current, id],
+                    );
+                  if (
+                    openPageIds.includes(id) &&
+                    ((editingSection !== undefined && id === selectedPageId) ||
+                      editingPage?.id === id)
+                  )
+                    void changeContext(toggle);
+                  else if (!formBusy) toggle();
+                }}
+                onView={() => setViewingDialog(dialog)}
+                onEdit={() =>
+                  void changeContext(() => setEditingDialog(dialog))
+                }
+                onDelete={() =>
+                  void remove(
+                    `Delete "${dialog.title}"?`,
+                    `Dialog "${dialog.title}" was deleted.`,
+                    () => deleteSceneDialog(dialog.id),
+                  )
+                }
+                onAddPage={() =>
+                  void changeContext(() => {
+                    setSelectedDialogId(dialog.id);
+                    setEditingPage(null);
+                  })
+                }
+                onEditPage={(page) =>
+                  void changeContext(() => {
+                    setSelectedDialogId(dialog.id);
+                    setSelectedPageId(page.id);
+                    setEditingPage(page);
+                    setOpenPageIds((current) =>
+                      current.includes(page.id)
+                        ? current
+                        : [...current, page.id],
+                    );
+                  })
+                }
+                onDeletePage={(page) =>
+                  void remove(
+                    `Delete page ${page.orderNum}?`,
+                    `Page ${page.orderNum} was deleted.`,
+                    () => deleteDialogPage(page.id),
+                  )
+                }
+                onAddSection={(page) =>
+                  void changeContext(() => {
+                    setSelectedDialogId(dialog.id);
+                    setSelectedPageId(page.id);
+                    setEditingSection(null);
+                  })
+                }
+                onEditSection={(page, section) =>
+                  void changeContext(() => {
+                    setSelectedDialogId(dialog.id);
+                    setSelectedPageId(page.id);
+                    setEditingSection(section);
+                    setOpenPageIds((current) =>
+                      current.includes(page.id)
+                        ? current
+                        : [...current, page.id],
+                    );
+                  })
+                }
+                onDeleteSection={(section) =>
+                  void remove(
+                    `Delete section ${section.orderNum}?`,
+                    `Section ${section.orderNum} was deleted.`,
+                    () => deleteDialogPageSection(section.id),
+                  )
+                }
+              />
+            ))}
           </div>
         ) : null}
       </main>
@@ -681,118 +784,19 @@ export function SceneDialogsPage() {
                 toast.success(`Dialog "${title}" was created.`);
               }
 
-              setEditingDialog(undefined);
-              await refresh();
-            }}
-          />
-        </Drawer>
-      )}
-
-      {editingPage !== undefined && selectedDialog && (
-        <Drawer
-          title={editingPage ? "Edit dialog page" : "Create dialog page"}
-          onClose={() => setEditingPage(undefined)}
-        >
-          <DialogPageForm
-            page={editingPage}
-            defaultOrderNum={pages.length + 1}
-            onSubmit={async ({ orderNum, pageType, media }) => {
-              if (editingPage) {
-                await updateDialogPage(editingPage.id, {
-                  orderNum,
-                  pageType,
-                  media,
-                });
-                toast.success(`Page ${orderNum} was updated.`);
-              } else {
-                await createDialogPage(
-                  selectedDialog.id,
-                  orderNum,
-                  pageType,
-                  media!,
-                );
-                toast.success(`Page ${orderNum} was created.`);
-              }
-
-              setEditingPage(undefined);
-              await refresh();
-            }}
-          />
-        </Drawer>
-      )}
-
-      {editingSection !== undefined &&
-        selectedPage?.pageType === DialogPageType.Image && (
-          <Drawer
-            title={
-              editingSection ? "Edit dialog section" : "Create dialog section"
-            }
-            onClose={() => setEditingSection(undefined)}
-          >
-            <ResourceForm
-              fields={sectionFields}
-              showPhoto={false}
-              initialValues={{
-                orderNum: String(
-                  editingSection?.orderNum ?? sections.length + 1,
-                ),
-                readingText: editingSection?.readingText ?? "",
-                characterId: String(editingSection?.character?.id ?? ""),
-                isNarrator: editingSection?.isNarrator ?? false,
-              }}
-              customFields={{
-                characterId: ({ field, value, values, setValue }) => {
-                  const selectedId = Number(value);
-
-                  return (
-                    <CharacterSelectionField
-                      id={field.name}
-                      selectedId={
-                        Number.isInteger(selectedId) && selectedId > 0
-                          ? selectedId
-                          : null
-                      }
-                      initialSelectedCharacter={editingSection?.character}
-                      pickerTitle="Choose dialog character"
-                      disabled={Boolean(values.isNarrator)}
-                      disabledMessage="Narrator sections do not use a character."
-                      loadCharacters={() =>
-                        listCharacters({ typeFilter: CharacterType.Any })
-                      }
-                      onChange={(characterId) =>
-                        setValue(
-                          characterId === null ? "" : String(characterId),
-                        )
-                      }
-                    />
+              const loaded = await refresh();
+              const saved = editingDialog
+                ? loaded.find((dialog) => dialog.id === editingDialog.id)
+                : loaded.find(
+                    (dialog) =>
+                      !dialogs.some((existing) => existing.id === dialog.id),
                   );
-                },
-              }}
-              onSubmit={async (values) => {
-                const isNarrator = booleanValue(values, "isNarrator");
-                const request = {
-                  orderNum: numberValue(values, "orderNum"),
-                  readingText: textValue(values, "readingText"),
-                  characterId: isNarrator
-                    ? null
-                    : nullableNumberValue(values, "characterId"),
-                  isNarrator,
-                };
-
-                if (editingSection) {
-                  await updateDialogPageSection(editingSection.id, request);
-                  toast.success(`Section ${request.orderNum} was updated.`);
-                } else {
-                  await createDialogPageSection(selectedPage.id, request);
-                  toast.success(`Section ${request.orderNum} was created.`);
-                }
-
-                setEditingSection(undefined);
-                await refresh();
-              }}
-            />
-          </Drawer>
-        )}
+              if (saved) setSelectedDialogId(saved.id);
+              setEditingDialog(undefined);
+            }}
+          />
+        </Drawer>
+      )}
 
       {viewingDialog && (
         <DialogViewer

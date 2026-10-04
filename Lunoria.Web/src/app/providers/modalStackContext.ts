@@ -8,6 +8,7 @@ export interface ModalStackOptions {
   placement?: ModalPlacement;
   closeOnBackdrop?: boolean;
   dismissible?: boolean;
+  scrollContent?: boolean;
 }
 
 export interface ModalStackEntry extends Required<ModalStackOptions> {
