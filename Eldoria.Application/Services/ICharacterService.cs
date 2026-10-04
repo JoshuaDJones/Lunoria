@@ -26,7 +26,8 @@ namespace Eldoria.Application.Services
             int? alternateFormId,
             string dialogActiveColor,
             string dialogInActiveColor,
-            CancellationToken ct);
+            CancellationToken ct,
+            bool isAlternateFormOnly = false);
 
         Task<Result<CharacterDto>> UpdateAsync(int userId, 
             int id,
@@ -44,7 +45,8 @@ namespace Eldoria.Application.Services
             int? alternateFormId,
             string dialogActiveColor,
             string dialogInActiveColor,
-            CancellationToken ct);
+            CancellationToken ct,
+            bool? isAlternateFormOnly = null);
 
         Task<Result<List<CharacterDto>>> GetAlternateCharactersList(
             int userId,

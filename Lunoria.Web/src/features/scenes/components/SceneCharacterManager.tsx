@@ -157,7 +157,9 @@ export function SceneCharacterManager({ scene }: Props) {
 
   if (view === "attach") {
     const available = catalog.filter(
-      (character) => character.characterType !== CharacterType.Player,
+      (character) =>
+        character.characterType !== CharacterType.Player &&
+        !character.isAlternateFormOnly,
     );
     return (
       <AttachForm

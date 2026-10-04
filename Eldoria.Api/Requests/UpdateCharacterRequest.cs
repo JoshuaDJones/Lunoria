@@ -4,6 +4,7 @@ namespace Eldoria.Api.Requests
 {
     public class UpdateCharacterRequest
     {
+        public bool? IsAlternateFormOnly { get; set; }
         [Required]
         public string Name { get; set; } = default!;
 

@@ -10,7 +10,7 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class JourneyCharacterController(IJourneyCharacterService journeyCharacterService, ICharacterSyncService characterSyncService) : ControllerBase
+    public class JourneyCharacterController(IJourneyCharacterService journeyCharacterService, ICharacterSyncService characterSyncService, Eldoria.Core.Interfaces.ICharacterSyncUnitOfWork unitOfWork) : ControllerBase
     {
         private readonly IJourneyCharacterService _journeyCharacterService = journeyCharacterService;
 
@@ -32,7 +32,7 @@ namespace Eldoria.Api.Controllers
         [HttpPut("{journeyId:int}")]
         public async Task<IActionResult> Replace(int journeyId, [FromBody] ReplaceJourneyCharactersRequest req, CancellationToken ct)
         {
-            var result = await _journeyCharacterService.ReplaceJourneyCharacters(User.GetUserId(), journeyId, req.CharacterIds, ct);
+            var result = await unitOfWork.ExecuteAsync(() => _journeyCharacterService.ReplaceJourneyCharacters(User.GetUserId(), journeyId, req.CharacterIds, ct), ct);
 
             if (result.Success)
                 return Ok();

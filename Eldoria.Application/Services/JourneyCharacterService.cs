@@ -96,6 +96,9 @@ namespace Eldoria.Application.Services
 
                 if (character is null)
                     missingCharacterIds.Add(characterId);
+                else if (character.IsAlternateFormOnly)
+                    return Result.Fail(new Error("Character.AlternateFormOnly",
+                        $"{character.Name} can only be used as an alternate form and cannot be added directly to a journey."));
                 else
                     selectedCharacters.Add(character);
             }

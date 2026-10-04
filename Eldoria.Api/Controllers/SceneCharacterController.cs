@@ -10,7 +10,7 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneCharacterController(ISceneCharacterService sceneCharacterService, ICharacterSyncService characterSyncService) : ControllerBase
+    public class SceneCharacterController(ISceneCharacterService sceneCharacterService, ICharacterSyncService characterSyncService, Eldoria.Core.Interfaces.ICharacterSyncUnitOfWork unitOfWork) : ControllerBase
     {
         private readonly ISceneCharacterService _sceneCharacterService = sceneCharacterService;
 
@@ -48,11 +48,11 @@ namespace Eldoria.Api.Controllers
             [FromBody] AddSceneCharacterRequest req,
             CancellationToken ct)
         {
-            var result = await _sceneCharacterService.AddSceneCharacterAsync(
+            var result = await unitOfWork.ExecuteAsync(() => _sceneCharacterService.AddSceneCharacterAsync(
                 User.GetUserId(),
                 req.SceneId!.Value,
                 req.CharacterId!.Value,
-                ct);
+                ct), ct);
 
             if (result.Success)
                 return CreatedAtAction(nameof(Get), new { sceneCharacterId = result.Value!.Id }, result.Value);

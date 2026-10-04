@@ -48,6 +48,11 @@ export function CharacterCard({
           <h2 className="wrap-break-word text-4xl font-semibold text-content">
             {character.name}
           </h2>
+          {character.isAlternateFormOnly && (
+            <span className="my-2 inline-flex rounded-full border border-magic/40 bg-magic/10 px-3 py-1 text-xs font-semibold text-magic-hover">
+              Alternate only
+            </span>
+          )}
           <p className="line-clamp-4 wrap-break-word text-lg text-content-secondary">
             {character.description}
           </p>

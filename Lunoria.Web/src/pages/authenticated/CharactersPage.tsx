@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { CollectionPage } from "@/components/layout/CollectionPage";
 import {
+  booleanValue,
   nullableNumberValue,
   numberValue,
   requiredPhoto,
@@ -61,6 +62,11 @@ const fields: ResourceFormField[] = [
       { label: "NPC", value: String(CharacterType.NPC) },
       { label: "Enemy", value: String(CharacterType.Enemy) },
     ],
+  },
+  {
+    name: "isAlternateFormOnly",
+    label: "Character usage",
+    type: "checkbox",
   },
   { name: "alternateFormId", label: "Alternate character" },
   {
@@ -249,6 +255,7 @@ export function CharactersPage() {
             fields={fields}
             initialValues={{
               name: editing?.name ?? "",
+              isAlternateFormOnly: editing?.isAlternateFormOnly ?? false,
               description: editing?.description ?? "",
               maxHp: String(editing?.maxHp ?? 0),
               maxMp: String(editing?.maxMp ?? 0),
@@ -273,6 +280,30 @@ export function CharactersPage() {
               ),
             }}
             customFields={{
+              isAlternateFormOnly: ({ value, setValue }) => (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 text-sm font-medium text-content">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(value)}
+                      onChange={(event) => setValue(event.target.checked)}
+                      className="size-4 accent-brand"
+                      aria-describedby="alternate-only-help"
+                    />
+                    Alternate form only
+                  </label>
+                  <p
+                    id="alternate-only-help"
+                    className="text-sm text-content-muted"
+                  >
+                    Use this character only as a transformation. It stays
+                    available in alternate-form selectors but cannot be added
+                    directly to a journey or scene. Remove any existing direct
+                    assignments before enabling this. Existing playthroughs are
+                    unaffected.
+                  </p>
+                </div>
+              ),
               alternateFormId: ({ field, value, values, setValue }) => {
                 const selectedId = Number(value);
 
@@ -301,6 +332,10 @@ export function CharactersPage() {
             onSubmit={async (values, photo) => {
               const input = {
                 name: textValue(values, "name"),
+                isAlternateFormOnly: booleanValue(
+                  values,
+                  "isAlternateFormOnly",
+                ),
                 description: textValue(values, "description"),
                 maxHp: numberValue(values, "maxHp"),
                 maxMp: numberValue(values, "maxMp"),

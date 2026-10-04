@@ -10,6 +10,7 @@ namespace Eldoria.Application.Common
             return new CharacterDto
             {
                 Id = character.Id,
+                IsAlternateFormOnly = character.IsAlternateFormOnly,
                 Name = character.Name,
                 Description = character.Description,
                 PhotoUrl = character.PhotoUrl,

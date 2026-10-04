@@ -9,7 +9,8 @@ namespace Eldoria.Application.Services
 {
     public class CharacterService(
         ICharacterRepository characterRepository,
-        IAzureStorageBlob azureStorageBlob) : ICharacterService
+        IAzureStorageBlob azureStorageBlob,
+        ICharacterUsageRepository characterUsageRepository) : ICharacterService
     {
         private readonly ICharacterRepository _characterRepository = characterRepository;
         private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
@@ -30,7 +31,8 @@ namespace Eldoria.Application.Services
             int? alternateFormId,
             string dialogActiveColor,
             string dialogInActiveColor,
-            CancellationToken ct)
+            CancellationToken ct,
+            bool isAlternateFormOnly = false)
         {
             var alternateForm = await ResolveAlternateFormAsync(userId, alternateFormId, characterType, ct);
             if (alternateFormId.HasValue && alternateForm is null)
@@ -41,6 +43,7 @@ namespace Eldoria.Application.Services
             var character = new Character
             {
                 UserId = userId,
+                IsAlternateFormOnly = isAlternateFormOnly,
                 Name = name.Trim(),
                 Description = description.Trim(),
                 PhotoUrl = photoUrl,
@@ -130,11 +133,17 @@ namespace Eldoria.Application.Services
             int? alternateFormId,
             string dialogActiveColor,
             string dialogInActiveColor,
-            CancellationToken ct)
+            CancellationToken ct,
+            bool? isAlternateFormOnly = null)
         {
             var character = await _characterRepository.GetByIdForUserAsync(userId, id, ct);
             if (character is null)
                 return Result<CharacterDto>.Fail(new Error("Character.NotFound", "Character was not found."));
+
+            if (isAlternateFormOnly == true && !character.IsAlternateFormOnly &&
+                await characterUsageRepository.HasDirectAssignmentsAsync(id, ct))
+                return Result<CharacterDto>.Fail(new Error("Character.DirectAssignmentsExist",
+                    "Remove this character from its journey player rosters and scene character lists before enabling Alternate form only. Existing playthroughs do not need to be changed."));
 
             if (alternateFormId == id)
                 return InvalidAlternateForm();
@@ -151,6 +160,7 @@ namespace Eldoria.Application.Services
                 character.FileName = fileName;
             }
 
+            if (isAlternateFormOnly.HasValue) character.IsAlternateFormOnly = isAlternateFormOnly.Value;
             character.Name = name.Trim();
             character.Description = description.Trim();
             character.BaseMaxHp = maxHp;

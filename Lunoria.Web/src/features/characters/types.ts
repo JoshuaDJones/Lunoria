@@ -21,6 +21,7 @@ export interface CharacterSpell {
 
 export interface Character {
   id: number;
+  isAlternateFormOnly: boolean;
   name: string;
   description: string;
   photoUrl: string;
@@ -41,6 +42,7 @@ export interface Character {
 
 export interface CharacterInput {
   name: string;
+  isAlternateFormOnly?: boolean;
   description: string;
   photo?: File;
   maxHp: number;

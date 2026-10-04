@@ -9,7 +9,7 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class CharacterController(ICharacterService characterService) : ControllerBase
+    public class CharacterController(ICharacterService characterService, Eldoria.Core.Interfaces.ICharacterSyncUnitOfWork unitOfWork) : ControllerBase
     {
         private readonly ICharacterService _characterService = characterService;
 
@@ -78,7 +78,7 @@ namespace Eldoria.Api.Controllers
                 req.AlternateFormId,
                 req.DialogActiveColor,
                 req.DialogInActiveColor,
-                ct);
+                ct, req.IsAlternateFormOnly);
 
             if (result.Success)
                 return CreatedAtAction(nameof(Get), new { id = result.Value?.Id }, result.Value);
@@ -90,7 +90,7 @@ namespace Eldoria.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateCharacterRequest req, CancellationToken ct)
         {
-            var result = await _characterService.UpdateAsync(
+            var result = await unitOfWork.ExecuteAsync(() => _characterService.UpdateAsync(
                 User.GetUserId(),
                 id,
                 req.Name,
@@ -107,7 +107,7 @@ namespace Eldoria.Api.Controllers
                 req.AlternateFormId,
                 req.DialogActiveColor,
                 req.DialogInActiveColor,
-                ct);
+                ct, req.IsAlternateFormOnly), ct);
 
             if (result.Success)
                 return Ok(result.Value);
@@ -115,6 +115,7 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "Character.NotFound" => NotFound(result.Error),
+                "Character.DirectAssignmentsExist" => Conflict(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

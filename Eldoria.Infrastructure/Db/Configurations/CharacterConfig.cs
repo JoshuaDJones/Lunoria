@@ -13,6 +13,7 @@ namespace Eldoria.Infrastructure.Db.Configurations
             builder.Property(c => c.SpellAssignmentsRevision).HasDefaultValue(1);
             builder.Property(c => c.AlternateFormRevision).HasDefaultValue(1);
             builder.HasKey(c => c.Id);
+            builder.Property(c => c.IsAlternateFormOnly).HasDefaultValue(false);
 
             builder.Property(c => c.Name)
                 .IsRequired()

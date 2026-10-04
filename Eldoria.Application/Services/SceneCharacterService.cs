@@ -49,6 +49,10 @@ namespace Eldoria.Application.Services
             if (character is null)
                 return Result<SceneCharacterDto>.Fail(CharacterNotFound);
 
+            if (character.IsAlternateFormOnly)
+                return Result<SceneCharacterDto>.Fail(new Error("Character.AlternateFormOnly",
+                    "This character can only be used as an alternate form and cannot be attached directly to a scene."));
+
             if (character.CharacterType == CharacterType.Player)
                 return Result<SceneCharacterDto>.Fail(new Error(
                     "SceneCharacter.InvalidCharacterType",

@@ -45,6 +45,10 @@ export function JourneyCharacterPicker({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const editing = journeyCharacters.find((item) => item.id === editingId);
+  // Keep the full catalog for alternate selectors; filter only direct roster choices.
+  const rosterCharacters = characters.filter(
+    (character) => !character.isAlternateFormOnly,
+  );
 
   const refreshAssignment = async (assignment: JourneyCharacter) => {
     const journey = await getJourney(assignment.journeyId);
@@ -138,14 +142,15 @@ export function JourneyCharacterPicker({
         </p>
       )}
       {!isLoading && error && <ApiLoadError error={error} onRetry={load} />}
-      {!isLoading && !error && characters.length === 0 && (
+      {!isLoading && !error && rosterCharacters.length === 0 && (
         <p className="rounded-xl border border-border p-5 text-content-muted">
-          No playable characters are available.
+          No directly playable characters are available. Alternate-only
+          characters can be selected as transformations in Edit stats & order.
         </p>
       )}
       {!isLoading && !error && (
         <div className="flex-1 space-y-3">
-          {characters.map((character) => {
+          {rosterCharacters.map((character) => {
             const isSelected = selectedIds.has(character.id);
             const assignment = journeyCharacters.find(
               (item) => item.characterId === character.id,
