@@ -1,14 +1,41 @@
+import { useEffect, useRef } from "react";
 import { DialogPageType } from "@/features/scenes/types";
 import type { DialogViewerDialog } from "@/features/scenes/components/DialogViewer";
 
 export function DialogViewerPage({
   page,
+  activeSectionIndex,
+  outgoing,
 }: {
   page: NonNullable<DialogViewerDialog["dialogPages"]>[number];
+  activeSectionIndex: number;
+  outgoing: boolean;
 }) {
   const sections = [...(page.dialogPageSections ?? [])].sort(
     (left, right) => left.orderNum - right.orderNum,
   );
+  const scroller = useRef<HTMLDivElement>(null);
+  const activeSection = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (outgoing || !scroller.current || !activeSection.current) return;
+    const container = scroller.current;
+    const target = activeSection.current;
+    const top =
+      activeSectionIndex === 0
+        ? 0
+        : container.scrollTop +
+          target.getBoundingClientRect().top -
+          container.getBoundingClientRect().top -
+          24;
+    container.scrollTo({
+      top: Math.max(0, top),
+      behavior:
+        activeSectionIndex === 0 ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+    });
+  }, [activeSectionIndex, outgoing, page.id]);
   return (
     <div className="relative flex h-full min-h-0 items-center justify-center overflow-hidden bg-canvas">
       {page?.pageType === DialogPageType.Video && page.mediaUrl ? (
@@ -32,9 +59,12 @@ export function DialogViewerPage({
       )}
 
       {page?.pageType === DialogPageType.Image && sections.length > 0 && (
-        <div className="scrollbar-hide absolute inset-4 overflow-y-auto py-10 sm:inset-x-[10%]">
+        <div
+          ref={scroller}
+          className="scrollbar-hide absolute inset-4 overflow-y-auto py-10 sm:inset-x-[10%]"
+        >
           <div className="mx-auto flex w-full flex-col items-center gap-5 sm:w-[80%] lg:w-[60%]">
-            {sections.map((section) => {
+            {sections.map((section, index) => {
               const speaker = section.isNarrator
                 ? "Narrator"
                 : (section.character?.name ?? "Unknown character");
@@ -42,6 +72,10 @@ export function DialogViewerPage({
               return (
                 <article
                   key={section.id}
+                  ref={index === activeSectionIndex ? activeSection : undefined}
+                  aria-current={
+                    index === activeSectionIndex ? "step" : undefined
+                  }
                   style={{
                     borderColor:
                       section.character?.dialogActiveColor ||
@@ -49,7 +83,7 @@ export function DialogViewerPage({
                         ?.dialogActiveColor ||
                       undefined,
                   }}
-                  className="rounded-xl border-4 border-border bg-canvas/85 p-4 shadow-xl backdrop-blur-sm w-full opacity-50 transition-opacity hover:opacity-100"
+                  className={`rounded-xl border-4 border-border bg-canvas/85 p-4 shadow-xl backdrop-blur-sm w-full transition-opacity motion-reduce:transition-none ${index === activeSectionIndex ? "opacity-100" : "opacity-50"}`}
                 >
                   <div className="flex items-center gap-3">
                     {!section.isNarrator && section.character?.photoUrl && (
