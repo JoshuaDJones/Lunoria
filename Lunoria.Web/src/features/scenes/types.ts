@@ -1,4 +1,5 @@
 import type { Character } from "@/features/characters/types";
+import type { CharacterSyncStatus } from "@/features/characterSync/types";
 import type { EquippableItem } from "@/features/equipment/types";
 import type { Item } from "@/features/items/types";
 import type { JourneyCharacter } from "@/features/journeys/types";
@@ -175,6 +176,7 @@ export interface SceneCharacterItem {
 }
 
 export interface SceneCharacter {
+  syncStatus?: CharacterSyncStatus | null;
   id: number;
   meleeAttackDamage: number | null;
   bowAttackDamage: number | null;

@@ -29,6 +29,8 @@ import type {
 } from "@/features/scenes/types";
 import { listSpells, type Spell } from "@/features/spells";
 import { getApiError } from "@/lib/apiClient";
+import { CharacterSyncButton } from "@/features/characterSync/components/CharacterSyncButton";
+import { getSceneCharacter } from "@/features/scenes/api/scenesApi";
 
 interface Props {
   scene: Scene;
@@ -46,6 +48,14 @@ export function SceneCharacterManager({ scene }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const selected = assignments.find((item) => item.id === selectedId);
+
+  const refreshAssignment = async (id: number) => {
+    const updated = await getSceneCharacter(id);
+    setAssignments((current) =>
+      current.map((item) => (item.id === updated.id ? updated : item)),
+    );
+    setView("characters");
+  };
 
   const load = async () => {
     setIsLoading(true);
@@ -167,6 +177,7 @@ export function SceneCharacterManager({ scene }: Props) {
     return (
       <EditForm
         assignment={selected}
+        onSyncUpdated={() => refreshAssignment(selected.id)}
         characters={catalog}
         onCancel={() => setView("characters")}
         onSave={async (input) => {
@@ -241,6 +252,15 @@ export function SceneCharacterManager({ scene }: Props) {
                   <h3 className="font-semibold text-content">
                     {assignment.character.name}
                   </h3>
+                  <div className="my-2">
+                    <CharacterSyncButton
+                      kind="scene"
+                      assignmentId={assignment.id}
+                      name={assignment.character.name}
+                      status={assignment.syncStatus}
+                      onUpdated={() => refreshAssignment(assignment.id)}
+                    />
+                  </div>
                   <p className="text-sm text-content-secondary">
                     HP {assignment.maxHp} · MP {assignment.maxMp} ·{" "}
                     {assignment.isInitiallyActive
@@ -363,11 +383,13 @@ function EditForm({
   characters,
   onSave,
   onCancel,
+  onSyncUpdated,
 }: {
   assignment: SceneCharacter;
   characters: Character[];
   onSave: (input: SceneCharacterInput) => Promise<void>;
   onCancel: () => void;
+  onSyncUpdated: () => Promise<void>;
 }) {
   const [values, setValues] = useState({
     melee: optionalNumber(assignment.meleeAttackDamage),
@@ -380,6 +402,9 @@ function EditForm({
     active: assignment.isInitiallyActive,
     alternate: String(assignment.alternateForm?.id ?? ""),
   });
+  const [initialValues] = useState(values);
+  const hasUnsavedChanges =
+    JSON.stringify(values) !== JSON.stringify(initialValues);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const set = (key: keyof typeof values, value: string | boolean) =>
@@ -413,6 +438,22 @@ function EditForm({
       <h3 className="text-2xl font-semibold text-content">
         Edit {assignment.character.name}
       </h3>
+      <div className="space-y-2">
+        <CharacterSyncButton
+          kind="scene"
+          assignmentId={assignment.id}
+          name={assignment.character.name}
+          status={assignment.syncStatus}
+          disabled={saving || hasUnsavedChanges}
+          onUpdated={onSyncUpdated}
+        />
+        {hasUnsavedChanges && (
+          <p className="text-xs text-content-muted">
+            Save your edits or cancel back to the list before comparing with the
+            base.
+          </p>
+        )}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           id="sc-hp"

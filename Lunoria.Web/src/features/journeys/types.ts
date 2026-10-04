@@ -1,4 +1,5 @@
 import type { Character } from "@/features/characters/types";
+import type { CharacterSyncStatus } from "@/features/characterSync/types";
 import type { Item } from "@/features/items/types";
 import type { DialogPageType, Scene } from "@/features/scenes/types";
 import type { Spell } from "@/features/spells/types";
@@ -42,6 +43,7 @@ export interface SpellDamageModifier {
 }
 
 export interface JourneyCharacter {
+  syncStatus?: CharacterSyncStatus | null;
   sortOrder: number;
   id: number;
   journeyId: number;

@@ -13,7 +13,11 @@ import {
   listCharacters,
   type Character,
 } from "@/features/characters";
-import { updateJourneyCharacter } from "@/features/journeys/api/journeysApi";
+import {
+  getJourney,
+  updateJourneyCharacter,
+} from "@/features/journeys/api/journeysApi";
+import { CharacterSyncButton } from "@/features/characterSync/components/CharacterSyncButton";
 import type { JourneyCharacter } from "@/features/journeys/types";
 import { getApiError } from "@/lib/apiClient";
 
@@ -41,6 +45,19 @@ export function JourneyCharacterPicker({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const editing = journeyCharacters.find((item) => item.id === editingId);
+
+  const refreshAssignment = async (assignment: JourneyCharacter) => {
+    const journey = await getJourney(assignment.journeyId);
+    const updated = journey.journeyCharacters?.find(
+      (item) => item.id === assignment.id,
+    );
+    if (!updated)
+      throw new Error(
+        "This character is no longer assigned to the journey. Reopen Players to reload the roster.",
+      );
+    onCharacterUpdated(updated);
+    setEditingId(undefined);
+  };
 
   const load = async () => {
     setIsLoading(true);
@@ -78,6 +95,7 @@ export function JourneyCharacterPicker({
       <JourneyCharacterForm
         assignment={editing}
         characters={characters}
+        onSyncUpdated={() => refreshAssignment(editing)}
         onCancel={() => setEditingId(undefined)}
         onSave={async (request) => {
           const saved = await updateJourneyCharacter(editing.id, request);
@@ -173,8 +191,17 @@ export function JourneyCharacterPicker({
                   </span>
                 </button>
                 {assignment && isSelected && (
-                  <div className="mt-3 flex justify-end border-t border-border pt-3">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+                    <CharacterSyncButton
+                      kind="journey"
+                      assignmentId={assignment.id}
+                      name={character.name}
+                      status={assignment.syncStatus}
+                      disabled={isSaving}
+                      onUpdated={() => refreshAssignment(assignment)}
+                    />
                     <Button
+                      disabled={isSaving}
                       onClick={() => setEditingId(assignment.id)}
                       variant="primary"
                       size="sm"
@@ -211,6 +238,7 @@ function JourneyCharacterForm({
   characters,
   onSave,
   onCancel,
+  onSyncUpdated,
 }: {
   assignment: JourneyCharacter;
   characters: Character[];
@@ -218,6 +246,7 @@ function JourneyCharacterForm({
     request: Parameters<typeof updateJourneyCharacter>[1],
   ) => Promise<void>;
   onCancel: () => void;
+  onSyncUpdated: () => Promise<void>;
 }) {
   const [values, setValues] = useState({
     sortOrder: String(assignment.sortOrder ?? 0),
@@ -232,6 +261,9 @@ function JourneyCharacterForm({
     alternate: String(assignment.alternateForm?.id ?? ""),
   });
   const [saving, setSaving] = useState(false);
+  const [initialValues] = useState(values);
+  const hasUnsavedChanges =
+    JSON.stringify(values) !== JSON.stringify(initialValues);
   const [error, setError] = useState("");
   const set = (key: keyof typeof values, value: string | boolean) =>
     setValues((current) => ({ ...current, [key]: value }));
@@ -272,6 +304,22 @@ function JourneyCharacterForm({
       <h3 className="text-2xl font-semibold text-content">
         Edit {assignment.character.name}
       </h3>
+      <div className="space-y-2">
+        <CharacterSyncButton
+          kind="journey"
+          assignmentId={assignment.id}
+          name={assignment.character.name}
+          status={assignment.syncStatus}
+          disabled={saving || hasUnsavedChanges}
+          onUpdated={onSyncUpdated}
+        />
+        {hasUnsavedChanges && (
+          <p className="text-xs text-content-muted">
+            Save your edits or cancel back to the list before comparing with the
+            base.
+          </p>
+        )}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           id="jc-sort-order"
