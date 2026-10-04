@@ -52,6 +52,7 @@ export function SpellsPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<Spell | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const [spellTypes, setSpellTypes] = useState<SpellType[]>([]);
   const [spellTypesError, setSpellTypesError] = useState("");
   const [managingSpellTypes, setManagingSpellTypes] = useState(false);
@@ -133,6 +134,11 @@ export function SpellsPage() {
       <CollectionPage
         key={spellTypeFilter}
         title="Spells"
+        search={{
+          value: searchQuery,
+          onChange: setSearchQuery,
+          getText: (item) => item.name,
+        }}
         itemName="spell"
         loadItems={loadFilteredSpells}
         reloadKey={reloadKey}
@@ -145,7 +151,7 @@ export function SpellsPage() {
                 onRetry={loadAvailableSpellTypes}
               />
             )}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="spell-type-filter"

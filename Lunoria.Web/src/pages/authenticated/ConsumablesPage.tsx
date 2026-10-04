@@ -38,6 +38,7 @@ export function ConsumablesPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<Item | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSaved = () => {
     setEditing(undefined);
@@ -70,6 +71,11 @@ export function ConsumablesPage() {
     <>
       <CollectionPage
         title="Consumables"
+        search={{
+          value: searchQuery,
+          onChange: setSearchQuery,
+          getText: (item) => item.name,
+        }}
         itemName="consumable"
         loadItems={listItems}
         reloadKey={reloadKey}

@@ -84,6 +84,7 @@ export function CharactersPage() {
   const [typeFilter, setTypeFilter] = useState(CharacterType.Any);
   const [editing, setEditing] = useState<Character | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const loadCharacters = useCallback(
     () => listCharacters({ typeFilter }),
@@ -196,6 +197,11 @@ export function CharactersPage() {
       <CollectionPage
         key={typeFilter}
         title="Characters"
+        search={{
+          value: searchQuery,
+          onChange: setSearchQuery,
+          getText: (item) => item.name,
+        }}
         itemName="character"
         loadItems={loadCharacters}
         reloadKey={reloadKey}
@@ -273,7 +279,9 @@ export function CharactersPage() {
                 return (
                   <AlternateCharacterField
                     id={field.name}
-                    characterType={Number(values.characterType) as CharacterType}
+                    characterType={
+                      Number(values.characterType) as CharacterType
+                    }
                     excludeCharacterId={editing?.id}
                     selectedId={
                       Number.isInteger(selectedId) && selectedId > 0

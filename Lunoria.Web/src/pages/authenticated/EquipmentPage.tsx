@@ -97,6 +97,7 @@ export function EquipmentPage() {
   const toast = useToast();
   const [editing, setEditing] = useState<EquippableItem | null | undefined>();
   const [reloadKey, setReloadKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpellIds, setSelectedSpellIds] = useState<number[]>([]);
   const [spells, setSpells] = useState<Spell[]>([]);
   const [spellTypes, setSpellTypes] = useState<SpellType[]>([]);
@@ -230,6 +231,11 @@ export function EquipmentPage() {
     <>
       <CollectionPage
         title="Equipment"
+        search={{
+          value: searchQuery,
+          onChange: setSearchQuery,
+          getText: (item) => item.name,
+        }}
         itemName="equipment"
         loadItems={listEquipment}
         reloadKey={reloadKey}
