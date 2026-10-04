@@ -3,6 +3,7 @@
     public class SceneCharacterSpell
     {
         public int Id { get; set; }
+        public int? AcknowledgedSpellRevision { get; set; }
 
         public int SceneCharacterId { get; set; }
         public SceneCharacter SceneCharacter { get; set; } = null!;

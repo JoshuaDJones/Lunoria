@@ -3,6 +3,7 @@
     public class SceneCharacterDto
     {
         public int Id { get; set; }
+        public CharacterSyncStatusDto? SyncStatus { get; set; }
         public int? MeleeAttackDamage { get; set; }
         public int? BowAttackDamage { get; set; }
         public int Movement { get; set; }

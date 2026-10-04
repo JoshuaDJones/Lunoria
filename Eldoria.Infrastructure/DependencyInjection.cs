@@ -27,6 +27,7 @@ namespace Eldoria.Infrastructure
             services.AddScoped<IJourneyCharacterRepository, JourneyCharacterRepository>();
             services.AddScoped<ICharacterSpellRepository, CharacterSpellRepository>();
             services.AddScoped<ICharacterRepository, CharacterRepository>();
+            services.AddScoped<ICharacterSyncUnitOfWork, CharacterSyncUnitOfWork>();
             services.AddScoped<ISpellRepository, SpellRepository>();
             services.AddScoped<IJourneyCharacterSpellRepository, JourneyCharacterSpellRepository>();
             services.AddScoped<ISceneCharacterRepository, SceneCharacterRepository>();

@@ -3,6 +3,8 @@ namespace Eldoria.Core.Entities
     public class Spell
     {
         public int Id { get; set; }
+        public int Revision { get; set; } = 1;
+        public byte[] RowVersion { get; set; } = [];
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string? PhotoUrl { get; set; }

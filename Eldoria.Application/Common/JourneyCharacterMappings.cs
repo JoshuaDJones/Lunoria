@@ -9,6 +9,7 @@ namespace Eldoria.Application.Common
         {
             return new JourneyCharacterDto
             {
+               SyncStatus = journeyCharacter.SyncStatus(),
                Id = journeyCharacter.Id,
                MeleeAttackDamage = journeyCharacter.MeleeAttackDamage,
                BowAttackDamage = journeyCharacter.BowAttackDamage,

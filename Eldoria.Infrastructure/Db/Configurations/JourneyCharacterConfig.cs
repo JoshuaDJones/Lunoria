@@ -8,6 +8,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<JourneyCharacter> builder)
         {
+            builder.Property(c => c.RowVersion).IsRowVersion();
+
             builder.HasKey(j => j.Id);
             builder.Property(j => j.SortOrder).HasDefaultValue(0);
 

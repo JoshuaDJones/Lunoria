@@ -10,7 +10,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
         private IQueryable<SceneCharacter> Query() => dbContext.SceneCharacters
             .Include(character => character.Character)
             .Include(character => character.AlternateForm)
-            .Include(character => character.SceneCharacterSpells).ThenInclude(assignment => assignment.Spell);
+            .Include(character => character.SceneCharacterSpells).ThenInclude(assignment => assignment.Spell)
+                .ThenInclude(spell => spell.SpellType);
 
         public Task<List<SceneCharacter>> ListForSceneAsync(int userId, int sceneId, CancellationToken ct) =>
             Query().AsNoTracking().Where(character => character.SceneId == sceneId && character.Scene.Journey.UserId == userId)

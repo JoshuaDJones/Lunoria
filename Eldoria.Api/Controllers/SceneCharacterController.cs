@@ -3,15 +3,31 @@ using Eldoria.Api.Requests;
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneCharacterController(ISceneCharacterService sceneCharacterService) : ControllerBase
+    public class SceneCharacterController(ISceneCharacterService sceneCharacterService, ICharacterSyncService characterSyncService) : ControllerBase
     {
         private readonly ISceneCharacterService _sceneCharacterService = sceneCharacterService;
+
+        [Authorize]
+        [HttpGet("{assignmentId:int}/sync-preview")]
+        public async Task<IActionResult> ReviewBase(int assignmentId, CancellationToken ct) =>
+            SyncResponse(await characterSyncService.ReviewAsync(User.GetUserId(), assignmentId, true, ct));
+
+        [Authorize]
+        [HttpPost("{assignmentId:int}/sync")]
+        public async Task<IActionResult> SyncBase(int assignmentId, [FromBody] SyncCharacterFromBaseRequest request, CancellationToken ct) =>
+            SyncResponse(await characterSyncService.ApplyAsync(User.GetUserId(), assignmentId, true, request.ToSelection(), false, ct));
+
+        [Authorize]
+        [HttpPost("{assignmentId:int}/acknowledge-base-changes")]
+        public async Task<IActionResult> AcknowledgeBase(int assignmentId, [FromBody] AcknowledgeCharacterBaseChangesRequest request, CancellationToken ct) =>
+            SyncResponse(await characterSyncService.ApplyAsync(User.GetUserId(), assignmentId, true, request.ToSelection(), true, ct));
 
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] int sceneId, CancellationToken ct)
@@ -101,6 +117,14 @@ namespace Eldoria.Api.Controllers
                 "Scene.NotFound" => BadRequest(error),
                 "Character.NotFound" => BadRequest(error),
                 _ => BadRequest(error)
+            };
+
+        private IActionResult SyncResponse(Result<CharacterSyncPreviewDto> result) =>
+            result.Success ? Ok(result.Value) : result.Error.Code switch
+            {
+                "CharacterSync.NotFound" => NotFound(result.Error),
+                "CharacterSync.Conflict" => Conflict(result.Error),
+                _ => BadRequest(result.Error)
             };
     }
 }

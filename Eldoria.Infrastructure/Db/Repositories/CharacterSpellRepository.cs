@@ -9,18 +9,6 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public async Task AddCharacterSpells(List<int> spellIds, int characterId, CancellationToken ct)
-        {
-            var characterSpells = spellIds.Select(i => new CharacterSpell
-            {
-                SpellId = i,
-                CharacterId = characterId,
-            }).ToList();
-
-            await _dbContext.AddRangeAsync(characterSpells, ct);
-            await _dbContext.SaveChangesAsync(ct);
-        }
-
         public async Task<List<CharacterSpell>> GetCharacterSpells(int characterId, CancellationToken ct)
         {
             return await _dbContext.CharacterSpells
@@ -30,11 +18,5 @@ namespace Eldoria.Infrastructure.Db.Repositories
                 .ToListAsync(ct);
         }
 
-        public async Task RemoveCharacterSpells(int characterId, CancellationToken ct)
-        {
-            await _dbContext.CharacterSpells
-                            .Where(c => c.CharacterId == characterId)
-                            .ExecuteDeleteAsync(ct);
-        }
     }
 }

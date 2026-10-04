@@ -73,6 +73,18 @@ namespace Eldoria.Infrastructure.Db
         public DbSet<SpellType> SpellTypes { get; set; }
         public DbSet<User> Users { get; set; }
 
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            await CharacterRevisionTracking.PrepareAsync(this, cancellationToken);
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            CharacterRevisionTracking.PrepareAsync(this, CancellationToken.None).GetAwaiter().GetResult();
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -1,4 +1,5 @@
 using Eldoria.Application.Common;
+using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 
 namespace Eldoria.Application.Services
@@ -37,8 +38,21 @@ namespace Eldoria.Application.Services
                 !character.CharacterSpells.Any(link => link.SpellId == spell.Id)))
                 return Result.Fail(new Error("Spell.Archived", "Archived spells cannot be newly assigned."));
 
-            await _characterSpellRepository.RemoveCharacterSpells(characterId, ct);
-            await _characterSpellRepository.AddCharacterSpells(distinctSpellIds, characterId, ct);
+            // Keep unchanged links; no-op saves must not advance the source revision.
+            foreach (var link in character.CharacterSpells.Where(link => !distinctSpellIds.Contains(link.SpellId)).ToList())
+                _characterSpellRepository.Remove(link);
+
+            var existingIds = character.CharacterSpells.Select(link => link.SpellId).ToHashSet();
+
+            foreach (var spell in spells.Where(spell => !existingIds.Contains(spell.Id)))
+                await _characterSpellRepository.AddAsync(new CharacterSpell
+                {
+                    CharacterId = characterId,
+                    SpellId = spell.Id,
+                    Spell = spell
+                }, ct);
+
+            await _characterSpellRepository.SaveChangesAsync(ct);
             return Result.Ok();
         }
     }

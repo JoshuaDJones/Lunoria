@@ -9,6 +9,7 @@ namespace Eldoria.Application.Common
         {
             return new SceneCharacterDto
             {
+                SyncStatus = sceneCharacter.SyncStatus(),
                 Id = sceneCharacter.Id,
                 MeleeAttackDamage = sceneCharacter.MeleeAttackDamage,
                 BowAttackDamage = sceneCharacter.BowAttackDamage,

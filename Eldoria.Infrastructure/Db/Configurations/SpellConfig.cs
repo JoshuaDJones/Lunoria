@@ -8,6 +8,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<Spell> builder)
         {
+            builder.Property(c => c.RowVersion).IsRowVersion();
+            builder.Property(c => c.Revision).HasDefaultValue(1);
             builder.HasKey(s => s.Id);
 
             builder.HasIndex(s => new { s.UserId, s.Name })

@@ -8,6 +8,10 @@ namespace Eldoria.Infrastructure.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<Character> builder)
         {
+            builder.Property(c => c.RowVersion).IsRowVersion();
+            builder.Property(c => c.StatsRevision).HasDefaultValue(1);
+            builder.Property(c => c.SpellAssignmentsRevision).HasDefaultValue(1);
+            builder.Property(c => c.AlternateFormRevision).HasDefaultValue(1);
             builder.HasKey(c => c.Id);
 
             builder.Property(c => c.Name)

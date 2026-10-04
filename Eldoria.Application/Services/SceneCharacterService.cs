@@ -57,6 +57,12 @@ namespace Eldoria.Application.Services
             var sceneCharacter = new SceneCharacter
             {
                 MaxHp = character.BaseMaxHp,
+                SyncedStatsRevision = character.StatsRevision,
+                AcknowledgedStatsRevision = character.StatsRevision,
+                SyncedSpellAssignmentsRevision = character.SpellAssignmentsRevision,
+                AcknowledgedSpellAssignmentsRevision = character.SpellAssignmentsRevision,
+                SyncedAlternateFormRevision = character.AlternateFormRevision,
+                AcknowledgedAlternateFormRevision = character.AlternateFormRevision,
                 MaxMp = character.BaseMaxMp,
                 MeleeAttackDamage = character.BaseMeleeAttackDamage,
                 BowAttackDamage = character.BaseBowAttackDamage,
@@ -147,11 +153,13 @@ namespace Eldoria.Application.Services
                 !sceneCharacter.SceneCharacterSpells.Any(link => link.SpellId == spell.Id)))
                 return Result<SceneCharacterDto>.Fail(new Error("Spell.Archived", "Archived spells cannot be newly assigned."));
 
-            foreach (var assignment in sceneCharacter.SceneCharacterSpells.ToList())
+            foreach (var assignment in sceneCharacter.SceneCharacterSpells.Where(link => !distinctIds.Contains(link.SpellId)).ToList())
+            {
                 _sceneCharacterSpellRepository.Remove(assignment);
+                sceneCharacter.SceneCharacterSpells.Remove(assignment);
+            }
 
-            sceneCharacter.SceneCharacterSpells.Clear();
-            foreach (var spell in spells)
+            foreach (var spell in spells.Where(spell => !sceneCharacter.SceneCharacterSpells.Any(link => link.SpellId == spell.Id)))
             {
                 var assignment = new SceneCharacterSpell { SceneCharacterId = sceneCharacterId, SpellId = spell.Id, Spell = spell };
                 sceneCharacter.SceneCharacterSpells.Add(assignment);

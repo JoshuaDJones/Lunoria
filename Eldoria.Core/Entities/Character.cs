@@ -5,6 +5,10 @@ namespace Eldoria.Core.Entities
     public class Character
     {
         public int Id { get; set; }
+        public int StatsRevision { get; set; } = 1;
+        public int SpellAssignmentsRevision { get; set; } = 1;
+        public int AlternateFormRevision { get; set; } = 1;
+        public byte[] RowVersion { get; set; } = [];
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;

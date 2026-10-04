@@ -127,6 +127,12 @@ namespace Eldoria.Application.Services
                 await _journeyCharacterRepository.AddAsync(new JourneyCharacter
                 {
                     MaxHp = character.BaseMaxHp,
+                    SyncedStatsRevision = character.StatsRevision,
+                    AcknowledgedStatsRevision = character.StatsRevision,
+                    SyncedSpellAssignmentsRevision = character.SpellAssignmentsRevision,
+                    AcknowledgedSpellAssignmentsRevision = character.SpellAssignmentsRevision,
+                    SyncedAlternateFormRevision = character.AlternateFormRevision,
+                    AcknowledgedAlternateFormRevision = character.AlternateFormRevision,
                     MaxMp = character.BaseMaxMp,
                     MeleeAttackDamage = character.BaseMeleeAttackDamage,
                     BowAttackDamage = character.BaseBowAttackDamage,
@@ -139,9 +145,11 @@ namespace Eldoria.Application.Services
                     AlternateFormId = character.BaseAlternateFormId,
                     AlternateForm = character.BaseAlternateForm,
                     JourneyCharacterSpells = character.CharacterSpells
+                        .Where(characterSpell => !characterSpell.Spell.IsDeleted)
                         .Select(characterSpell => new JourneyCharacterSpell
                         {
                             SpellId = characterSpell.SpellId,
+                            Spell = characterSpell.Spell,
                         })
                         .ToList(),
                 }, ct);

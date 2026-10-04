@@ -8,6 +8,8 @@ namespace Eldoria.Infrastructure.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<SceneCharacter> builder)
         {
+            builder.Property(c => c.RowVersion).IsRowVersion();
+
             builder.HasKey(c => c.Id);
 
             builder.HasIndex(c => new { c.SceneId, c.CharacterId });
