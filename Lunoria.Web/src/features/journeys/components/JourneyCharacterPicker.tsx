@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowDown,
-  faArrowUp,
+  faArrowsRotate,
+  faCircleExclamation,
   faChevronDown,
   faGripVertical,
   faPlus,
@@ -23,7 +23,6 @@ import {
   reorderJourneyPlayers,
   updateJourneyCharacter,
 } from "@/features/journeys/api/journeysApi";
-import { CharacterSyncButton } from "@/features/characterSync/components/CharacterSyncButton";
 import { JourneyCharacterForm } from "@/features/journeys/components/JourneyCharacterForm";
 import { JourneyPlayerSelection } from "@/features/journeys/components/JourneyPlayerSelection";
 import { DialogAccordionPanel } from "@/features/scenes/components/DialogAccordionPanel";
@@ -237,8 +236,8 @@ export function JourneyCharacterPicker({
             </Button>
           </div>
           <p className="text-sm text-content-secondary">
-            Drag players into turn order, or use the arrows. Expand a player to
-            adjust their journey settings. Changes apply to new playthroughs.
+            Drag players into turn order. Expand a player to adjust their
+            journey settings. Changes apply to new playthroughs.
           </p>
           <div
             role="status"
@@ -267,6 +266,31 @@ export function JourneyCharacterPicker({
             {roster.map((assignment, index) => {
               const expanded = editingId === assignment.id;
               const status = assignment.syncStatus;
+              const baseUpdated =
+                status &&
+                [
+                  status.stats,
+                  status.spellAssignments,
+                  status.alternateForm,
+                ].some((item) => item.updateAvailable);
+              const spellsUpdated = status?.sharedSpells.some(
+                (item) => item.updateAvailable,
+              );
+              const reviewLabel = !status
+                ? undefined
+                : !status.baseAvailable
+                  ? "Base unavailable"
+                  : baseUpdated && spellsUpdated
+                    ? "Base and spells updated"
+                    : baseUpdated
+                      ? "Base updated"
+                      : spellsUpdated
+                        ? "Spells updated"
+                        : status.hasUpdates
+                          ? "Updates available"
+                          : status.requiresReview
+                            ? "Review needed"
+                            : undefined;
               return (
                 <article
                   key={assignment.id}
@@ -351,8 +375,26 @@ export function JourneyCharacterPicker({
                         />
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-semibold text-content">
-                          {assignment.character.name}
+                        <span className="flex items-center gap-2 font-semibold text-content">
+                          <span className="truncate">
+                            {assignment.character.name}
+                          </span>
+                          {reviewLabel && (
+                            <span
+                              className="shrink-0 text-xs text-amber-300"
+                              title={reviewLabel}
+                            >
+                              <FontAwesomeIcon
+                                icon={
+                                  status?.hasUpdates && status.baseAvailable
+                                    ? faArrowsRotate
+                                    : faCircleExclamation
+                                }
+                                aria-hidden="true"
+                              />
+                              <span className="sr-only">{reviewLabel}</span>
+                            </span>
+                          )}
                         </span>
                         <span className="block text-xs text-content-muted">
                           HP {assignment.maxHp} · MP {assignment.maxMp} ·{" "}
@@ -366,45 +408,7 @@ export function JourneyCharacterPicker({
                         className={`text-content-muted transition-transform ${expanded ? "rotate-180" : ""}`}
                       />
                     </button>
-                    <div className="flex flex-col">
-                      <Button
-                        size="sm"
-                        className="px-2 py-1"
-                        aria-label={`Move ${assignment.character.name} up`}
-                        disabled={locked || dirty || index === 0}
-                        onClick={() => void move(index, index - 1)}
-                      >
-                        <FontAwesomeIcon icon={faArrowUp} />
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="px-2 py-1"
-                        aria-label={`Move ${assignment.character.name} down`}
-                        disabled={
-                          locked || dirty || index === roster.length - 1
-                        }
-                        onClick={() => void move(index, index + 1)}
-                      >
-                        <FontAwesomeIcon icon={faArrowDown} />
-                      </Button>
-                    </div>
                   </div>
-                  {!expanded &&
-                    status &&
-                    (status.hasUpdates ||
-                      status.requiresReview ||
-                      !status.baseAvailable) && (
-                      <div className="px-4 pb-3">
-                        <CharacterSyncButton
-                          kind="journey"
-                          assignmentId={assignment.id}
-                          name={assignment.character.name}
-                          status={status}
-                          disabled={locked || dirty}
-                          onUpdated={refresh}
-                        />
-                      </div>
-                    )}
                   <DialogAccordionPanel
                     id={`player-settings-${assignment.id}`}
                     open={expanded}
@@ -456,11 +460,72 @@ export function JourneyCharacterPicker({
                           if (
                             !(await confirm({
                               title: `Remove ${assignment.character.name}?`,
-                              message:
-                                "Remove this player and their journey-specific settings? Existing playthroughs and the base character are unchanged." +
-                                (dirty
-                                  ? " Unsaved edits will be discarded."
-                                  : ""),
+                              message: (
+                                <div className="max-h-[55dvh] space-y-4 overflow-y-auto pr-2 text-sm leading-relaxed">
+                                  <section>
+                                    <h3 className="mb-1 font-semibold text-content">
+                                      What will be removed
+                                    </h3>
+                                    <ul className="list-disc space-y-1 pl-5">
+                                      <li>
+                                        This player's place in the journey
+                                        roster.
+                                      </li>
+                                      <li>
+                                        Journey-specific stats, spell
+                                        assignments, and alternate-form setting.
+                                      </li>
+                                      <li>
+                                        Initial active setting and turn-order
+                                        position.
+                                      </li>
+                                    </ul>
+                                  </section>
+                                  <section>
+                                    <h3 className="mb-1 font-semibold text-content">
+                                      Scene events
+                                    </h3>
+                                    <ul className="list-disc space-y-1 pl-5">
+                                      <li>
+                                        Events targeting this player stay, but
+                                        may fail or prevent a new playthrough
+                                        from starting while the player is
+                                        missing.
+                                      </li>
+                                      <li>
+                                        Events for all journey players apply
+                                        only to the remaining players.
+                                      </li>
+                                    </ul>
+                                  </section>
+                                  <section>
+                                    <h3 className="mb-1 font-semibold text-content">
+                                      If you add them again
+                                    </h3>
+                                    <p>
+                                      Re-adding the same base character restores
+                                      the event target for future playthroughs.
+                                      It does not restore their journey settings
+                                      or repair playthroughs created while they
+                                      were missing.
+                                    </p>
+                                  </section>
+                                  <section className="border-t border-border pt-3">
+                                    <h3 className="mb-1 font-semibold text-content">
+                                      What stays unchanged
+                                    </h3>
+                                    <p>
+                                      The base character, library spells, and
+                                      existing playthroughs.
+                                    </p>
+                                  </section>
+                                  {dirty && (
+                                    <p className="font-medium text-danger">
+                                      Unsaved edits will also be discarded.
+                                    </p>
+                                  )}
+                                </div>
+                              ),
                               confirmLabel: "Remove player",
                               variant: "danger",
                             }))

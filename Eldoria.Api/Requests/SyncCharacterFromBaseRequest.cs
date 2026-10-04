@@ -4,7 +4,7 @@ using Eldoria.Application.Dtos;
 namespace Eldoria.Api.Requests;
 
 public sealed record SyncCharacterFromBaseRequest(
-    [property: Required, StringLength(64, MinimumLength = 64)] string ExpectedReviewToken,
+    [Required, StringLength(64, MinimumLength = 64)] string ExpectedReviewToken,
     bool Stats = false,
     bool SpellAssignments = false,
     bool AlternateForm = false,
