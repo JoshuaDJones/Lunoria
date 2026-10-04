@@ -8,8 +8,17 @@ interface DrawerProps {
   closeDisabled?: boolean;
 }
 
-export function Drawer({ title, children, onClose, closeDisabled = false }: DrawerProps) {
+export function Drawer({
+  title,
+  children,
+  onClose,
+  closeDisabled = false,
+}: DrawerProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -27,7 +36,6 @@ export function Drawer({ title, children, onClose, closeDisabled = false }: Draw
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", handleKeyDown);
-    closeButtonRef.current?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -54,7 +62,12 @@ export function Drawer({ title, children, onClose, closeDisabled = false }: Draw
           <h2 id="drawer-title" className="text-2xl font-semibold text-content">
             {title}
           </h2>
-          <Button ref={closeButtonRef} onClick={onClose} aria-label="Close" disabled={closeDisabled}>
+          <Button
+            ref={closeButtonRef}
+            onClick={onClose}
+            aria-label="Close"
+            disabled={closeDisabled}
+          >
             Close
           </Button>
         </header>

@@ -1,454 +1,492 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faPen } from "@fortawesome/free-solid-svg-icons";
 import {
-  ApiLoadError,
-  Button,
-  FormField,
-  Input,
-  Select,
-} from "@/components/ui";
+  faArrowDown,
+  faArrowUp,
+  faChevronDown,
+  faGripVertical,
+  faPlus,
+  faSpinner,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
+import { Button } from "@/components/ui";
+import { useConfirmDialog, useToast } from "@/app/providers";
 import {
   CharacterType,
   listCharacters,
   type Character,
 } from "@/features/characters";
 import {
+  addJourneyPlayers,
+  deleteJourneyCharacter,
   getJourney,
+  reorderJourneyPlayers,
   updateJourneyCharacter,
 } from "@/features/journeys/api/journeysApi";
 import { CharacterSyncButton } from "@/features/characterSync/components/CharacterSyncButton";
+import { JourneyCharacterForm } from "@/features/journeys/components/JourneyCharacterForm";
+import { JourneyPlayerSelection } from "@/features/journeys/components/JourneyPlayerSelection";
+import { DialogAccordionPanel } from "@/features/scenes/components/DialogAccordionPanel";
 import type { JourneyCharacter } from "@/features/journeys/types";
 import { getApiError } from "@/lib/apiClient";
 
 interface Props {
+  journeyId: number;
   journeyCharacters: JourneyCharacter[];
-  selectedCharacterIds: number[];
-  onSave: (characterIds: number[]) => Promise<void>;
-  onCharacterUpdated: (character: JourneyCharacter) => void;
-  onCancel: () => void;
+  onRosterChanged: (characters: JourneyCharacter[]) => void;
+  onBusyChange: (busy: boolean) => void;
+  onDirtyChange: (dirty: boolean) => void;
 }
 
 export function JourneyCharacterPicker({
+  journeyId,
   journeyCharacters,
-  selectedCharacterIds,
-  onSave,
-  onCharacterUpdated,
-  onCancel,
+  onRosterChanged,
+  onBusyChange,
+  onDirtyChange,
 }: Props) {
+  const { confirm } = useConfirmDialog();
+  const toast = useToast();
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [selectedIds, setSelectedIds] = useState(
-    () => new Set(selectedCharacterIds),
-  );
+  const [loading, setLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+  const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
   const [error, setError] = useState("");
-  const editing = journeyCharacters.find((item) => item.id === editingId);
-  // Keep the full catalog for alternate selectors; filter only direct roster choices.
-  const rosterCharacters = characters.filter(
-    (character) => !character.isAlternateFormOnly,
+  const [needsReload, setNeedsReload] = useState(false);
+  const [dragId, setDragId] = useState<number>();
+  const [dropIndex, setDropIndex] = useState<number>();
+  const roster = [...journeyCharacters].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.id - b.id,
   );
+  const locked = busy || needsReload;
 
-  const refreshAssignment = async (assignment: JourneyCharacter) => {
-    const journey = await getJourney(assignment.journeyId);
-    const updated = journey.journeyCharacters?.find(
-      (item) => item.id === assignment.id,
-    );
-    if (!updated)
-      throw new Error(
-        "This character is no longer assigned to the journey. Reopen Players to reload the roster.",
-      );
-    onCharacterUpdated(updated);
-    setEditingId(undefined);
-  };
-
-  const load = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      setCharacters(await listCharacters({ typeFilter: CharacterType.Player }));
-    } catch (requestError) {
-      setError(getApiError(requestError).message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    onDirtyChange(dirty);
+  }, [dirty, onDirtyChange]);
   useEffect(() => {
     let current = true;
-    void listCharacters({ typeFilter: CharacterType.Player })
-      .then((loaded) => {
-        if (current) {
-          setCharacters(loaded);
-          setError("");
-        }
+    const load = async () => {
+      const all: Character[] = [];
+      for (let skip = 0; ; skip += 100) {
+        const page = await listCharacters({
+          typeFilter: CharacterType.Player,
+          skip,
+          take: 100,
+        });
+        all.push(...page);
+        if (page.length < 100) return all;
+      }
+    };
+    void load()
+      .then((result) => {
+        if (current) setCharacters(result);
       })
-      .catch((requestError: unknown) => {
-        if (current) setError(getApiError(requestError).message);
+      .catch((e: unknown) => {
+        if (current) setCatalogError(getApiError(e).message);
       })
       .finally(() => {
-        if (current) setIsLoading(false);
+        if (current) setLoading(false);
       });
     return () => {
       current = false;
     };
-  }, []);
+  }, [reloadKey]);
 
-  if (editing) {
-    return (
-      <JourneyCharacterForm
-        assignment={editing}
-        characters={characters}
-        onSyncUpdated={() => refreshAssignment(editing)}
-        onCancel={() => setEditingId(undefined)}
-        onSave={async (request) => {
-          const saved = await updateJourneyCharacter(editing.id, request);
-          onCharacterUpdated(saved);
-          setEditingId(undefined);
-        }}
-      />
-    );
-  }
-
-  const save = async () => {
-    setIsSaving(true);
+  const retryCatalog = () => {
+    setCatalogError("");
+    setLoading(true);
+    setReloadKey((key) => key + 1);
+  };
+  const setWorking = (value: boolean) => {
+    busyRef.current = value;
+    setBusy(value);
+    onBusyChange(value);
+  };
+  const refresh = async () => {
+    const journey = await getJourney(journeyId);
+    onRosterChanged(journey.journeyCharacters ?? []);
+    setNeedsReload(false);
+  };
+  const changeView = async (id?: number, add = false) => {
+    if (busyRef.current) return;
+    if (
+      dirty &&
+      !(await confirm({
+        title: "Discard player edits?",
+        message: "Your unsaved changes will be lost.",
+        confirmLabel: "Discard changes",
+        variant: "danger",
+      }))
+    )
+      return;
+    setDirty(false);
+    setEditingId(id);
+    setAdding(add);
+  };
+  const mutate = async (action: () => Promise<void>, message: string) => {
+    if (busyRef.current) return;
+    setWorking(true);
     setError("");
+    let saved = false;
     try {
-      await onSave([...selectedIds]);
-    } catch (requestError) {
-      setError(getApiError(requestError).message);
-      setIsSaving(false);
+      await action();
+      saved = true;
+      await refresh();
+      toast.success(message);
+    } catch (e) {
+      setError(
+        saved
+          ? "Changes were saved, but the roster could not be refreshed. Reload before continuing."
+          : getApiError(e).message,
+      );
+      try {
+        await refresh();
+      } catch {
+        setNeedsReload(true);
+      }
+    } finally {
+      setWorking(false);
     }
   };
-  const toggle = (id: number) =>
-    setSelectedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const move = async (from: number, to: number) => {
+    setDragId(undefined);
+    setDropIndex(undefined);
+    if (
+      locked ||
+      busyRef.current ||
+      dirty ||
+      from === to ||
+      to < 0 ||
+      to >= roster.length
+    )
+      return;
+    const next = [...roster];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setEditingId(undefined);
+    onRosterChanged(next.map((item, sortOrder) => ({ ...item, sortOrder })));
+    await mutate(async () => {
+      try {
+        await reorderJourneyPlayers(
+          journeyId,
+          next.map((item) => item.id),
+        );
+      } catch (e) {
+        onRosterChanged(roster);
+        throw e;
+      }
+    }, "Player order updated.");
+  };
 
   return (
-    <div className="flex min-h-full flex-col">
-      <p className="mb-5 text-sm text-content-secondary">
-        Select playable characters for this journey, or edit the stats used when
-        a new playthrough starts. Save new selections first, then use Edit stats
-        & order to set their turn order. Lower numbers go first among journey
-        characters.
-      </p>
-      {isLoading && (
-        <p className="text-content-secondary" role="status">
-          Loading playable characters...
-        </p>
-      )}
-      {!isLoading && error && <ApiLoadError error={error} onRetry={load} />}
-      {!isLoading && !error && rosterCharacters.length === 0 && (
-        <p className="rounded-xl border border-border p-5 text-content-muted">
-          No directly playable characters are available. Alternate-only
-          characters can be selected as transformations in Edit stats & order.
-        </p>
-      )}
-      {!isLoading && !error && (
-        <div className="flex-1 space-y-3">
-          {rosterCharacters.map((character) => {
-            const isSelected = selectedIds.has(character.id);
-            const assignment = journeyCharacters.find(
-              (item) => item.characterId === character.id,
-            );
-            return (
-              <article
-                key={character.id}
-                className={`rounded-xl border p-4 ${isSelected ? "border-add bg-add/10" : "border-border bg-surface"}`}
-              >
-                <button
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => toggle(character.id)}
-                  disabled={isSaving}
-                  className="flex w-full cursor-pointer items-center gap-4 text-left disabled:opacity-60"
-                >
-                  {character.photoUrl && (
-                    <img
-                      src={character.photoUrl}
-                      alt=""
-                      className="size-16 shrink-0 rounded-lg object-cover"
-                    />
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-lg font-semibold text-content">
-                      {character.name}
-                    </span>
-                    {assignment && (
-                      <span className="block text-sm text-content-muted">
-                        Turn order: {assignment.sortOrder}
-                      </span>
-                    )}
-                    <span className="mt-1 line-clamp-2 block text-sm text-content-secondary">
-                      {assignment
-                        ? `HP ${assignment.maxHp} · MP ${assignment.maxMp} · ${assignment.isInitiallyActive ? "Initially active" : "Initially inactive"}`
-                        : character.description}
-                    </span>
-                  </span>
-                  <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${isSelected ? "bg-add text-on-add" : "bg-surface-raised text-content-muted"}`}
-                  >
-                    {isSelected ? "Selected" : "Not selected"}
-                  </span>
-                </button>
-                {assignment && isSelected && (
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-                    <CharacterSyncButton
-                      kind="journey"
-                      assignmentId={assignment.id}
-                      name={character.name}
-                      status={assignment.syncStatus}
-                      disabled={isSaving}
-                      onUpdated={() => refreshAssignment(assignment)}
-                    />
-                    <Button
-                      disabled={isSaving}
-                      onClick={() => setEditingId(assignment.id)}
-                      variant="primary"
-                      size="sm"
-                      leftIcon={<FontAwesomeIcon icon={faPen} />}
-                    >
-                      Edit stats & order
-                    </Button>
-                  </div>
-                )}
-              </article>
-            );
-          })}
+    <div className="space-y-4">
+      {error && (
+        <div
+          role="alert"
+          className="rounded-xl border border-danger/40 p-3 text-sm text-danger"
+        >
+          {error}
+          {needsReload && (
+            <Button
+              disabled={busy}
+              className="mt-2"
+              onClick={() => void mutate(async () => {}, "Roster reloaded.")}
+            >
+              Reload roster
+            </Button>
+          )}
         </div>
       )}
-      <div className="mt-6 flex justify-end gap-3 border-t border-border pt-4">
-        <Button onClick={onCancel} disabled={isSaving} size="lg">
-          Cancel
-        </Button>
-        <Button
-          onClick={() => void save()}
-          disabled={isLoading || isSaving}
-          variant="primary"
-          size="lg"
-        >
-          {isSaving ? "Saving..." : "Save Characters"}
-        </Button>
-      </div>
+      {adding ? (
+        <JourneyPlayerSelection
+          characters={characters.filter(
+            (character) =>
+              !character.isAlternateFormOnly &&
+              !roster.some((item) => item.characterId === character.id),
+          )}
+          loading={loading}
+          error={catalogError}
+          busy={locked}
+          onRetry={retryCatalog}
+          onDirtyChange={setDirty}
+          onBack={() => void changeView()}
+          onAdd={async (ids) => {
+            await mutate(async () => {
+              await addJourneyPlayers(journeyId, ids);
+              setDirty(false);
+              setAdding(false);
+            }, "Players added.");
+          }}
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold text-content">Players</h3>
+            <Button
+              variant="primary"
+              disabled={locked}
+              onClick={() => void changeView(undefined, true)}
+              leftIcon={<FontAwesomeIcon icon={faPlus} />}
+            >
+              Add players
+            </Button>
+          </div>
+          <p className="text-sm text-content-secondary">
+            Drag players into turn order, or use the arrows. Expand a player to
+            adjust their journey settings. Changes apply to new playthroughs.
+          </p>
+          <div
+            role="status"
+            aria-live="polite"
+            className="text-sm text-content-muted"
+          >
+            {busy && (
+              <>
+                <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                Saving changes
+              </>
+            )}
+          </div>
+          {roster.length === 0 && (
+            <p className="rounded-xl border border-dashed border-border p-6 text-center text-content-muted">
+              No players yet. Add players to build your journey roster.
+            </p>
+          )}
+          <div
+            className="space-y-3"
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node))
+                setDropIndex(undefined);
+            }}
+          >
+            {roster.map((assignment, index) => {
+              const expanded = editingId === assignment.id;
+              const status = assignment.syncStatus;
+              return (
+                <article
+                  key={assignment.id}
+                  onDragOver={(event) => {
+                    if (dragId === undefined || locked || dirty) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    setDropIndex(
+                      index +
+                        (event.clientY > rect.top + rect.height / 2 ? 1 : 0),
+                    );
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (dragId === undefined || dropIndex === undefined) return;
+                    const from = roster.findIndex((item) => item.id === dragId);
+                    if (from >= 0)
+                      void move(
+                        from,
+                        dropIndex > from ? dropIndex - 1 : dropIndex,
+                      );
+                  }}
+                  className={`relative rounded-xl border bg-surface transition-colors ${expanded ? "border-add/60" : "border-border"} ${dragId === assignment.id ? "opacity-50" : ""}`}
+                >
+                  {dropIndex === index && (
+                    <div className="pointer-events-none absolute -top-2 right-0 left-0 h-1 rounded bg-add" />
+                  )}
+                  <div className="flex items-center gap-2 p-3">
+                    <button
+                      type="button"
+                      draggable={!locked && !dirty}
+                      disabled={locked || dirty}
+                      aria-label={`Drag ${assignment.character.name} to reorder; use arrow keys to move`}
+                      className="cursor-grab p-2 text-content-muted active:cursor-grabbing disabled:opacity-40"
+                      onDragStart={(event) => {
+                        setDragId(assignment.id);
+                        event.dataTransfer.setData(
+                          "text/plain",
+                          String(assignment.id),
+                        );
+                        event.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => {
+                        setDragId(undefined);
+                        setDropIndex(undefined);
+                      }}
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "ArrowUp" ||
+                          event.key === "ArrowDown"
+                        ) {
+                          event.preventDefault();
+                          void move(
+                            index,
+                            index + (event.key === "ArrowUp" ? -1 : 1),
+                          );
+                        }
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faGripVertical} />
+                    </button>
+                    <span className="text-sm tabular-nums text-content-muted">
+                      {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={locked}
+                      aria-expanded={expanded}
+                      aria-controls={`player-settings-${assignment.id}`}
+                      onClick={() =>
+                        void changeView(expanded ? undefined : assignment.id)
+                      }
+                      className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                    >
+                      {assignment.character.photoUrl && (
+                        <img
+                          draggable={false}
+                          src={assignment.character.photoUrl}
+                          alt=""
+                          className="size-12 shrink-0 rounded-lg object-contain"
+                        />
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold text-content">
+                          {assignment.character.name}
+                        </span>
+                        <span className="block text-xs text-content-muted">
+                          HP {assignment.maxHp} · MP {assignment.maxMp} ·{" "}
+                          {assignment.isInitiallyActive
+                            ? "Active at start"
+                            : "Inactive at start"}
+                        </span>
+                      </span>
+                      <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className={`text-content-muted transition-transform ${expanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    <div className="flex flex-col">
+                      <Button
+                        size="sm"
+                        className="px-2 py-1"
+                        aria-label={`Move ${assignment.character.name} up`}
+                        disabled={locked || dirty || index === 0}
+                        onClick={() => void move(index, index - 1)}
+                      >
+                        <FontAwesomeIcon icon={faArrowUp} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="px-2 py-1"
+                        aria-label={`Move ${assignment.character.name} down`}
+                        disabled={
+                          locked || dirty || index === roster.length - 1
+                        }
+                        onClick={() => void move(index, index + 1)}
+                      >
+                        <FontAwesomeIcon icon={faArrowDown} />
+                      </Button>
+                    </div>
+                  </div>
+                  {!expanded &&
+                    status &&
+                    (status.hasUpdates ||
+                      status.requiresReview ||
+                      !status.baseAvailable) && (
+                      <div className="px-4 pb-3">
+                        <CharacterSyncButton
+                          kind="journey"
+                          assignmentId={assignment.id}
+                          name={assignment.character.name}
+                          status={status}
+                          disabled={locked || dirty}
+                          onUpdated={refresh}
+                        />
+                      </div>
+                    )}
+                  <DialogAccordionPanel
+                    id={`player-settings-${assignment.id}`}
+                    open={expanded}
+                  >
+                    <div className="space-y-4 border-t border-border p-4">
+                      {loading ? (
+                        <p role="status">Loading player settings…</p>
+                      ) : catalogError ? (
+                        <div role="alert">
+                          {catalogError}
+                          <Button onClick={retryCatalog}>Retry</Button>
+                        </div>
+                      ) : (
+                        expanded && (
+                          <JourneyCharacterForm
+                            disabled={locked}
+                            key={assignment.id}
+                            assignment={assignment}
+                            characters={characters}
+                            onDirtyChange={setDirty}
+                            onBusyChange={setWorking}
+                            onCancel={() => void changeView()}
+                            onSyncUpdated={async () => {
+                              await refresh();
+                              setEditingId(undefined);
+                            }}
+                            onSave={async (request) => {
+                              const updated = await updateJourneyCharacter(
+                                assignment.id,
+                                request,
+                              );
+                              onRosterChanged(
+                                journeyCharacters.map((item) =>
+                                  item.id === updated.id ? updated : item,
+                                ),
+                              );
+                              setDirty(false);
+                              setEditingId(undefined);
+                              toast.success("Player settings saved.");
+                            }}
+                          />
+                        )
+                      )}
+                      <Button
+                        size="sm"
+                        disabled={locked}
+                        leftIcon={<FontAwesomeIcon icon={faTrash} />}
+                        onClick={async () => {
+                          if (
+                            !(await confirm({
+                              title: `Remove ${assignment.character.name}?`,
+                              message:
+                                "Remove this player and their journey-specific settings? Existing playthroughs and the base character are unchanged." +
+                                (dirty
+                                  ? " Unsaved edits will be discarded."
+                                  : ""),
+                              confirmLabel: "Remove player",
+                              variant: "danger",
+                            }))
+                          )
+                            return;
+                          await mutate(async () => {
+                            await deleteJourneyCharacter(assignment.id);
+                            setEditingId(undefined);
+                            setDirty(false);
+                          }, "Player removed.");
+                        }}
+                      >
+                        Remove player
+                      </Button>
+                    </div>
+                  </DialogAccordionPanel>
+                  {index === roster.length - 1 &&
+                    dropIndex === roster.length && (
+                      <div className="pointer-events-none absolute -bottom-2 right-0 left-0 h-1 rounded bg-add" />
+                    )}
+                </article>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
-}
-
-function JourneyCharacterForm({
-  assignment,
-  characters,
-  onSave,
-  onCancel,
-  onSyncUpdated,
-}: {
-  assignment: JourneyCharacter;
-  characters: Character[];
-  onSave: (
-    request: Parameters<typeof updateJourneyCharacter>[1],
-  ) => Promise<void>;
-  onCancel: () => void;
-  onSyncUpdated: () => Promise<void>;
-}) {
-  const [values, setValues] = useState({
-    sortOrder: String(assignment.sortOrder ?? 0),
-    melee: text(assignment.meleeAttackDamage),
-    bow: text(assignment.bowAttackDamage),
-    movement: String(assignment.movement),
-    consumables: String(assignment.maxConsumableInventory),
-    equipment: String(assignment.maxEquippableInventory),
-    hp: String(assignment.maxHp),
-    mp: String(assignment.maxMp),
-    active: assignment.isInitiallyActive,
-    alternate: String(assignment.alternateForm?.id ?? ""),
-  });
-  const [saving, setSaving] = useState(false);
-  const [initialValues] = useState(values);
-  const hasUnsavedChanges =
-    JSON.stringify(values) !== JSON.stringify(initialValues);
-  const [error, setError] = useState("");
-  const set = (key: keyof typeof values, value: string | boolean) =>
-    setValues((current) => ({ ...current, [key]: value }));
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
-    try {
-      await onSave({
-        sortOrder: Number(values.sortOrder),
-        meleeAttackDamage: numberOrNull(values.melee),
-        bowAttackDamage: numberOrNull(values.bow),
-        movement: Number(values.movement),
-        maxConsumableInventory: Number(values.consumables),
-        maxEquippableInventory: Number(values.equipment),
-        maxHp: Number(values.hp),
-        maxMp: Number(values.mp),
-        isInitiallyActive: values.active,
-        alternateFormId: numberOrNull(values.alternate),
-      });
-    } catch (requestError) {
-      setError(getApiError(requestError).message);
-      setSaving(false);
-    }
-  };
-  const alternates = characters.filter(
-    (character) => character.id !== assignment.characterId,
-  );
-  return (
-    <form onSubmit={(event) => void submit(event)} className="space-y-5">
-      <Button
-        onClick={onCancel}
-        size="sm"
-        leftIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-      >
-        All journey characters
-      </Button>
-      <h3 className="text-2xl font-semibold text-content">
-        Edit {assignment.character.name}
-      </h3>
-      <div className="space-y-2">
-        <CharacterSyncButton
-          kind="journey"
-          assignmentId={assignment.id}
-          name={assignment.character.name}
-          status={assignment.syncStatus}
-          disabled={saving || hasUnsavedChanges}
-          onUpdated={onSyncUpdated}
-        />
-        {hasUnsavedChanges && (
-          <p className="text-xs text-content-muted">
-            Save your edits or cancel back to the list before comparing with the
-            base.
-          </p>
-        )}
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <NumberField
-          id="jc-sort-order"
-          label="Turn sort order (lower goes first)"
-          value={values.sortOrder}
-          change={(v) => set("sortOrder", v)}
-        />
-        <NumberField
-          id="jc-hp"
-          label="Max HP"
-          value={values.hp}
-          change={(v) => set("hp", v)}
-          min={1}
-        />
-        <NumberField
-          id="jc-mp"
-          label="Max MP"
-          value={values.mp}
-          change={(v) => set("mp", v)}
-        />
-        <NumberField
-          id="jc-melee"
-          label="Melee damage"
-          value={values.melee}
-          change={(v) => set("melee", v)}
-          optional
-        />
-        <NumberField
-          id="jc-bow"
-          label="Bow damage"
-          value={values.bow}
-          change={(v) => set("bow", v)}
-          optional
-        />
-        <NumberField
-          id="jc-movement"
-          label="Movement"
-          value={values.movement}
-          change={(v) => set("movement", v)}
-        />
-        <NumberField
-          id="jc-consumables"
-          label="Consumable slots"
-          value={values.consumables}
-          change={(v) => set("consumables", v)}
-        />
-        <NumberField
-          id="jc-equipment"
-          label="Equipment slots"
-          value={values.equipment}
-          change={(v) => set("equipment", v)}
-        />
-      </div>
-      <FormField htmlFor="jc-alternate" label="Alternate form">
-        <Select
-          id="jc-alternate"
-          value={values.alternate}
-          onChange={(event) => set("alternate", event.target.value)}
-        >
-          <option value="">Use character's default alternate form</option>
-          {alternates.map((character) => (
-            <option key={character.id} value={character.id}>
-              {character.name}
-            </option>
-          ))}
-        </Select>
-      </FormField>
-      <label className="flex items-center gap-3 text-content">
-        <input
-          type="checkbox"
-          checked={values.active}
-          onChange={(event) => set("active", event.target.checked)}
-          className="size-4"
-        />
-        Initially active
-      </label>
-      {error && (
-        <p className="text-sm text-danger" role="alert">
-          {error}
-        </p>
-      )}
-      <div className="flex justify-end gap-3 border-t border-border pt-4">
-        <Button onClick={onCancel} disabled={saving}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={saving} variant="primary">
-          {saving ? "Saving..." : "Save stats"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-function NumberField({
-  id,
-  label,
-  value,
-  change,
-  optional,
-  min = 0,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  change: (value: string) => void;
-  optional?: boolean;
-  min?: number;
-}) {
-  return (
-    <FormField htmlFor={id} label={label}>
-      <Input
-        id={id}
-        type="number"
-        min={min}
-        value={value}
-        onChange={(event) => change(event.target.value)}
-        required={!optional}
-      />
-    </FormField>
-  );
-}
-function numberOrNull(value: string): number | null {
-  return value === "" ? null : Number(value);
-}
-function text(value: number | null): string {
-  return value === null ? "" : String(value);
 }

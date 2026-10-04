@@ -29,6 +29,34 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> AcknowledgeBase(int assignmentId, [FromBody] AcknowledgeCharacterBaseChangesRequest request, CancellationToken ct) =>
             SyncResponse(await characterSyncService.ApplyAsync(User.GetUserId(), assignmentId, false, request.ToSelection(), true, ct));        
 
+        [Authorize]
+        [HttpPost("{journeyId:int}/players")]
+        public Task<IActionResult> AddPlayers(int journeyId, [FromBody] ReplaceJourneyCharactersRequest request, CancellationToken ct) =>
+            ChangeRoster(() => _journeyCharacterService.AddAsync(User.GetUserId(), journeyId, request.CharacterIds, ct), ct);
+
+        [Authorize]
+        [HttpPut("{journeyId:int}/order")]
+        public Task<IActionResult> Reorder(int journeyId, [FromBody] List<int> assignmentIds, CancellationToken ct) =>
+            ChangeRoster(() => _journeyCharacterService.ReorderAsync(User.GetUserId(), journeyId, assignmentIds, ct), ct);
+
+        private async Task<IActionResult> ChangeRoster(Func<Task<Result>> change, CancellationToken ct)
+        {
+            try
+            {
+                var result = await unitOfWork.ExecuteAsync(change, ct);
+                return result.Success ? Ok() : result.Error.Code switch
+                {
+                    "Journey.NotFound" => NotFound(result.Error),
+                    "JourneyCharacter.RosterChanged" => Conflict(result.Error),
+                    _ => BadRequest(result.Error)
+                };
+            }
+            catch (Eldoria.Core.Exceptions.CharacterSyncConflictException)
+            {
+                return Conflict(new Error("JourneyCharacter.RosterChanged", "The player roster changed. Reload it and try again."));
+            }
+        }
+
         [HttpPut("{journeyId:int}")]
         public async Task<IActionResult> Replace(int journeyId, [FromBody] ReplaceJourneyCharactersRequest req, CancellationToken ct)
         {

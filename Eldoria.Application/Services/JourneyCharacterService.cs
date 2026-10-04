@@ -75,10 +75,35 @@ namespace Eldoria.Application.Services
             return Result<JourneyCharacterDto>.Ok(journeyCharacter.ToDto());
         }
 
-        public async Task<Result> ReplaceJourneyCharacters(
+        public Task<Result> AddAsync(int userId, int journeyId, List<int> characterIds, CancellationToken ct) =>
+            SaveRosterAsync(userId, journeyId, characterIds, false, ct);
+
+        public async Task<Result> ReorderAsync(int userId, int journeyId, List<int> assignmentIds, CancellationToken ct)
+        {
+            if (await _ownershipRepository.GetJourneyAsync(userId, journeyId, ct) is null)
+                return Result.Fail(new Error("Journey.NotFound", "Journey was not found."));
+
+            var characters = await _journeyCharacterRepository.GetJourneyCharacters(journeyId, ct);
+            if (assignmentIds.Count != assignmentIds.Distinct().Count() ||
+                !characters.Select(character => character.Id).ToHashSet().SetEquals(assignmentIds))
+                return Result.Fail(new Error("JourneyCharacter.RosterChanged", "The player roster changed. Reload it before reordering."));
+
+            var byId = characters.ToDictionary(character => character.Id);
+            for (var index = 0; index < assignmentIds.Count; index++)
+                byId[assignmentIds[index]].SortOrder = index;
+
+            await _journeyCharacterRepository.SaveChangesAsync(ct);
+            return Result.Ok();
+        }
+
+        public Task<Result> ReplaceJourneyCharacters(int userId, int journeyId, List<int> characterIds, CancellationToken ct) =>
+            SaveRosterAsync(userId, journeyId, characterIds, true, ct);
+
+        private async Task<Result> SaveRosterAsync(
             int userId,
             int journeyId,
             List<int> characterIds,
+            bool removeMissing,
             CancellationToken ct)
         {
             if (await _ownershipRepository.GetJourneyAsync(userId, journeyId, ct) is null)
@@ -114,7 +139,7 @@ namespace Eldoria.Application.Services
                 .ToHashSet();
             var journeyCharactersToRemove = journeyCharacters
                 .Where(journeyCharacter =>
-                    !selectedCharacterIds.Contains(journeyCharacter.CharacterId))
+                    removeMissing && !selectedCharacterIds.Contains(journeyCharacter.CharacterId))
                 .ToList();
 
             foreach (var journeyCharacter in journeyCharactersToRemove)
@@ -124,11 +149,13 @@ namespace Eldoria.Application.Services
                 .Select(journeyCharacter => journeyCharacter.CharacterId)
                 .ToHashSet();
 
+            var nextSortOrder = journeyCharacters.Select(character => character.SortOrder).DefaultIfEmpty(-1).Max() + 1;
             foreach (var character in selectedCharacters.Where(
                 character => !existingCharacterIds.Contains(character.Id)))
             {
                 await _journeyCharacterRepository.AddAsync(new JourneyCharacter
                 {
+                    SortOrder = nextSortOrder++,
                     MaxHp = character.BaseMaxHp,
                     SyncedStatsRevision = character.StatsRevision,
                     AcknowledgedStatsRevision = character.StatsRevision,

@@ -92,9 +92,10 @@ export function SceneCard({
               <DropdownMenu.Trigger asChild>
                 <Button
                   aria-label={`Options for ${scene.name}`}
-                  className="h-11 w-11 shrink-0 border-content-muted/50 bg-content/10 p-0 text-content hover:border-content-secondary hover:bg-content/20 hover:text-content"
+                  size="sm"
+                  className="size-[30px] shrink-0 p-0 border-content-muted/50 bg-content/10 text-content hover:border-content-secondary hover:bg-content/20 hover:text-content"
                 >
-                  <FontAwesomeIcon icon={faEllipsis} className="text-xl" />
+                  <FontAwesomeIcon icon={faEllipsis} />
                 </Button>
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>

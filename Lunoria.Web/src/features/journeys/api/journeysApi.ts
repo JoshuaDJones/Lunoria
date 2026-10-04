@@ -25,7 +25,7 @@ export interface ListJourneysParams {
 }
 
 export interface UpdateJourneyCharacterRequest {
-  sortOrder: number;
+  sortOrder?: number;
   meleeAttackDamage: number | null;
   bowAttackDamage: number | null;
   movement: number;
@@ -47,6 +47,22 @@ export async function listJourneys(
 export async function getJourney(id: number): Promise<Journey> {
   const { data } = await apiClient.get<Journey>(`/Journey/${id}`);
   return data;
+}
+
+export async function addJourneyPlayers(
+  journeyId: number,
+  characterIds: number[],
+): Promise<void> {
+  await apiClient.post(`/JourneyCharacter/${journeyId}/players`, {
+    characterIds,
+  });
+}
+
+export async function reorderJourneyPlayers(
+  journeyId: number,
+  assignmentIds: number[],
+): Promise<void> {
+  await apiClient.put(`/JourneyCharacter/${journeyId}/order`, assignmentIds);
 }
 
 export async function listJourneyPlaythroughs(

@@ -14,7 +14,6 @@ import { ApiLoadError, Button, Drawer } from "@/components/ui";
 import {
   getJourney,
   JourneyCharacterPicker,
-  replaceJourneyCharacters,
   type Journey,
 } from "@/features/journeys";
 import {
@@ -51,12 +50,40 @@ export function JourneyEditorPage() {
   const [isOrderingScenes, setIsOrderingScenes] = useState(false);
   const [isSavingSceneOrder, setIsSavingSceneOrder] = useState(false);
   const [isManagingCharacters, setIsManagingCharacters] = useState(false);
+  const [playersBusy, setPlayersBusy] = useState(false);
+  const [playersDirty, setPlayersDirty] = useState(false);
   const [eventsScene, setEventsScene] = useState<Scene>();
   const [objectivesScene, setObjectivesScene] = useState<Scene>();
   const [objectivesBusy, setObjectivesBusy] = useState(false);
   const [chestsScene, setChestsScene] = useState<Scene>();
   const [charactersScene, setCharactersScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
+
+  useEffect(() => {
+    if (!isManagingCharacters || (!playersDirty && !playersBusy)) return;
+    const preventUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", preventUnload);
+    return () => window.removeEventListener("beforeunload", preventUnload);
+  }, [isManagingCharacters, playersDirty, playersBusy]);
+
+  const closePlayers = async () => {
+    if (playersBusy) return;
+    if (
+      playersDirty &&
+      !(await confirm({
+        title: "Discard player edits?",
+        message: "Your unsaved player changes will be lost.",
+        confirmLabel: "Discard changes",
+        variant: "danger",
+      }))
+    )
+      return;
+    setPlayersDirty(false);
+    setIsManagingCharacters(false);
+  };
 
   const loadJourney = async () => {
     setIsLoading(true);
@@ -225,7 +252,12 @@ export function JourneyEditorPage() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     onClick={() => setIsOrderingScenes(true)}
-                    disabled={isLoading || areScenesLoading || Boolean(scenesError) || scenes.length < 2}
+                    disabled={
+                      isLoading ||
+                      areScenesLoading ||
+                      Boolean(scenesError) ||
+                      scenes.length < 2
+                    }
                     variant="secondary"
                     className="h-11 border-border bg-surface/90 text-content-secondary hover:border-content-muted hover:bg-surface hover:text-content"
                     leftIcon={<FontAwesomeIcon icon={faSort} />}
@@ -251,8 +283,14 @@ export function JourneyEditorPage() {
                 tabIndex={0}
               >
                 {(isLoading || areScenesLoading) && (
-                  <div role="status" className="flex min-h-32 items-center justify-center rounded-xl border border-border bg-surface/50 p-5 text-content-secondary">
-                    <span aria-hidden="true" className="h-7 w-7 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none" />
+                  <div
+                    role="status"
+                    className="flex min-h-32 items-center justify-center rounded-xl border border-border bg-surface/50 p-5 text-content-secondary"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-7 w-7 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+                    />
                     <span className="sr-only">Loading scenes...</span>
                   </div>
                 )}
@@ -261,37 +299,42 @@ export function JourneyEditorPage() {
                   <ApiLoadError error={scenesError} onRetry={retryScenes} />
                 )}
 
-                {!isLoading && !areScenesLoading && !scenesError && scenes.length === 0 && (
-                  <div className="rounded-xl border border-border bg-surface/60 p-8 text-center">
-                    <h3 className="text-2xl font-semibold text-content">
-                      No scenes yet
-                    </h3>
-                    <p className="mt-2 text-content-muted">
-                      Add your first scene to get started.
-                    </p>
-                  </div>
-                )}
+                {!isLoading &&
+                  !areScenesLoading &&
+                  !scenesError &&
+                  scenes.length === 0 && (
+                    <div className="rounded-xl border border-border bg-surface/60 p-8 text-center">
+                      <h3 className="text-2xl font-semibold text-content">
+                        No scenes yet
+                      </h3>
+                      <p className="mt-2 text-content-muted">
+                        Add your first scene to get started.
+                      </p>
+                    </div>
+                  )}
 
-                {!isLoading && !areScenesLoading && !scenesError && scenes.length > 0 && (
-                  <SceneGrid
-                    scenes={scenes}
-                    className="sm:grid-cols-1 xl:grid-cols-2"
-                    onViewEvents={setEventsScene}
-                    onViewObjectives={setObjectivesScene}
-                    onViewChests={setChestsScene}
-                    onViewCharacters={setCharactersScene}
-                    onEdit={setEditingScene}
-                    onDelete={(scene) => void openConfirmDeleteScene(scene)}
-                    onViewDialogs={(scene) =>
-                      navigate(
-                        `/series/${seriesId}/journeys/${journeyId}/scenes/${scene.id}/dialogs`,
-                      )
-                    }
-                  />
-                )}
+                {!isLoading &&
+                  !areScenesLoading &&
+                  !scenesError &&
+                  scenes.length > 0 && (
+                    <SceneGrid
+                      scenes={scenes}
+                      className="sm:grid-cols-1 xl:grid-cols-2"
+                      onViewEvents={setEventsScene}
+                      onViewObjectives={setObjectivesScene}
+                      onViewChests={setChestsScene}
+                      onViewCharacters={setCharactersScene}
+                      onEdit={setEditingScene}
+                      onDelete={(scene) => void openConfirmDeleteScene(scene)}
+                      onViewDialogs={(scene) =>
+                        navigate(
+                          `/series/${seriesId}/journeys/${journeyId}/scenes/${scene.id}/dialogs`,
+                        )
+                      }
+                    />
+                  )}
               </div>
             </section>
-
           </div>
         )}
       </main>
@@ -397,38 +440,22 @@ export function JourneyEditorPage() {
 
       {isManagingCharacters && journey && (
         <Drawer
-          title="Journey Characters"
-          onClose={() => setIsManagingCharacters(false)}
+          title="Journey Players"
+          closeDisabled={playersBusy}
+          onClose={() => void closePlayers()}
         >
           <JourneyCharacterPicker
+            journeyId={journeyId}
             journeyCharacters={journey.journeyCharacters ?? []}
-            selectedCharacterIds={
-              journey.journeyCharacters?.map(
-                (journeyCharacter) => journeyCharacter.character.id,
-              ) ?? []
-            }
-            onCancel={() => setIsManagingCharacters(false)}
-            onCharacterUpdated={(updatedCharacter) => {
+            onBusyChange={setPlayersBusy}
+            onDirtyChange={setPlayersDirty}
+            onRosterChanged={(characters) =>
               setJourney((current) =>
                 current
-                  ? {
-                      ...current,
-                      journeyCharacters:
-                        current.journeyCharacters?.map((character) =>
-                          character.id === updatedCharacter.id
-                            ? updatedCharacter
-                            : character,
-                        ) ?? [],
-                    }
+                  ? { ...current, journeyCharacters: characters }
                   : current,
-              );
-            }}
-            onSave={async (characterIds) => {
-              await replaceJourneyCharacters(journeyId, characterIds);
-              setJourney(await getJourney(journeyId));
-              setIsManagingCharacters(false);
-              toast.success("Journey characters were updated.");
-            }}
+              )
+            }
           />
         </Drawer>
       )}
