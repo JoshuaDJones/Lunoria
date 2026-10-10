@@ -397,7 +397,7 @@ export function JourneyEditorPage() {
 
       {charactersScene && (
         <Drawer
-          title={`${charactersScene.name} Characters`}
+          title="Scene Characters"
           onClose={() => setCharactersScene(undefined)}
         >
           <SceneCharacterManager

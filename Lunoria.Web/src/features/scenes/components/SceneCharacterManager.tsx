@@ -217,16 +217,13 @@ export function SceneCharacterManager({ scene }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-content-secondary">
-          Characters participating in {scene.name}.
-        </p>
         <Button
           onClick={() => void openAttach()}
-          variant="add"
-          size="sm"
+          variant="primary"
+          className="ml-auto"
           leftIcon={<FontAwesomeIcon icon={faPlus} />}
         >
-          Attach character
+          Add Characters
         </Button>
       </div>
       {assignments.length === 0 ? (
