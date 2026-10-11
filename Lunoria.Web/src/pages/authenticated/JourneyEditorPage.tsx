@@ -30,6 +30,8 @@ import {
 } from "@/features/scenes";
 import { getApiError } from "@/lib/apiClient";
 import { SceneObjectiveEditor } from "@/features/scenes/components/SceneObjectiveEditor";
+import { useJourneyCharacterSyncSummary } from "@/features/characterSync/useJourneyCharacterSyncSummary";
+import { CharacterSyncSummaryButton } from "@/features/characterSync/components/CharacterSyncSummaryButton";
 
 export function JourneyEditorPage() {
   const { confirm } = useConfirmDialog();
@@ -40,6 +42,7 @@ export function JourneyEditorPage() {
     journeyId: string;
   }>();
   const journeyId = Number(journeyIdParam);
+  const characterSync = useJourneyCharacterSyncSummary(journeyId);
   const [journey, setJourney] = useState<Journey>();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -83,6 +86,7 @@ export function JourneyEditorPage() {
       return;
     setPlayersDirty(false);
     setIsManagingCharacters(false);
+    characterSync.refresh();
   };
 
   const loadJourney = async () => {
@@ -175,6 +179,7 @@ export function JourneyEditorPage() {
 
     try {
       await deleteScene(scene.id, journeyId);
+      characterSync.refresh();
       setAreScenesLoading(true);
       setScenesReloadKey((value) => value + 1);
       toast.success(`Scene "${scene.name}" was deleted.`);
@@ -218,14 +223,17 @@ export function JourneyEditorPage() {
               >
                 Intro Pages
               </Button>
-              <Button
+              <CharacterSyncSummaryButton
+                entries={characterSync.summary?.players ?? []}
+                checking={characterSync.loading}
+                checkError={characterSync.error}
                 onClick={() => setIsManagingCharacters(true)}
                 variant="secondary"
                 className="h-11 border-border bg-surface/90 text-content-secondary hover:border-content-muted hover:bg-surface hover:text-content"
                 leftIcon={<FontAwesomeIcon icon={faUsers} />}
               >
                 Players
-              </Button>
+              </CharacterSyncSummaryButton>
               <Button
                 onClick={() =>
                   navigate(`/series/${seriesId}/journeys/${journeyId}/play`)
@@ -239,6 +247,31 @@ export function JourneyEditorPage() {
             </div>
           )}
         </header>
+
+        {!isLoading && !error && journey && (
+          <div
+            className="mb-3 flex shrink-0 items-center gap-3 text-sm text-content-muted"
+            role="status"
+          >
+            {characterSync.loading ? (
+              "Checking character updates…"
+            ) : characterSync.error ? (
+              <>
+                <span className="text-amber-200">
+                  Unable to check character updates.
+                </span>
+                <Button size="sm" onClick={characterSync.refresh}>
+                  Retry check
+                </Button>
+              </>
+            ) : (
+              <span>
+                Character check complete. Hover or focus Players or Characters
+                for details.
+              </span>
+            )}
+          </div>
+        )}
 
         {!isLoading && error && (
           <ApiLoadError error={error} onRetry={loadJourney} />
@@ -318,6 +351,7 @@ export function JourneyEditorPage() {
                   !scenesError &&
                   scenes.length > 0 && (
                     <SceneGrid
+                      characterSync={characterSync}
                       scenes={scenes}
                       className="sm:grid-cols-1 xl:grid-cols-2"
                       onViewEvents={setEventsScene}
@@ -352,6 +386,7 @@ export function JourneyEditorPage() {
                 `Scene "${sceneName}" was ${editing ? "updated" : "created"}.`,
               );
               setEditingScene(undefined);
+              characterSync.refresh();
               setAreScenesLoading(true);
               setScenesReloadKey((value) => value + 1);
             }}
@@ -373,6 +408,7 @@ export function JourneyEditorPage() {
           />
         </Drawer>
       )}
+
       {eventsScene && (
         <Drawer
           title={`${eventsScene.name} Events`}
@@ -398,9 +434,13 @@ export function JourneyEditorPage() {
       {charactersScene && (
         <Drawer
           title="Scene Characters"
-          onClose={() => setCharactersScene(undefined)}
+          onClose={() => {
+            setCharactersScene(undefined);
+            characterSync.refresh();
+          }}
         >
           <SceneCharacterManager
+            onChanged={characterSync.refresh}
             key={charactersScene.id}
             scene={charactersScene}
           />
@@ -449,13 +489,14 @@ export function JourneyEditorPage() {
             journeyCharacters={journey.journeyCharacters ?? []}
             onBusyChange={setPlayersBusy}
             onDirtyChange={setPlayersDirty}
-            onRosterChanged={(characters) =>
+            onRosterChanged={(characters) => {
               setJourney((current) =>
                 current
                   ? { ...current, journeyCharacters: characters }
                   : current,
-              )
-            }
+              );
+              characterSync.refresh();
+            }}
           />
         </Drawer>
       )}

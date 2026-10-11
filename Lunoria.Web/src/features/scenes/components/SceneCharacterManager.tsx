@@ -34,10 +34,11 @@ import { getSceneCharacter } from "@/features/scenes/api/scenesApi";
 
 interface Props {
   scene: Scene;
+  onChanged?: () => void;
 }
 type View = "characters" | "attach" | "edit" | "spells";
 
-export function SceneCharacterManager({ scene }: Props) {
+export function SceneCharacterManager({ scene, onChanged }: Props) {
   const { confirm } = useConfirmDialog();
   const toast = useToast();
   const [assignments, setAssignments] = useState<SceneCharacter[]>([]);
@@ -50,6 +51,7 @@ export function SceneCharacterManager({ scene }: Props) {
   const selected = assignments.find((item) => item.id === selectedId);
 
   const refreshAssignment = async (id: number) => {
+    onChanged?.();
     const updated = await getSceneCharacter(id);
     setAssignments((current) =>
       current.map((item) => (item.id === updated.id ? updated : item)),
@@ -124,6 +126,7 @@ export function SceneCharacterManager({ scene }: Props) {
     if (!confirmed) return;
     try {
       await deleteSceneCharacter(assignment.id);
+      onChanged?.();
       setAssignments((current) =>
         current.filter((item) => item.id !== assignment.id),
       );
@@ -167,6 +170,7 @@ export function SceneCharacterManager({ scene }: Props) {
         onCancel={() => setView("characters")}
         onSave={async (characterId) => {
           const saved = await addSceneCharacter(scene.id, characterId);
+          onChanged?.();
           setAssignments((current) => [...current, saved]);
           setView("characters");
           toast.success(`${saved.character.name} was attached to the scene.`);
@@ -184,6 +188,7 @@ export function SceneCharacterManager({ scene }: Props) {
         onCancel={() => setView("characters")}
         onSave={async (input) => {
           const saved = await updateSceneCharacter(selected.id, input);
+          onChanged?.();
           setAssignments((current) =>
             current.map((item) => (item.id === saved.id ? saved : item)),
           );
@@ -205,6 +210,7 @@ export function SceneCharacterManager({ scene }: Props) {
             selected.id,
             spellIds,
           );
+          onChanged?.();
           setAssignments((current) =>
             current.map((item) => (item.id === saved.id ? saved : item)),
           );

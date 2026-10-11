@@ -1,4 +1,16 @@
 import { apiClient } from "@/lib/apiClient";
+import type { JourneyCharacterSyncSummary } from "@/features/characterSync/summaryTypes";
+
+export async function getJourneyCharacterSyncSummary(
+  journeyId: number,
+  signal?: AbortSignal,
+) {
+  const { data } = await apiClient.get<JourneyCharacterSyncSummary>(
+    `/Journey/${journeyId}/character-sync-summary`,
+    { signal },
+  );
+  return data;
+}
 import type {
   CharacterSyncKind,
   CharacterSyncPreview,

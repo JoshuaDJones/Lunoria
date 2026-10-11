@@ -1,6 +1,8 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Button, Card } from "@/components/ui";
 import type { Scene } from "@/features/scenes/types";
+import { CharacterSyncSummaryButton } from "@/features/characterSync/components/CharacterSyncSummaryButton";
+import type { CharacterSyncSummaryEntry } from "@/features/characterSync/summaryTypes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBolt,
@@ -15,6 +17,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 interface SceneCardProps {
+  characterSync?: {
+    entries: CharacterSyncSummaryEntry[];
+    checking: boolean;
+    checkError: string;
+  };
   scene: Scene;
   onViewEvents: (scene: Scene) => void;
   onViewObjectives: (scene: Scene) => void;
@@ -26,6 +33,7 @@ interface SceneCardProps {
 }
 
 export function SceneCard({
+  characterSync,
   scene,
   onViewEvents,
   onViewObjectives,
@@ -131,21 +139,36 @@ export function SceneCard({
               Scene {String(scene.sortOrder + 1).padStart(2, "0")}
             </span>
             {scene.grid && (
-              <span>{scene.grid.rows} × {scene.grid.columns} grid</span>
+              <span>
+                {scene.grid.rows} × {scene.grid.columns} grid
+              </span>
             )}
           </div>
           <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
-            {contentActions.map(({ label, icon, onSelect }) => (
-              <Button
-                key={label}
-                onClick={() => onSelect(scene)}
-                size="md"
-                className="min-h-11 border-border/60 bg-content/5 text-content-secondary hover:border-content-muted hover:bg-content/10 hover:text-content"
-                leftIcon={<FontAwesomeIcon icon={icon} />}
-              >
-                {label}
-              </Button>
-            ))}
+            {contentActions.map(({ label, icon, onSelect }) =>
+              label === "Characters" && characterSync ? (
+                <CharacterSyncSummaryButton
+                  key={label}
+                  {...characterSync}
+                  onClick={() => onSelect(scene)}
+                  size="md"
+                  className="min-h-11 border-border/60 bg-content/5 text-content-secondary hover:border-content-muted hover:bg-content/10 hover:text-content"
+                  leftIcon={<FontAwesomeIcon icon={icon} />}
+                >
+                  {label}
+                </CharacterSyncSummaryButton>
+              ) : (
+                <Button
+                  key={label}
+                  onClick={() => onSelect(scene)}
+                  size="md"
+                  className="min-h-11 border-border/60 bg-content/5 text-content-secondary hover:border-content-muted hover:bg-content/10 hover:text-content"
+                  leftIcon={<FontAwesomeIcon icon={icon} />}
+                >
+                  {label}
+                </Button>
+              ),
+            )}
           </div>
         </div>
       </div>
