@@ -8,6 +8,8 @@ import {
 import { getApiError } from "@/lib/apiClient";
 import { Button, FormField, Input, Select, Textarea } from "@/components/ui";
 import { PhotoDropzone } from "@/components/forms/PhotoDropzone";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 export type FormValue = string | boolean;
 export type FormValues = Record<string, FormValue>;
@@ -45,6 +47,8 @@ interface ResourceFormProps {
   allowRemoveExistingPhoto?: boolean;
   showPhoto?: boolean;
   initialPhoto?: File;
+  photoTooltip?: string;
+  showSubmitSpinner?: boolean;
   submitLabel?: string | ((values: FormValues) => string);
   onSubmit: (
     values: FormValues,
@@ -64,6 +68,8 @@ export function ResourceForm({
   allowRemoveExistingPhoto = false,
   showPhoto = true,
   initialPhoto,
+  photoTooltip,
+  showSubmitSpinner = false,
   submitLabel = "Save",
   onSubmit,
   children,
@@ -105,6 +111,7 @@ export function ResourceForm({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
     setError("");
 
     if (showPhoto && requirePhoto && !photo && !existingPhotoUrl) {
@@ -266,6 +273,7 @@ export function ResourceForm({
 
       {showPhoto && (
         <PhotoDropzone
+          tooltip={photoTooltip}
           file={photo}
           hasExistingPhoto={Boolean(displayedPhotoUrl)}
           onChange={handlePhotoChange}
@@ -330,11 +338,17 @@ export function ResourceForm({
       <Button
         type="submit"
         disabled={isSubmitting}
+        aria-busy={isSubmitting}
+        leftIcon={
+          showSubmitSpinner && isSubmitting ? (
+            <FontAwesomeIcon icon={faSpinner} spin aria-hidden="true" />
+          ) : undefined
+        }
         variant="primary"
         size="lg"
         className="w-full"
       >
-        {isSubmitting
+        {isSubmitting && !showSubmitSpinner
           ? "Saving..."
           : typeof submitLabel === "function"
             ? submitLabel(values)

@@ -50,6 +50,7 @@ export function JourneyEditorPage() {
   const [scenesError, setScenesError] = useState("");
   const [areScenesLoading, setAreScenesLoading] = useState(true);
   const [editingScene, setEditingScene] = useState<Scene | null | undefined>();
+  const [isSavingScene, setIsSavingScene] = useState(false);
   const [isOrderingScenes, setIsOrderingScenes] = useState(false);
   const [isSavingSceneOrder, setIsSavingSceneOrder] = useState(false);
   const [isManagingCharacters, setIsManagingCharacters] = useState(false);
@@ -248,33 +249,38 @@ export function JourneyEditorPage() {
           )}
         </header>
 
-        {!isLoading && !error && journey &&
-          (characterSync.loading || characterSync.error ||
+        {!isLoading &&
+          !error &&
+          journey &&
+          (characterSync.loading ||
+            characterSync.error ||
             (characterSync.summary?.players.length ?? 0) > 0 ||
-            characterSync.summary?.scenes.some(scene => scene.characters.length > 0)) && (
-          <div
-            className="mb-3 flex shrink-0 items-center gap-3 text-sm text-content-muted"
-            role="status"
-          >
-            {characterSync.loading ? (
-              "Checking character updates…"
-            ) : characterSync.error ? (
-              <>
-                <span className="text-amber-200">
-                  Unable to check character updates.
+            characterSync.summary?.scenes.some(
+              (scene) => scene.characters.length > 0,
+            )) && (
+            <div
+              className="mb-3 flex shrink-0 items-center gap-3 text-sm text-content-muted"
+              role="status"
+            >
+              {characterSync.loading ? (
+                "Checking character updates…"
+              ) : characterSync.error ? (
+                <>
+                  <span className="text-amber-200">
+                    Unable to check character updates.
+                  </span>
+                  <Button size="sm" onClick={characterSync.refresh}>
+                    Retry check
+                  </Button>
+                </>
+              ) : (
+                <span>
+                  Character check complete. Hover or focus Players or Characters
+                  for details.
                 </span>
-                <Button size="sm" onClick={characterSync.refresh}>
-                  Retry check
-                </Button>
-              </>
-            ) : (
-              <span>
-                Character check complete. Hover or focus Players or Characters
-                for details.
-              </span>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
         {!isLoading && error && (
           <ApiLoadError error={error} onRetry={loadJourney} />
@@ -379,9 +385,13 @@ export function JourneyEditorPage() {
       {editingScene !== undefined && (
         <Drawer
           title={editingScene ? "Edit scene" : "Create scene"}
-          onClose={() => setEditingScene(undefined)}
+          closeDisabled={isSavingScene}
+          onClose={() => {
+            if (!isSavingScene) setEditingScene(undefined);
+          }}
         >
           <SceneEditorForm
+            onBusyChange={setIsSavingScene}
             journeyId={journeyId}
             scene={editingScene}
             onSaved={(sceneName, editing) => {

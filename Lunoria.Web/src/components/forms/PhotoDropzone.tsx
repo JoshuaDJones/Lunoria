@@ -1,11 +1,15 @@
 import { useRef, useState, type DragEvent } from "react";
 import clsx from "clsx";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 const acceptedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 interface PhotoDropzoneProps {
   file?: File;
   hasExistingPhoto?: boolean;
+  tooltip?: string;
+  label?: string;
+  disabled?: boolean;
   onChange: (file?: File) => void;
   onError: (message: string) => void;
 }
@@ -13,6 +17,9 @@ interface PhotoDropzoneProps {
 export function PhotoDropzone({
   file,
   hasExistingPhoto,
+  tooltip,
+  label = "Photo",
+  disabled = false,
   onChange,
   onError,
 }: PhotoDropzoneProps) {
@@ -20,7 +27,7 @@ export function PhotoDropzone({
   const [isDragging, setIsDragging] = useState(false);
 
   const selectFile = (nextFile?: File) => {
-    if (!nextFile) return;
+    if (disabled || !nextFile) return;
 
     if (!acceptedTypes.has(nextFile.type)) {
       onError("Photo must be a JPEG, PNG, or WebP image.");
@@ -39,14 +46,19 @@ export function PhotoDropzone({
 
   return (
     <div>
-      <span className="mb-2 block text-sm font-medium text-content-secondary">
-        Photo
-        {hasExistingPhoto ? " (leave empty to keep current photo)" : ""}
-      </span>
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-content-secondary">
+        <span className="inline-flex items-center gap-2 leading-5">
+          <span>{label}</span>
+          {tooltip && (
+            <InfoTooltip text={tooltip} label={`${label} information`} plain />
+          )}
+        </span>
+        {hasExistingPhoto && <span>(leave empty to keep current photo)</span>}
+      </div>
       <div
         onDragEnter={(event) => {
           event.preventDefault();
-          setIsDragging(true);
+          if (!disabled) setIsDragging(true);
         }}
         onDragOver={(event) => event.preventDefault()}
         onDragLeave={(event) => {
@@ -65,6 +77,8 @@ export function PhotoDropzone({
         <input
           ref={inputRef}
           type="file"
+          aria-label={label}
+          disabled={disabled}
           accept="image/jpeg,image/png,image/webp"
           onChange={(event) => selectFile(event.target.files?.[0])}
           className="sr-only"
@@ -75,6 +89,7 @@ export function PhotoDropzone({
         <p className="mt-1 text-sm text-content-muted">JPEG, PNG, or WebP</p>
         <button
           type="button"
+          disabled={disabled}
           onClick={() => {
             if (inputRef.current) {
               inputRef.current.value = "";

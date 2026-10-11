@@ -1,11 +1,7 @@
-import { useState } from "react";
-import { Button } from "@/components/ui";
-import { requiredPhoto, textValue } from "@/components/forms/formValues";
-import {
-  ResourceForm,
-  type FormValues,
-  type ResourceFormField,
-} from "@/components/forms/ResourceForm";
+import { useRef, useState, type FormEvent } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { Button, FormField, Input, Textarea } from "@/components/ui";
 import {
   createScene,
   createSceneGrid,
@@ -13,195 +9,324 @@ import {
   updateScene,
   updateSceneGrid,
 } from "@/features/scenes/api/scenesApi";
+import { SceneImageField } from "@/features/scenes/components/SceneImageField";
+import { SceneGridPreview } from "@/features/scenes/components/SceneGridPreview";
 import type { Scene } from "@/features/scenes/types";
+import { getApiError } from "@/lib/apiClient";
 
 type GridMode = "internal" | "external" | "none";
-
-interface SceneDraft {
-  values: FormValues;
-  photo?: File;
-}
 
 interface SceneEditorFormProps {
   journeyId: number;
   scene?: Scene | null;
   onSaved: (sceneName: string, editing: boolean) => void;
-}
-
-const sceneFields: ResourceFormField[] = [
-  { name: "name", label: "Name", required: true },
-  {
-    name: "description",
-    label: "Description",
-    type: "textarea",
-    required: true,
-  },
-  {
-    name: "gridMode",
-    label: "Grid",
-    type: "radio",
-    required: true,
-    options: [
-      { label: "Create a Lunoria grid", value: "internal" },
-      { label: "Use an external grid URL", value: "external" },
-      { label: "No grid", value: "none" },
-    ],
-  },
-  {
-    name: "gridUrl",
-    label: "External grid URL",
-    required: true,
-    visibleWhen: { field: "gridMode", value: "external" },
-  },
-];
-
-const gridFields: ResourceFormField[] = [
-  { name: "rows", label: "Rows", type: "number", required: true },
-  { name: "columns", label: "Columns", type: "number", required: true },
-  { name: "gridColor", label: "Grid color", type: "color", required: true },
-];
-
-function initialGridMode(scene?: Scene | null): GridMode {
-  if (scene?.grid) return "internal";
-  if (scene?.gridUrl) return "external";
-  return "none";
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function SceneEditorForm({
   journeyId,
   scene,
   onSaved,
+  onBusyChange,
 }: SceneEditorFormProps) {
-  const [page, setPage] = useState<"scene" | "grid">("scene");
-  const [draft, setDraft] = useState<SceneDraft>();
-  const [createdScene, setCreatedScene] = useState<Scene>();
+  const [name, setName] = useState(scene?.name ?? "");
+  const [description, setDescription] = useState(scene?.description ?? "");
+  const [gridMode, setGridMode] = useState<GridMode>(
+    scene?.grid ? "internal" : scene?.gridUrl ? "external" : "none",
+  );
+  const [gridUrl, setGridUrl] = useState(scene?.gridUrl ?? "");
+  const [rows, setRows] = useState(String(scene?.grid?.rows ?? 20));
+  const [columns, setColumns] = useState(String(scene?.grid?.columns ?? 36));
+  const [gridColor, setGridColor] = useState(
+    scene?.grid?.gridColor ?? "#ffffff",
+  );
+  const [photo, setPhoto] = useState<File>();
+  const [background, setBackground] = useState<File>();
+  const [removeBackground, setRemoveBackground] = useState(false);
+  const [savedScene, setSavedScene] = useState<Scene | undefined>(
+    scene ?? undefined,
+  );
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const uploadedPhoto = useRef<File | undefined>(undefined);
 
-  const saveScene = async (
-    sceneDraft: SceneDraft,
-    grid?: {
-      rows: number;
-      columns: number;
-      gridColor: string;
-      background?: File;
-      removeBackground: boolean;
-    },
-  ) => {
-    const name = textValue(sceneDraft.values, "name");
-    const gridMode = textValue(sceneDraft.values, "gridMode") as GridMode;
-    const gridUrl =
-      gridMode === "external" ? textValue(sceneDraft.values, "gridUrl") : "";
-    const input = {
-      journeyId,
-      name,
-      description: textValue(sceneDraft.values, "description"),
-      gridUrl,
-    };
-
-    const existingScene = scene ?? createdScene;
-    let savedScene: Scene;
-    if (existingScene) {
-      savedScene = await updateScene(existingScene.id, {
-        ...input,
-        photo: sceneDraft.photo,
-      });
-    } else {
-      savedScene = await createScene({
-        ...input,
-        photo: requiredPhoto(sceneDraft.photo),
-      });
-      // Creating a scene and its grid requires two API requests. Keep the
-      // created scene so a failed grid request retries against the same scene
-      // instead of creating a duplicate.
-      setCreatedScene(savedScene);
-      setDraft((current) =>
-        current ? { ...current, photo: undefined } : current,
-      );
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (savingRef.current) return;
+    setError("");
+    if (!savedScene && !photo) {
+      setError("A scene background photo is required.");
+      return;
     }
-
-    if (gridMode === "internal" && grid) {
-      const gridInput = {
-        rows: grid.rows,
-        columns: grid.columns,
-        gridColor: grid.gridColor.trim() || "#ffffff",
-        background: grid.background,
+    if (!name.trim() || !description.trim()) {
+      setError("Name and description are required.");
+      return;
+    }
+    if (gridMode === "external" && !gridUrl.trim()) {
+      setError("An external grid URL is required.");
+      return;
+    }
+    if (
+      gridMode === "internal" &&
+      (!Number.isInteger(Number(rows)) ||
+        !Number.isInteger(Number(columns)) ||
+        Number(rows) < 1 ||
+        Number(rows) > 100 ||
+        Number(columns) < 1 ||
+        Number(columns) > 100)
+    ) {
+      setError("Grid rows and columns must each be between 1 and 100.");
+      return;
+    }
+    savingRef.current = true;
+    setSaving(true);
+    onBusyChange?.(true);
+    let sceneWasSaved = false;
+    try {
+      const input = {
+        journeyId,
+        name: name.trim(),
+        description: description.trim(),
+        gridUrl: gridMode === "external" ? gridUrl.trim() : "",
       };
-      if (scene?.grid) {
-        await updateSceneGrid(savedScene.id, {
-          ...gridInput,
-          removeBackground: grid.removeBackground,
-        });
-      } else {
-        await createSceneGrid(savedScene.id, gridInput);
+      const result = savedScene
+        ? await updateScene(savedScene.id, {
+            ...input,
+            photo: photo !== uploadedPhoto.current ? photo : undefined,
+          })
+        : await createScene({ ...input, photo: photo! });
+      sceneWasSaved = true;
+      uploadedPhoto.current = photo;
+      // Retain the ID on partial failure so retry cannot create a duplicate scene.
+      setSavedScene(result);
+      if (gridMode === "internal") {
+        const gridInput = {
+          rows: Number(rows),
+          columns: Number(columns),
+          gridColor,
+          background,
+        };
+        const grid = result.grid
+          ? await updateSceneGrid(result.id, { ...gridInput, removeBackground })
+          : await createSceneGrid(result.id, gridInput);
+        setSavedScene({ ...result, grid });
+      } else if (gridMode === "none" && result.grid) {
+        await deleteSceneGrid(result.id);
+        setSavedScene({ ...result, grid: null });
       }
-    } else if (gridMode === "none" && scene?.grid) {
-      await deleteSceneGrid(savedScene.id);
+      // Scene update removes an internal grid when an external URL is supplied.
+      onSaved(input.name, Boolean(scene));
+    } catch (reason) {
+      setError(
+        `${sceneWasSaved ? "Scene details were saved, but the grid change could not finish. You can retry without creating another scene. " : ""}${getApiError(reason).message}`,
+      );
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+      onBusyChange?.(false);
     }
-
-    onSaved(name, Boolean(scene));
   };
 
-  if (page === "grid" && draft) {
-    return (
-      <ResourceForm
-        key="grid"
-        fields={gridFields}
-        initialValues={{
-          rows: String(scene?.grid?.rows ?? 20),
-          columns: String(scene?.grid?.columns ?? 36),
-          gridColor: scene?.grid?.gridColor ?? "#ffffff",
-        }}
-        existingPhotoUrl={scene?.grid?.backgroundImageUrl ?? undefined}
-        allowRemoveExistingPhoto={Boolean(scene?.grid?.backgroundImageUrl)}
-        onSubmit={async (values, background, removeBackground) => {
-          await saveScene(draft, {
-            rows: Number(textValue(values, "rows")),
-            columns: Number(textValue(values, "columns")),
-            gridColor: textValue(values, "gridColor"),
-            background,
-            removeBackground: Boolean(removeBackground),
-          });
-        }}
-      >
-        <Button
-          type="button"
-          className="w-full"
-          onClick={() => setPage("scene")}
-        >
-          Back to scene
-        </Button>
-      </ResourceForm>
-    );
-  }
-
-  const formScene = scene ?? createdScene;
-  const mode = initialGridMode(formScene);
   return (
-    <ResourceForm
-      key="scene"
-      fields={sceneFields}
-      initialValues={
-        draft?.values ?? {
-          name: formScene?.name ?? "",
-          description: formScene?.description ?? "",
-          gridMode: mode,
-          gridUrl: formScene?.gridUrl ?? "",
-        }
-      }
-      initialPhoto={draft?.photo}
-      existingPhotoUrl={formScene?.photoUrl}
-      requirePhoto={!formScene}
-      submitLabel={(values) =>
-        values.gridMode === "internal" ? "Continue to grid" : "Save"
-      }
-      onSubmit={async (values, photo) => {
-        const nextDraft = { values, photo };
-        if (values.gridMode === "internal") {
-          setDraft(nextDraft);
-          setPage("grid");
-          return;
-        }
-        await saveScene(nextDraft);
-      }}
-    />
+    <form onSubmit={(event) => void submit(event)} aria-busy={saving}>
+      <fieldset disabled={saving} className="min-w-0 space-y-5">
+        <FormField htmlFor="scene-name" label="Name">
+          <Input
+            id="scene-name"
+            required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            className="bg-surface"
+          />
+        </FormField>
+        <FormField htmlFor="scene-description" label="Description">
+          <Textarea
+            id="scene-description"
+            required
+            rows={4}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            className="bg-surface"
+          />
+        </FormField>
+        <SceneImageField
+          label="Scene background photo"
+          tooltip="This photo is used as the background when playing this scene during a playthrough."
+          file={photo}
+          existingUrl={savedScene?.photoUrl}
+          disabled={saving}
+          onChange={setPhoto}
+        />
+
+        <fieldset className="space-y-3">
+          <legend className="mb-3 text-sm font-medium text-content-secondary">
+            Grid
+          </legend>
+          {(
+            [
+              ["none", "No grid"],
+              [
+                "internal",
+                scene?.grid ? "Use a Lunoria grid" : "Create a Lunoria grid",
+              ],
+              ["external", "Use an external grid URL"],
+            ] as const
+          ).map(([mode, label]) => (
+            <label
+              key={mode}
+              className="flex cursor-pointer items-center gap-3 text-sm text-content-secondary"
+            >
+              <input
+                type="radio"
+                name="scene-grid-mode"
+                value={mode}
+                checked={gridMode === mode}
+                onChange={() => setGridMode(mode)}
+                aria-controls={
+                  mode === "internal"
+                    ? "scene-internal-grid"
+                    : mode === "external"
+                      ? "scene-external-grid"
+                      : undefined
+                }
+                className="size-4 accent-brand"
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
+
+        {/* Keep controls mounted to preserve drafts and files; disable hidden required fields. */}
+        <div
+          id="scene-internal-grid"
+          inert={gridMode !== "internal"}
+          aria-hidden={gridMode !== "internal"}
+          className={`grid transition-[grid-template-rows,opacity] duration-250 motion-reduce:transition-none ${gridMode === "internal" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <fieldset
+              disabled={saving || gridMode !== "internal"}
+              className="min-w-0 space-y-4 rounded-xl border border-border bg-surface/50 p-4"
+            >
+              <legend className="px-1 text-sm font-semibold text-content">
+                Lunoria grid settings
+              </legend>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField htmlFor="scene-grid-rows" label="Rows">
+                  <Input
+                    id="scene-grid-rows"
+                    type="number"
+                    required
+                    min={1}
+                    max={100}
+                    step={1}
+                    value={rows}
+                    onChange={(event) => setRows(event.target.value)}
+                  />
+                </FormField>
+                <FormField htmlFor="scene-grid-columns" label="Columns">
+                  <Input
+                    id="scene-grid-columns"
+                    type="number"
+                    required
+                    min={1}
+                    max={100}
+                    step={1}
+                    value={columns}
+                    onChange={(event) => setColumns(event.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div>
+                <span
+                  id="scene-grid-color-label"
+                  className="mb-2 block text-sm font-medium text-content-secondary"
+                >
+                  Grid color
+                </span>
+                <Input
+                  id="scene-grid-color"
+                  aria-labelledby="scene-grid-color-label"
+                  type="color"
+                  value={gridColor}
+                  onChange={(event) => setGridColor(event.target.value)}
+                  className="h-11 w-full cursor-pointer p-1"
+                />
+              </div>
+              <SceneImageField
+                label="Grid background image (optional)"
+                tooltip="This image appears behind the grid tiles. It does not replace the scene background photo."
+                file={background}
+                existingUrl={scene?.grid?.backgroundImageUrl}
+                disabled={saving || gridMode !== "internal"}
+                allowRemove
+                removeExisting={removeBackground}
+                onRemoveExisting={setRemoveBackground}
+                onChange={setBackground}
+              />
+              <SceneGridPreview
+                rows={Number(rows)}
+                columns={Number(columns)}
+                gridColor={gridColor}
+                background={background}
+                backgroundImageUrl={
+                  removeBackground ? undefined : scene?.grid?.backgroundImageUrl
+                }
+              />
+            </fieldset>
+          </div>
+        </div>
+        <div
+          id="scene-external-grid"
+          inert={gridMode !== "external"}
+          aria-hidden={gridMode !== "external"}
+          className={`grid transition-[grid-template-rows,opacity] duration-250 motion-reduce:transition-none ${gridMode === "external" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <fieldset
+              disabled={saving || gridMode !== "external"}
+              className="rounded-xl border border-border bg-surface/50 p-4"
+            >
+              <FormField htmlFor="scene-grid-url" label="External grid URL">
+                <Input
+                  id="scene-grid-url"
+                  required
+                  value={gridUrl}
+                  onChange={(event) => setGridUrl(event.target.value)}
+                  placeholder="https://…"
+                />
+              </FormField>
+            </fieldset>
+          </div>
+        </div>
+        {scene?.grid && gridMode !== "internal" && (
+          <p className="text-sm text-amber-200">
+            Saving will remove this scene’s Lunoria grid and its background
+            image.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          className="w-full"
+          disabled={saving}
+          aria-busy={saving}
+          leftIcon={
+            saving ? (
+              <FontAwesomeIcon icon={faSpinner} spin aria-hidden="true" />
+            ) : undefined
+          }
+        >
+          {scene ? "Save Changes" : "Create Scene"}
+        </Button>
+      </fieldset>
+    </form>
   );
 }

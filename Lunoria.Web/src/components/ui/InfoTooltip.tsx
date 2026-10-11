@@ -15,7 +15,15 @@ import {
   useRole,
 } from "@floating-ui/react";
 
-export function InfoTooltip({ text }: { text: string }) {
+export function InfoTooltip({
+  text,
+  label = `Item information: ${text}`,
+  plain = false,
+}: {
+  text: string;
+  label?: string;
+  plain?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const {
     refs: { setReference, setFloating },
@@ -51,8 +59,8 @@ export function InfoTooltip({ text }: { text: string }) {
       <button
         ref={setReference}
         type="button"
-        aria-label={`Item information: ${text}`}
-        className="flex h-6 w-6 items-center justify-center rounded-full bg-canvas/90 text-content shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility"
+        aria-label={label}
+        className={`inline-flex shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility ${plain ? "h-5 w-5 bg-transparent p-0 text-content-secondary" : "h-6 w-6 bg-canvas/90 text-content shadow-sm"}`}
         {...getReferenceProps()}
       >
         <svg
