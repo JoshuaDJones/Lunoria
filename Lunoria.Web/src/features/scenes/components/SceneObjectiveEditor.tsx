@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGripVertical } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui";
 import { getApiError } from "@/lib/apiClient";
 import {
@@ -19,6 +21,8 @@ export function SceneObjectiveEditor({
 }) {
   const nextKey = useRef(0);
   const [sets, setSets] = useState<DraftSet[]>([]);
+  const [draggedKey, setDraggedKey] = useState<number>();
+  const [dropKey, setDropKey] = useState<number>();
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -60,12 +64,19 @@ export function SceneObjectiveEditor({
     setSets(next);
     setSaved(false);
   }
-  function moveSet(index: number, direction: number) {
+  function moveSet(index: number, target: number) {
+    if (
+      busy ||
+      submitting.current ||
+      index < 0 ||
+      target < 0 ||
+      target >= sets.length ||
+      index === target
+    )
+      return;
     const next = [...sets];
-    [next[index], next[index + direction]] = [
-      next[index + direction],
-      next[index],
-    ];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
     update(next);
   }
 
@@ -124,28 +135,68 @@ export function SceneObjectiveEditor({
         {sets.map((set, index) => (
           <section
             key={set.key}
-            className="space-y-3 rounded-xl border border-border p-4"
+            className={`relative space-y-3 rounded-xl border border-border p-4 ${draggedKey === set.key ? "opacity-50" : ""}`}
+            onDragOver={(event) => {
+              if (busy || draggedKey === undefined || draggedKey === set.key)
+                return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDropKey(set.key);
+            }}
+            onDragLeave={(event) => {
+              if (
+                !event.currentTarget.contains(
+                  event.relatedTarget as Node | null,
+                )
+              )
+                setDropKey(undefined);
+            }}
+            onDrop={(event) => {
+              if (draggedKey === undefined) return;
+              event.preventDefault();
+              moveSet(
+                sets.findIndex((item) => item.key === draggedKey),
+                index,
+              );
+              setDraggedKey(undefined);
+              setDropKey(undefined);
+            }}
           >
+            {dropKey === set.key &&
+              draggedKey !== undefined &&
+              draggedKey !== set.key && (
+                <div
+                  className={`pointer-events-none absolute right-0 left-0 h-1 rounded bg-amber-300 ${sets.findIndex((item) => item.key === draggedKey) < index ? "-bottom-3" : "-top-3"}`}
+                />
+              )}
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                draggable={!busy && sets.length > 1}
+                disabled={busy || sets.length < 2}
+                aria-label={`Drag set ${index + 1} to reorder; use arrow keys to move`}
+                className="cursor-grab p-2 text-content-muted active:cursor-grabbing disabled:opacity-40"
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", String(set.key));
+                  const card = event.currentTarget.closest("section");
+                  if (card) event.dataTransfer.setDragImage(card, 20, 20);
+                  setDraggedKey(set.key);
+                }}
+                onDragEnd={() => {
+                  setDraggedKey(undefined);
+                  setDropKey(undefined);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                    event.preventDefault();
+                    moveSet(index, index + (event.key === "ArrowUp" ? -1 : 1));
+                  }
+                }}
+              >
+                <FontAwesomeIcon icon={faGripVertical} aria-hidden="true" />
+              </button>
               <h3 className="mr-auto text-xl">Set {index + 1}</h3>
-              <Button
-                type="button"
-                size="sm"
-                aria-label={`Move set ${index + 1} up`}
-                disabled={index === 0}
-                onClick={() => moveSet(index, -1)}
-              >
-                ↑
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                aria-label={`Move set ${index + 1} down`}
-                disabled={index === sets.length - 1}
-                onClick={() => moveSet(index, 1)}
-              >
-                ↓
-              </Button>
               <Button
                 type="button"
                 size="sm"

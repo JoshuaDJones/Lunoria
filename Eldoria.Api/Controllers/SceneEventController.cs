@@ -57,6 +57,39 @@ namespace Eldoria.Api.Controllers
             return ToError(result.Error);
         }
 
+        [HttpPost("draft")]
+        public async Task<IActionResult> CreateDraft(int sceneId, [FromBody] SceneEventDraftRequest req, CancellationToken ct)
+        {
+            var result = await _sceneEventService.SaveDraftAsync(User.GetUserId(), sceneId, null, req.Name, req.Description, MapDraft(req), ct);
+            return result.Success ? CreatedAtAction(nameof(List), new { sceneId }, result.Value) : ToError(result.Error);
+        }
+
+        [HttpPut("{eventId:int}/draft")]
+        public async Task<IActionResult> UpdateDraft(int sceneId, int eventId, [FromBody] SceneEventDraftRequest req, CancellationToken ct)
+        {
+            var result = await _sceneEventService.SaveDraftAsync(User.GetUserId(), sceneId, eventId, req.Name, req.Description, MapDraft(req), ct);
+            return result.Success ? Ok(result.Value) : ToError(result.Error);
+        }
+
+        private static List<SceneEventActionDraftInput> MapDraft(SceneEventDraftRequest req) =>
+            req.Actions.Select(action => new SceneEventActionDraftInput
+            {
+                Id = action.Id,
+                Name = action.Name,
+                ActionTargetType = action.ActionTargetType!.Value,
+                EventActionType = action.EventActionType!.Value,
+                CharacterStatType = action.CharacterStatType ?? Eldoria.Core.Enums.CharacterStatType.CurrentHp,
+                AdjustmentOperation = action.AdjustmentOperation ?? Eldoria.Core.Enums.AdjustmentOperation.Set,
+                Value = action.Value,
+                CharacterId = action.CharacterId,
+                AlternateFormId = action.AlternateFormId,
+                Grant = new SceneEventGrantInput
+                {
+                    SpellId = action.SpellId, ConsumableItemId = action.ConsumableItemId,
+                    EquippableItemId = action.EquippableItemId, Quantity = action.Quantity
+                }
+            }).ToList();
+
         [HttpDelete("{eventId:int}")]
         public async Task<IActionResult> Delete(int sceneId, int eventId, CancellationToken ct)
         {

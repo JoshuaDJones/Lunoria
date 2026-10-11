@@ -8,6 +8,7 @@ namespace Eldoria.Application.Services
     public interface ISceneEventService
     {
         Task<Result<List<SceneEventDto>>> ListAsync(int userId, int sceneId, CancellationToken ct);
+        Task<Result<SceneEventDto>> SaveDraftAsync(int userId, int sceneId, int? eventId, string name, string? description, IReadOnlyList<SceneEventActionDraftInput> actions, CancellationToken ct);
         Task<Result<SceneEventDto>> CreateAsync(int userId, int sceneId, string name, string? description, CancellationToken ct);
         Task<Result<SceneEventDto>> UpdateAsync(int userId, int sceneId, int eventId, string name, string? description, CancellationToken ct);
         Task<Result> DeleteAsync(int userId, int sceneId, int eventId, CancellationToken ct);

@@ -1,8 +1,10 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Button } from "./Button";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface DrawerProps {
   title: string;
+  titleTooltip?: string;
   children: ReactNode;
   onClose: () => void;
   closeDisabled?: boolean;
@@ -10,6 +12,7 @@ interface DrawerProps {
 
 export function Drawer({
   title,
+  titleTooltip,
   children,
   onClose,
   closeDisabled = false,
@@ -59,9 +62,21 @@ export function Drawer({
         className="absolute inset-y-0 right-0 flex w-full max-w-xl animate-[drawer-in_250ms_ease-out] flex-col border-l border-border bg-surface-raised shadow-2xl"
       >
         <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-5">
-          <h2 id="drawer-title" className="text-2xl font-semibold text-content">
-            {title}
-          </h2>
+          <div className="flex min-w-0 items-center gap-2">
+            <h2
+              id="drawer-title"
+              className="text-2xl font-semibold text-content"
+            >
+              {title}
+            </h2>
+            {titleTooltip && (
+              <InfoTooltip
+                plain
+                label={`${title} information`}
+                text={titleTooltip}
+              />
+            )}
+          </div>
           <Button
             ref={closeButtonRef}
             onClick={onClose}

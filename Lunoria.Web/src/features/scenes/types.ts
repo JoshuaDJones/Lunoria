@@ -93,6 +93,10 @@ export interface SceneEventInput {
   description?: string | null;
 }
 
+export interface SceneEventDraftInput extends SceneEventInput {
+  actions: (SceneEventActionInput & { id?: number })[];
+}
+
 export interface SceneChestLootEntry {
   id: number;
   rollMinimum: number;

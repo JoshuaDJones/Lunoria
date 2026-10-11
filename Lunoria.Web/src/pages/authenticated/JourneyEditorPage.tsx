@@ -61,6 +61,7 @@ export function JourneyEditorPage() {
   const [objectivesBusy, setObjectivesBusy] = useState(false);
   const [chestsScene, setChestsScene] = useState<Scene>();
   const [isSavingChest, setIsSavingChest] = useState(false);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [charactersScene, setCharactersScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
 
@@ -426,11 +427,16 @@ export function JourneyEditorPage() {
       {eventsScene && (
         <Drawer
           title={`${eventsScene.name} Events`}
-          onClose={() => setEventsScene(undefined)}
+          titleTooltip="Events run automatically when this scene starts. Add actions to adjust player stats, grant items or spells, or change alternate forms. Events and their actions run in the order shown."
+          closeDisabled={isSavingEvent}
+          onClose={() => {
+            if (!isSavingEvent) setEventsScene(undefined);
+          }}
         >
           <SceneEventManager
             key={eventsScene.id}
             scene={eventsScene}
+            onBusyChange={setIsSavingEvent}
             journeyCharacters={journey?.journeyCharacters ?? []}
           />
         </Drawer>

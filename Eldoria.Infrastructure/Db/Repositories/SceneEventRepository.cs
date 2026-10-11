@@ -54,6 +54,33 @@ namespace Eldoria.Infrastructure.Db.Repositories
         public Task<SceneEvent?> GetForUserAsync(int userId, int sceneEventId, CancellationToken ct) =>
             Query().SingleOrDefaultAsync(sceneEvent => sceneEvent.Id == sceneEventId && sceneEvent.Scene.Journey.UserId == userId, ct);
 
+        public async Task SaveDraftAsync(SceneEvent sceneEvent, string name, string? description,
+            IReadOnlyList<SceneEventAction> actions, CancellationToken ct)
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+            if (sceneEvent.Id == 0)
+            {
+                var highest = await _dbContext.SceneEvents.Where(item => item.SceneId == sceneEvent.SceneId)
+                    .Select(item => (int?)item.SortOrder).MaxAsync(ct);
+                sceneEvent.SortOrder = (highest ?? -1) + 1;
+                await _dbContext.SceneEvents.AddAsync(sceneEvent, ct);
+            }
+            else
+            {
+                // Remove old payloads first to avoid unique (event, order) collisions.
+                // Both saves are in one transaction; failure restores the previous event.
+                _dbContext.SceneEventActions.RemoveRange(sceneEvent.SceneEventActions);
+                sceneEvent.SceneEventActions.Clear();
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            sceneEvent.Name = name;
+            sceneEvent.Description = description;
+            foreach (var action in actions)
+                sceneEvent.SceneEventActions.Add(action);
+            await _dbContext.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+        }
+
         public async Task AddWithNextSortOrderAsync(SceneEvent sceneEvent, CancellationToken ct)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
