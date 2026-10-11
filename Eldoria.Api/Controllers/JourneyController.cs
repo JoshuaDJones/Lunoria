@@ -8,9 +8,21 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class JourneyController(IJourneyService journeyService) : ControllerBase
+    public class JourneyController(IJourneyService journeyService, IJourneyCharacterSyncSummaryService characterSyncSummaryService) : ControllerBase
     {
         private readonly IJourneyService _journeyService = journeyService;
+
+        [Authorize]
+        [HttpGet("{id:int}/character-sync-summary")]
+        public async Task<ActionResult<JourneyCharacterSyncSummaryDto>> CharacterSyncSummary(int id, CancellationToken ct)
+        {
+            var result = await characterSyncSummaryService.GetAsync(User.GetUserId(), id, ct);
+            return result.Success ? Ok(result.Value) : result.Error.Code switch
+            {
+                "Journey.NotFound" => NotFound(result.Error),
+                _ => BadRequest(result.Error)
+            };
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<JourneyDto>>> List([FromQuery] int skip = 0, [FromQuery] int take = 500, CancellationToken ct = default)

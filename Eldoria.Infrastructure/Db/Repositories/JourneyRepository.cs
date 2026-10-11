@@ -10,6 +10,27 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
+        public Task<Journey?> GetCharacterSyncSummarySourceAsync(int userId, int journeyId, CancellationToken ct) =>
+            _dbContext.Journeys
+                // Include archived bases so missing-source warnings don't disappear through required joins.
+                // The root ownership predicate remains mandatory when bypassing soft-delete filters.
+                .IgnoreQueryFilters()
+                .AsNoTrackingWithIdentityResolution()
+                .AsSplitQuery()
+                .Include(journey => journey.JourneyCharacters)
+                    .ThenInclude(character => character.Character)
+                .Include(journey => journey.JourneyCharacters)
+                    .ThenInclude(character => character.JourneyCharacterSpells)
+                        .ThenInclude(link => link.Spell)
+                .Include(journey => journey.Scenes)
+                    .ThenInclude(scene => scene.SceneCharacters)
+                        .ThenInclude(character => character.Character)
+                .Include(journey => journey.Scenes)
+                    .ThenInclude(scene => scene.SceneCharacters)
+                        .ThenInclude(character => character.SceneCharacterSpells)
+                            .ThenInclude(link => link.Spell)
+                .SingleOrDefaultAsync(journey => journey.Id == journeyId && journey.UserId == userId, ct);
+
         public async Task AddWithNextSortOrderAsync(Journey journey, CancellationToken ct)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(

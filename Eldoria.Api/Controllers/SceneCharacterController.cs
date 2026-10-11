@@ -3,6 +3,7 @@ using Eldoria.Api.Requests;
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
+using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace Eldoria.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SceneCharacterController(ISceneCharacterService sceneCharacterService, ICharacterSyncService characterSyncService, Eldoria.Core.Interfaces.ICharacterSyncUnitOfWork unitOfWork) : ControllerBase
+    public class SceneCharacterController(ISceneCharacterService sceneCharacterService, ICharacterSyncService characterSyncService, ICharacterSyncUnitOfWork unitOfWork) : ControllerBase
     {
         private readonly ISceneCharacterService _sceneCharacterService = sceneCharacterService;
 
