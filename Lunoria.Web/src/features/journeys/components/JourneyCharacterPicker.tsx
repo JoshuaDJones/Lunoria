@@ -266,6 +266,92 @@ export function JourneyCharacterPicker({
             {roster.map((assignment, index) => {
               const expanded = editingId === assignment.id;
               const status = assignment.syncStatus;
+              const removePlayerAction = (
+                <Button
+                  disabled={locked}
+                  leftIcon={<FontAwesomeIcon icon={faTrash} />}
+                  onClick={async () => {
+                    if (
+                      !(await confirm({
+                        title: `Remove ${assignment.character.name}?`,
+                        message: (
+                          <div className="max-h-[55dvh] space-y-4 overflow-y-auto pr-2 text-sm leading-relaxed">
+                            <section>
+                              <h3 className="mb-1 font-semibold text-content">
+                                What will be removed
+                              </h3>
+                              <ul className="list-disc space-y-1 pl-5">
+                                <li>
+                                  This player's place in the journey roster.
+                                </li>
+                                <li>
+                                  Journey-specific stats, spell assignments, and
+                                  alternate-form setting.
+                                </li>
+                                <li>
+                                  Initial active setting and turn-order
+                                  position.
+                                </li>
+                              </ul>
+                            </section>
+                            <section>
+                              <h3 className="mb-1 font-semibold text-content">
+                                Scene events
+                              </h3>
+                              <ul className="list-disc space-y-1 pl-5">
+                                <li>
+                                  Events targeting this player stay, but may
+                                  fail or prevent a new playthrough from
+                                  starting while the player is missing.
+                                </li>
+                                <li>
+                                  Events for all journey players apply only to
+                                  the remaining players.
+                                </li>
+                              </ul>
+                            </section>
+                            <section>
+                              <h3 className="mb-1 font-semibold text-content">
+                                If you add them again
+                              </h3>
+                              <p>
+                                Re-adding the same base character restores the
+                                event target for future playthroughs. It does
+                                not restore their journey settings or repair
+                                playthroughs created while they were missing.
+                              </p>
+                            </section>
+                            <section className="border-t border-border pt-3">
+                              <h3 className="mb-1 font-semibold text-content">
+                                What stays unchanged
+                              </h3>
+                              <p>
+                                The base character, library spells, and existing
+                                playthroughs.
+                              </p>
+                            </section>
+                            {dirty && (
+                              <p className="font-medium text-danger">
+                                Unsaved edits will also be discarded.
+                              </p>
+                            )}
+                          </div>
+                        ),
+                        confirmLabel: "Remove player",
+                        variant: "danger",
+                      }))
+                    )
+                      return;
+                    await mutate(async () => {
+                      await deleteJourneyCharacter(assignment.id);
+                      setEditingId(undefined);
+                      setDirty(false);
+                    }, "Player removed.");
+                  }}
+                >
+                  Remove player
+                </Button>
+              );
               const baseUpdated =
                 status &&
                 [
@@ -314,10 +400,10 @@ export function JourneyCharacterPicker({
                         dropIndex > from ? dropIndex - 1 : dropIndex,
                       );
                   }}
-                  className={`relative rounded-xl border bg-surface transition-colors ${expanded ? "border-add/60" : "border-border"} ${dragId === assignment.id ? "opacity-50" : ""}`}
+                  className={`relative rounded-xl border bg-surface transition-colors ${expanded ? "border-amber-300/60" : "border-border"} ${dragId === assignment.id ? "opacity-50" : ""}`}
                 >
                   {dropIndex === index && (
-                    <div className="pointer-events-none absolute -top-2 right-0 left-0 h-1 rounded bg-add" />
+                    <div className="pointer-events-none absolute -top-2 right-0 left-0 h-1 rounded bg-amber" />
                   )}
                   <div className="flex items-center gap-2 p-3">
                     <button
@@ -424,6 +510,7 @@ export function JourneyCharacterPicker({
                       ) : (
                         expanded && (
                           <JourneyCharacterForm
+                            additionalActions={removePlayerAction}
                             disabled={locked}
                             key={assignment.id}
                             assignment={assignment}
@@ -452,94 +539,7 @@ export function JourneyCharacterPicker({
                           />
                         )
                       )}
-                      <Button
-                        size="sm"
-                        disabled={locked}
-                        leftIcon={<FontAwesomeIcon icon={faTrash} />}
-                        onClick={async () => {
-                          if (
-                            !(await confirm({
-                              title: `Remove ${assignment.character.name}?`,
-                              message: (
-                                <div className="max-h-[55dvh] space-y-4 overflow-y-auto pr-2 text-sm leading-relaxed">
-                                  <section>
-                                    <h3 className="mb-1 font-semibold text-content">
-                                      What will be removed
-                                    </h3>
-                                    <ul className="list-disc space-y-1 pl-5">
-                                      <li>
-                                        This player's place in the journey
-                                        roster.
-                                      </li>
-                                      <li>
-                                        Journey-specific stats, spell
-                                        assignments, and alternate-form setting.
-                                      </li>
-                                      <li>
-                                        Initial active setting and turn-order
-                                        position.
-                                      </li>
-                                    </ul>
-                                  </section>
-                                  <section>
-                                    <h3 className="mb-1 font-semibold text-content">
-                                      Scene events
-                                    </h3>
-                                    <ul className="list-disc space-y-1 pl-5">
-                                      <li>
-                                        Events targeting this player stay, but
-                                        may fail or prevent a new playthrough
-                                        from starting while the player is
-                                        missing.
-                                      </li>
-                                      <li>
-                                        Events for all journey players apply
-                                        only to the remaining players.
-                                      </li>
-                                    </ul>
-                                  </section>
-                                  <section>
-                                    <h3 className="mb-1 font-semibold text-content">
-                                      If you add them again
-                                    </h3>
-                                    <p>
-                                      Re-adding the same base character restores
-                                      the event target for future playthroughs.
-                                      It does not restore their journey settings
-                                      or repair playthroughs created while they
-                                      were missing.
-                                    </p>
-                                  </section>
-                                  <section className="border-t border-border pt-3">
-                                    <h3 className="mb-1 font-semibold text-content">
-                                      What stays unchanged
-                                    </h3>
-                                    <p>
-                                      The base character, library spells, and
-                                      existing playthroughs.
-                                    </p>
-                                  </section>
-                                  {dirty && (
-                                    <p className="font-medium text-danger">
-                                      Unsaved edits will also be discarded.
-                                    </p>
-                                  )}
-                                </div>
-                              ),
-                              confirmLabel: "Remove player",
-                              variant: "danger",
-                            }))
-                          )
-                            return;
-                          await mutate(async () => {
-                            await deleteJourneyCharacter(assignment.id);
-                            setEditingId(undefined);
-                            setDirty(false);
-                          }, "Player removed.");
-                        }}
-                      >
-                        Remove player
-                      </Button>
+                      {(loading || catalogError) && removePlayerAction}
                     </div>
                   </DialogAccordionPanel>
                   {index === roster.length - 1 &&

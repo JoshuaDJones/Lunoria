@@ -152,6 +152,15 @@ export function CharacterSyncDialog({
   const replacements =
     selection.stats || selection.spellAssignments || selection.alternateForm;
   const hasSelection = replacements || selection.sharedSpellUpdates;
+  const hasSharedSpellReview =
+    preview?.status.sharedSpells.some(
+      (spell) => spell.updateAvailable || spell.requiresReview,
+    ) ?? false;
+  const allChecked =
+    selection.stats &&
+    selection.spellAssignments &&
+    selection.alternateForm &&
+    (!hasSharedSpellReview || selection.sharedSpellUpdates);
   const blocked =
     busy !== null || loading || stale || saved || !preview || !hasSelection;
   const spinner = <FontAwesomeIcon icon={faSpinner} spin aria-hidden="true" />;
@@ -224,6 +233,23 @@ export function CharacterSyncDialog({
               <legend className="sr-only">
                 Categories to review or synchronize
               </legend>
+              <div className="mb-4 flex justify-end">
+                <Button
+                  size="sm"
+                  disabled={allChecked}
+                  title="Update all character stats to match base character stats."
+                  onClick={() =>
+                    setSelection({
+                      stats: true,
+                      spellAssignments: true,
+                      alternateForm: true,
+                      sharedSpellUpdates: hasSharedSpellReview,
+                    })
+                  }
+                >
+                  Check all
+                </Button>
+              </div>
               <CharacterSyncDetails
                 preview={preview}
                 selection={selection}

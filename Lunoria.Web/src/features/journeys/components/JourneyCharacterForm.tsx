@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { Button, FormField, Input, Select } from "@/components/ui";
@@ -17,6 +17,7 @@ export function JourneyCharacterForm({
   onDirtyChange,
   onBusyChange,
   disabled = false,
+  additionalActions,
 }: {
   assignment: JourneyCharacter;
   characters: Character[];
@@ -26,6 +27,7 @@ export function JourneyCharacterForm({
   onDirtyChange: (dirty: boolean) => void;
   onBusyChange: (busy: boolean) => void;
   disabled?: boolean;
+  additionalActions?: ReactNode;
 }) {
   const [values, setValues] = useState({
     melee: text(assignment.meleeAttackDamage),
@@ -171,7 +173,8 @@ export function JourneyCharacterForm({
             {error}
           </p>
         )}
-        <div className="flex justify-end gap-3 border-t border-border pt-4">
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+          {additionalActions}
           <Button onClick={onCancel} disabled={saving}>
             Cancel
           </Button>

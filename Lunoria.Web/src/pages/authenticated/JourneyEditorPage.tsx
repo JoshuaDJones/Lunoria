@@ -248,7 +248,10 @@ export function JourneyEditorPage() {
           )}
         </header>
 
-        {!isLoading && !error && journey && (
+        {!isLoading && !error && journey &&
+          (characterSync.loading || characterSync.error ||
+            (characterSync.summary?.players.length ?? 0) > 0 ||
+            characterSync.summary?.scenes.some(scene => scene.characters.length > 0)) && (
           <div
             className="mb-3 flex shrink-0 items-center gap-3 text-sm text-content-muted"
             role="status"

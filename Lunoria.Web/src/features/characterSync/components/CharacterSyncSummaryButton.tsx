@@ -122,7 +122,7 @@ export function CharacterSyncSummaryButton({
             }
             spin={checking}
             aria-hidden="true"
-            className={checking ? "text-content-muted" : "text-amber-300"}
+            className={`ml-2 ${checking ? "text-content-muted" : "text-amber-300"}`}
           />
         )}
         <span className="sr-only"> — {description}</span>
