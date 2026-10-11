@@ -355,9 +355,10 @@ export function ScenePlaythroughPage() {
   const openTurnActionDialog = (
     turnKey: string,
     participant: ScenePlaythroughParticipant,
+    actionScene = scene,
   ) => {
     setAwaitingActionTurnKey(turnKey);
-    const unopenedChests = (scene?.chests ?? []).filter(
+    const unopenedChests = (actionScene?.chests ?? []).filter(
       (chest) => chest.status === ChestStatus.Unopened,
     );
     modalStack.push({
@@ -406,7 +407,7 @@ export function ScenePlaythroughPage() {
                         content: (
                           <AttackResolutionOptions
                             attacker={participant}
-                            targets={scene?.participants ?? []}
+                            targets={actionScene?.participants ?? []}
                             attackType={attackType}
                             onSubmittingChange={(isSubmitting) =>
                               modalStack.setDismissible(
@@ -471,7 +472,7 @@ export function ScenePlaythroughPage() {
             if (title === "Trade Item") {
               const tradePartners = getEligibleTradePartners(
                 participant,
-                scene?.participants ?? [],
+                actionScene?.participants ?? [],
               );
               modalStack.push({
                 title: "Choose Trade Partner",
@@ -556,8 +557,6 @@ export function ScenePlaythroughPage() {
       modalStack.pop();
 
       openActivationDialog(turnKey, participant, playthroughCharacters);
-
-      //openTurnActionDialog(turnKey, participant);
     } catch (requestError: unknown) {
       toast.error(
         getApiError(requestError).message,
@@ -572,16 +571,35 @@ export function ScenePlaythroughPage() {
     playthroughCharacters: ScenePlaythroughCharacterOption[],
   ) => {
     setAwaitingActionTurnKey(turnKey);
-
-    modalStack.push({
+    let latestScene = scene;
+    const activationModalId = modalStack.push({
       title: "Activation",
       placement: "center",
       content: (
         <ActionDialogContent
           playthroughCharacters={playthroughCharacters}
+          onSubmittingChange={(busy) =>
+            modalStack.setDismissible(activationModalId, !busy)
+          }
+          onActivate={async (characterId) => {
+            await addPlaythroughCharacterToScene(
+              playthroughId,
+              sceneId,
+              characterId,
+            );
+            toast.success("Scene character activated.");
+            try {
+              latestScene = await getScenePlaythrough(playthroughId, sceneId);
+              setScene(latestScene);
+            } catch {
+              throw new Error(
+                "The character was activated, but refreshing the scene failed. Close this dialog and refresh the page before continuing; do not activate the character again.",
+              );
+            }
+          }}
           onSkip={() => {
             modalStack.pop();
-            openTurnActionDialog(turnKey, participant);
+            openTurnActionDialog(turnKey, participant, latestScene);
           }}
         />
       ),
