@@ -2,6 +2,7 @@ using Eldoria.Api.Common;
 using Eldoria.Api.Requests;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers
