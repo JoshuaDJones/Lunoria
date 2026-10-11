@@ -226,26 +226,51 @@ export function DialogViewer({ dialog, onClose }: DialogViewerProps) {
           })}
         </div>
 
-        <footer className="flex items-center justify-between border-t border-border px-5 py-4">
+        <footer className="flex items-center justify-between gap-4 border-t border-border px-5 py-4">
           <Button
             disabled={Boolean(transition) || pageIndex === 0}
             onClick={() => navigatePage(-1)}
             size="lg"
-            className="py-2.5"
+            className="shrink-0 py-2.5"
           >
-            Previous
+            Previous Page
           </Button>
-          <p className="hidden text-sm text-content-muted sm:block">
-            ↑ ↓ Sections · ← → Pages
+          <p className="hidden text-center text-sm text-content-muted sm:block">
+            {page?.pageType === DialogPageType.Image &&
+              !!page.dialogPageSections?.length && (
+                <>
+                  Use{" "}
+                  <kbd className="inline-flex h-6 w-6 items-center justify-center rounded border border-border font-sans text-sm">
+                    ↑
+                  </kbd>{" "}
+                  <kbd className="inline-flex h-6 w-6 items-center justify-center rounded border border-border font-sans text-sm">
+                    ↓
+                  </kbd>{" "}
+                  to move between speakers
+                  {pages.length > 1 && " · "}
+                </>
+              )}
+            {pages.length > 1 && (
+              <>
+                Use{" "}
+                <kbd className="inline-flex h-6 w-6 items-center justify-center rounded border border-border font-sans text-sm">
+                  ←
+                </kbd>{" "}
+                <kbd className="inline-flex h-6 w-6 items-center justify-center rounded border border-border font-sans text-sm">
+                  →
+                </kbd>{" "}
+                to change pages
+              </>
+            )}
           </p>
           <Button
             disabled={Boolean(transition) || pageIndex >= pages.length - 1}
             onClick={() => navigatePage(1)}
             variant="primary"
             size="lg"
-            className="py-2.5"
+            className="shrink-0 py-2.5"
           >
-            Next
+            Next Page
           </Button>
         </footer>
       </section>

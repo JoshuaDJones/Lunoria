@@ -11,6 +11,11 @@ export function SceneObjectivesPanel({
   error,
   visible = true,
   aboveNavigation = false,
+  placement = "bottom-right",
+  open: controlledOpen,
+  onOpenChange,
+  showToggle = true,
+  contentId: providedContentId,
 }: {
   objective?: SceneObjective | null;
   index?: number;
@@ -20,15 +25,26 @@ export function SceneObjectivesPanel({
   error?: string;
   visible?: boolean;
   aboveNavigation?: boolean;
+  placement?: "bottom-right" | "under-controls";
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showToggle?: boolean;
+  contentId?: string;
 }) {
-  const [open, setOpen] = useState(true);
-  const contentId = useId();
-  if (!objective) return null;
+  const [localOpen, setLocalOpen] = useState(true);
+  const generatedId = useId();
+  const contentId = providedContentId ?? generatedId;
+  const open = controlledOpen ?? localOpen;
+  const setOpen = (next: boolean) => {
+    setLocalOpen(next);
+    onOpenChange?.(next);
+  };
+  if (!objective || (!open && !showToggle)) return null;
   return (
     <aside
       aria-label="Scene objectives"
       inert={!visible}
-      className={`fixed right-4 z-30 max-w-[calc(100vw-2rem)] transition-opacity duration-600 motion-reduce:transition-none ${aboveNavigation ? "bottom-[calc(5rem+env(safe-area-inset-bottom))]" : "bottom-4"} ${visible ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      className={`z-30 max-w-[calc(100vw-2rem)] transition-opacity duration-600 motion-reduce:transition-none ${placement === "under-controls" ? "absolute right-0 top-full mt-3" : `fixed right-4 ${aboveNavigation ? "bottom-[calc(5rem+env(safe-area-inset-bottom))]" : "bottom-4"}`} ${visible ? "opacity-100" : "pointer-events-none opacity-0"}`}
     >
       {!open ? (
         <Button
@@ -40,16 +56,26 @@ export function SceneObjectivesPanel({
         </Button>
       ) : (
         <div className="w-80 max-w-full rounded-2xl border border-white/15 bg-black/80 p-4 text-white shadow-xl backdrop-blur-sm">
-          <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="mb-6 flex items-center justify-between gap-3">
             <h2 className="text-2xl">Objectives</h2>
             <Button
-              size="sm"
+              className="h-9 w-9 shrink-0 p-0"
               aria-label="Hide objectives"
               aria-expanded={true}
               aria-controls={contentId}
               onClick={() => setOpen(false)}
             >
-              ×
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="m6 6 12 12M6 18 18 6" />
+              </svg>
             </Button>
           </div>
           <div
@@ -67,7 +93,7 @@ export function SceneObjectivesPanel({
             </ul>
           </div>
           {onSelect && index !== undefined && count !== undefined && (
-            <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="mt-6 flex items-center justify-between gap-3">
               <Button
                 size="sm"
                 aria-label="Previous objective set"

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { SceneObjectivesPanel } from "@/features/sceneplaythrough/components/SceneObjectivesPanel";
 import { selectSceneObjective } from "@/features/scenes/objectives";
 import { useSceneEntrance } from "@/features/sceneplaythrough/hooks/useSceneEntrance";
@@ -95,6 +95,14 @@ export function ScenePlaythroughPage() {
   const [isTitleHovered, setIsTitleHovered] = useState(false);
   const [objectiveBusy, setObjectiveBusy] = useState(false);
   const [objectiveError, setObjectiveError] = useState("");
+  const objectivesContentId = useId();
+  const objectiveViewKey = `${playthroughId}:${sceneId}`;
+  const [objectivesView, setObjectivesView] = useState<{
+    key: string;
+    open: boolean;
+  }>();
+  const objectivesOpen =
+    objectivesView?.key !== objectiveViewKey || objectivesView.open;
   const objectiveSubmitting = useRef(false);
   const [error, setError] = useState("");
   const entrance = useSceneEntrance(
@@ -714,20 +722,36 @@ export function ScenePlaythroughPage() {
           {scene && (
             <div
               inert={!entrance.isReady}
-              className={`flex items-center gap-3 transition-opacity duration-600 motion-reduce:transition-none ${entrance.showContent ? "opacity-100" : "opacity-0"}`}
+              className={`relative z-30 flex items-center gap-1 rounded-2xl border border-white/15 bg-black/45 p-1.5 transition-opacity duration-600 motion-reduce:transition-none ${entrance.showContent ? "opacity-100" : "opacity-0"}`}
             >
-              <p className="text-2xl font-semibold text-content sm:text-3xl">
+              <p className="whitespace-nowrap px-2 text-lg font-semibold text-content sm:px-3">
                 Round {scene.roundNumber}
               </p>
+              <span aria-hidden="true" className="mx-1 h-6 w-px bg-white/15" />
+              {scene.objectives?.[scene.currentObjectiveIndex] && (
+                <Button
+                  className={`h-10 border-transparent px-3 hover:border-transparent hover:bg-white/10 ${objectivesOpen ? "bg-white/10 text-content" : "text-content-secondary"}`}
+                  aria-expanded={objectivesOpen}
+                  aria-controls={objectivesContentId}
+                  onClick={() =>
+                    setObjectivesView({
+                      key: objectiveViewKey,
+                      open: !objectivesOpen,
+                    })
+                  }
+                >
+                  Objectives
+                </Button>
+              )}
               <Button
                 aria-label="Open scene options"
-                className="h-14 w-14 border-transparent p-0 hover:border-transparent"
+                className="h-10 w-10 shrink-0 border-transparent p-0 hover:border-transparent hover:bg-white/10"
                 onClick={() => setIsOptionsOpen(true)}
               >
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 24"
-                  className="h-8 w-8"
+                  className="h-5 w-5"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -736,6 +760,43 @@ export function ScenePlaythroughPage() {
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </Button>
+              {scene && !isLoading && !error && (
+                <SceneObjectivesPanel
+                  key={scene.id}
+                  placement="under-controls"
+                  open={objectivesOpen}
+                  onOpenChange={(open) =>
+                    setObjectivesView({ key: objectiveViewKey, open })
+                  }
+                  showToggle={false}
+                  contentId={objectivesContentId}
+                  objective={scene.objectives?.[scene.currentObjectiveIndex]}
+                  index={scene.currentObjectiveIndex}
+                  count={scene.objectives?.length ?? 0}
+                  busy={objectiveBusy}
+                  error={objectiveError}
+                  visible={entrance.isReady && !isTitleHovered}
+                  onSelect={(index) => {
+                    if (objectiveSubmitting.current) return;
+                    objectiveSubmitting.current = true;
+                    setObjectiveBusy(true);
+                    setObjectiveError("");
+                    void selectSceneObjective(playthroughId, sceneId, index)
+                      .then(() =>
+                        setScene((current) =>
+                          current?.id === sceneId
+                            ? { ...current, currentObjectiveIndex: index }
+                            : current,
+                        ),
+                      )
+                      .catch((e) => setObjectiveError(getApiError(e).message))
+                      .finally(() => {
+                        objectiveSubmitting.current = false;
+                        setObjectiveBusy(false);
+                      });
+                  }}
+                />
+              )}
             </div>
           )}
         </header>
@@ -813,36 +874,6 @@ export function ScenePlaythroughPage() {
         )}
       </main>
 
-      {scene && !isLoading && !error && (
-        <SceneObjectivesPanel
-          key={scene.id}
-          objective={scene.objectives?.[scene.currentObjectiveIndex]}
-          index={scene.currentObjectiveIndex}
-          count={scene.objectives?.length ?? 0}
-          busy={objectiveBusy}
-          error={objectiveError}
-          visible={entrance.isReady && !isTitleHovered}
-          onSelect={(index) => {
-            if (objectiveSubmitting.current) return;
-            objectiveSubmitting.current = true;
-            setObjectiveBusy(true);
-            setObjectiveError("");
-            void selectSceneObjective(playthroughId, sceneId, index)
-              .then(() =>
-                setScene((current) =>
-                  current?.id === sceneId
-                    ? { ...current, currentObjectiveIndex: index }
-                    : current,
-                ),
-              )
-              .catch((e) => setObjectiveError(getApiError(e).message))
-              .finally(() => {
-                objectiveSubmitting.current = false;
-                setObjectiveBusy(false);
-              });
-          }}
-        />
-      )}
       {isOptionsOpen && entrance.isReady && (
         <Drawer title="Scene Options" onClose={() => setIsOptionsOpen(false)}>
           {scene && (

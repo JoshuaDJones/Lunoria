@@ -83,7 +83,7 @@ export function DialogViewerPage({
                         ?.dialogActiveColor ||
                       undefined,
                   }}
-                  className={`rounded-xl border-4 border-border bg-canvas/85 p-4 shadow-xl backdrop-blur-sm w-full transition-opacity motion-reduce:transition-none ${index === activeSectionIndex ? "opacity-100" : "opacity-50"}`}
+                  className={`rounded-xl border-4 border-border bg-canvas/85 p-4 shadow-xl backdrop-blur-sm w-full transition-opacity motion-reduce:transition-none ${index === activeSectionIndex ? "opacity-100" : "opacity-15"}`}
                 >
                   <div className="flex items-center gap-3">
                     {!section.isNarrator && section.character?.photoUrl && (
