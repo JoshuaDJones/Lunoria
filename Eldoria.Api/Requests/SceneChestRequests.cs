@@ -7,7 +7,7 @@ namespace Eldoria.Api.Requests
         [Required, MaxLength(250)]
         public string Name { get; set; } = string.Empty;
 
-        [Required, Range(1, int.MaxValue)]
+        // Retained for compatibility; scene chest authoring currently always uses a d6.
         public int? DieSides { get; set; }
     }
 

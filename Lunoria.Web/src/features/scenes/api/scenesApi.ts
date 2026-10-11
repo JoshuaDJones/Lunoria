@@ -9,6 +9,7 @@ import type {
   SceneEventInput,
   SceneChest,
   SceneChestInput,
+  SceneChestDraftInput,
   SceneChestLootEntry,
   SceneChestLootEntryInput,
   SceneDashboard,
@@ -25,6 +26,19 @@ export async function listSceneChests(sceneId: number): Promise<SceneChest[]> {
   const { data } = await apiClient.get<SceneChest[]>(
     `/scenes/${sceneId}/chests`,
   );
+  return data;
+}
+
+export async function saveSceneChestDraft(
+  sceneId: number,
+  chestId: number | undefined,
+  input: SceneChestDraftInput,
+): Promise<SceneChest> {
+  const url = `/scenes/${sceneId}/chests`;
+  const { data } =
+    chestId === undefined
+      ? await apiClient.post<SceneChest>(`${url}/draft`, input)
+      : await apiClient.put<SceneChest>(`${url}/${chestId}/draft`, input);
   return data;
 }
 

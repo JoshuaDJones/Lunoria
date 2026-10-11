@@ -36,7 +36,7 @@ namespace Eldoria.Api.Controllers
                 User.GetUserId(),
                 sceneId,
                 req.Name,
-                req.DieSides!.Value,
+                req.DieSides ?? 6,
                 ct);
 
             if (result.Success)
@@ -57,7 +57,7 @@ namespace Eldoria.Api.Controllers
                 sceneId,
                 sceneChestId,
                 req.Name,
-                req.DieSides!.Value,
+                req.DieSides ?? 6,
                 ct);
 
             if (result.Success)
@@ -65,6 +65,34 @@ namespace Eldoria.Api.Controllers
 
             return ToError(result.Error);
         }
+
+
+        [HttpPost("draft")]
+        public async Task<IActionResult> CreateDraft(int sceneId, [FromBody] SceneChestDraftRequest req, CancellationToken ct)
+        {
+            var result = await SaveDraft(sceneId, null, req, ct);
+            return result.Success
+                ? CreatedAtAction(nameof(List), new { sceneId }, result.Value)
+                : ToError(result.Error);
+        }
+
+        [HttpPut("{sceneChestId:int}/draft")]
+        public async Task<IActionResult> UpdateDraft(int sceneId, int sceneChestId, [FromBody] SceneChestDraftRequest req, CancellationToken ct)
+        {
+            var result = await SaveDraft(sceneId, sceneChestId, req, ct);
+            return result.Success ? Ok(result.Value) : ToError(result.Error);
+        }
+
+        private Task<Result<SceneChestDto>> SaveDraft(int sceneId, int? sceneChestId, SceneChestDraftRequest req, CancellationToken ct) =>
+            _sceneChestService.SaveDraftAsync(User.GetUserId(), sceneId, sceneChestId, req.Name,
+                req.LootEntries.Select(entry => new SceneChestLootEntryInputDto
+                {
+                    RollMinimum = entry.RollMinimum!.Value,
+                    RollMaximum = entry.RollMaximum!.Value,
+                    Quantity = entry.Quantity!.Value,
+                    EquippableItemId = entry.EquippableItemId,
+                    ConsumableItemId = entry.ConsumableItemId
+                }).ToList(), ct);
 
         [HttpDelete("{sceneChestId:int}")]
         public async Task<IActionResult> Delete(

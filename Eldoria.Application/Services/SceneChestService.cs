@@ -13,6 +13,9 @@ namespace Eldoria.Application.Services
         IEquippableItemRepository equippableItemRepository,
         IItemRepository consumableItemRepository) : ISceneChestService
     {
+        // TODO: Make die size configurable again when the chest editor supports other dice.
+        private const int FixedDieSides = 6;
+
         private readonly ISceneChestRepository _sceneChestRepository = sceneChestRepository;
         private readonly ISceneChestLootEntryRepository _sceneChestLootEntryRepository = sceneChestLootEntryRepository;
         private readonly IRepository<Scene> _sceneRepository = sceneRepository;
@@ -47,6 +50,7 @@ namespace Eldoria.Application.Services
             if (error is not null)
                 return Result<SceneChestDto>.Fail(error);
 
+            dieSides = FixedDieSides;
             var validationError = ValidateChest(name, dieSides);
             if (validationError is not null)
                 return Result<SceneChestDto>.Fail(validationError);
@@ -76,6 +80,7 @@ namespace Eldoria.Application.Services
             if (chest is null)
                 return Result<SceneChestDto>.Fail(NotFoundChest);
 
+            dieSides = FixedDieSides;
             var validationError = ValidateChest(name, dieSides);
             if (validationError is not null)
                 return Result<SceneChestDto>.Fail(validationError);
@@ -90,6 +95,75 @@ namespace Eldoria.Application.Services
             await _sceneChestRepository.SaveChangesAsync(ct);
 
             return Result<SceneChestDto>.Ok(chest.ToDto());
+        }
+
+
+        public async Task<Result<SceneChestDto>> SaveDraftAsync(
+            int userId, int sceneId, int? sceneChestId, string name,
+            IReadOnlyList<SceneChestLootEntryInputDto> entries, CancellationToken ct)
+        {
+            var (_, error) = await GetOwnedSceneAsync(userId, sceneId, ct);
+            if (error is not null)
+                return Result<SceneChestDto>.Fail(error);
+
+            var chest = sceneChestId.HasValue
+                ? await GetOwnedChestAsync(userId, sceneId, sceneChestId.Value, ct)
+                : new SceneChest { SceneId = sceneId, DieSides = FixedDieSides };
+            if (chest is null)
+                return Result<SceneChestDto>.Fail(NotFoundChest);
+
+            var nameError = ValidateChest(name, FixedDieSides);
+            if (nameError is not null)
+                return Result<SceneChestDto>.Fail(nameError);
+            if (name.Trim().Length > 250 || entries is null || entries.Count is < 1 or > 6)
+                return Result<SceneChestDto>.Fail(new Error(
+                    "SceneChest.InvalidDraft", "Provide a name up to 250 characters and between one and six loot entries."));
+
+            var covered = new bool[FixedDieSides + 1];
+            var draftChest = new SceneChest { DieSides = FixedDieSides };
+            foreach (var entry in entries)
+            {
+                if (entry is null)
+                    return Result<SceneChestDto>.Fail(new Error("SceneChest.InvalidDraft", "A loot entry is required."));
+                var validationError = await ValidateLootEntryAsync(
+                    userId, draftChest, entry.RollMinimum, entry.RollMaximum, entry.Quantity,
+                    entry.EquippableItemId, entry.ConsumableItemId, ct);
+                if (validationError is not null)
+                    return Result<SceneChestDto>.Fail(validationError);
+                for (var roll = entry.RollMinimum; roll <= entry.RollMaximum; roll++)
+                {
+                    if (covered[roll])
+                        return Result<SceneChestDto>.Fail(new Error(
+                            "SceneChest.OverlappingLoot", $"Roll {roll} has more than one loot entry."));
+                    covered[roll] = true;
+                }
+            }
+            if (covered.Skip(1).Any(value => !value))
+                return Result<SceneChestDto>.Fail(new Error(
+                    "SceneChest.IncompleteLoot", "Configure one loot outcome for every roll from 1 to 6."));
+
+            // Validate the entire draft before mutating tracked entities.
+            foreach (var oldEntry in chest.LootEntries.ToList())
+                _sceneChestLootEntryRepository.Remove(oldEntry);
+            chest.LootEntries.Clear();
+            chest.Name = name.Trim();
+            chest.DieSides = FixedDieSides;
+            foreach (var entry in entries)
+                chest.LootEntries.Add(new SceneChestLootEntry
+                {
+                    RollMinimum = entry.RollMinimum,
+                    RollMaximum = entry.RollMaximum,
+                    Quantity = entry.Quantity,
+                    EquippableItemId = entry.EquippableItemId,
+                    ConsumableItemId = entry.ConsumableItemId
+                });
+
+            if (!sceneChestId.HasValue)
+                await _sceneChestRepository.AddAsync(chest, ct);
+            // A single EF SaveChanges transaction persists the chest and all loot entries.
+            await _sceneChestRepository.SaveChangesAsync(ct);
+            var saved = await _sceneChestRepository.GetForUserAsync(userId, chest.Id, ct);
+            return Result<SceneChestDto>.Ok(saved!.ToDto());
         }
 
         public async Task<Result> DeleteAsync(

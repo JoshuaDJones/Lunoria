@@ -113,7 +113,10 @@ export interface SceneChest {
 
 export interface SceneChestInput {
   name: string;
-  dieSides: number;
+}
+
+export interface SceneChestDraftInput extends SceneChestInput {
+  lootEntries: SceneChestLootEntryInput[];
 }
 
 export interface SceneChestLootEntryInput {

@@ -8,6 +8,7 @@ namespace Eldoria.Application.Services
         Task<Result<List<SceneChestDto>>> ListAsync(int userId, int sceneId, CancellationToken ct);
         Task<Result<SceneChestDto>> CreateAsync(int userId, int sceneId, string name, int dieSides, CancellationToken ct);
         Task<Result<SceneChestDto>> UpdateAsync(int userId, int sceneId, int sceneChestId, string name, int dieSides, CancellationToken ct);
+        Task<Result<SceneChestDto>> SaveDraftAsync(int userId, int sceneId, int? sceneChestId, string name, IReadOnlyList<SceneChestLootEntryInputDto> entries, CancellationToken ct);
         Task<Result> DeleteAsync(int userId, int sceneId, int sceneChestId, CancellationToken ct);
         Task<Result<List<SceneChestLootEntryDto>>> ListLootEntriesAsync(int userId, int sceneId, int sceneChestId, CancellationToken ct);
         Task<Result<SceneChestLootEntryDto>> CreateLootEntryAsync(int userId, int sceneId, int sceneChestId, int rollMinimum, int rollMaximum, int quantity, int? equippableItemId, int? consumableItemId, CancellationToken ct);

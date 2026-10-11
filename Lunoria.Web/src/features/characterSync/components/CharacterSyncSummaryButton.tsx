@@ -51,13 +51,14 @@ export function CharacterSyncSummaryButton({
   ...buttonProps
 }: Props) {
   const [open, setOpen] = useState(false);
+  const hasTooltip = checking || Boolean(checkError) || entries.length > 0;
   const {
     refs: { setReference, setFloating },
     floatingStyles,
     context,
     middlewareData,
   } = useFloating({
-    open,
+    open: open && hasTooltip,
     onOpenChange: setOpen,
     placement: "top",
     strategy: "fixed",
@@ -69,8 +70,11 @@ export function CharacterSyncSummaryButton({
       hide(),
     ],
   });
-  const hover = useHover(context, { handleClose: safePolygon() });
-  const focus = useFocus(context);
+  const hover = useHover(context, {
+    enabled: hasTooltip,
+    handleClose: safePolygon(),
+  });
+  const focus = useFocus(context, { enabled: hasTooltip });
   const dismiss = useDismiss(context, { bubbles: false });
   const role = useRole(context, { role: "tooltip" });
   const { getReferenceProps, getFloatingProps } = useInteractions([
@@ -127,7 +131,7 @@ export function CharacterSyncSummaryButton({
         )}
         <span className="sr-only"> — {description}</span>
       </Button>
-      {open && (
+      {open && hasTooltip && (
         <FloatingPortal>
           <div
             ref={setFloating}

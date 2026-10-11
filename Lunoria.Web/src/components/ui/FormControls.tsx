@@ -44,7 +44,18 @@ export function Select({
   className,
   ...props
 }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={twMerge(controlClasses, className)} {...props} />;
+  const isDropdown =
+    !props.multiple && (props.size === undefined || props.size <= 1);
+  return (
+    <select
+      className={twMerge(
+        controlClasses,
+        className,
+        isDropdown && "select-control pl-4 pr-11",
+      )}
+      {...props}
+    />
+  );
 }
 
 interface FormFieldProps {

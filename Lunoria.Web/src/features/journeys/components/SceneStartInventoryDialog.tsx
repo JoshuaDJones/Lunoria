@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, Select } from "@/components/ui";
 import type {
   SceneInventoryResolutionInput,
   SceneStartInventory,
@@ -71,7 +71,7 @@ export function SceneStartInventoryDialog({
             <label className="block" htmlFor="inventory-resolution-item">
               Choose an item
             </label>
-            <select
+            <Select
               id="inventory-resolution-item"
               className="w-full rounded border border-border bg-surface p-3 text-content"
               value={selection}
@@ -85,7 +85,7 @@ export function SceneStartInventoryDialog({
                   {index + 1}. {item.name}
                 </option>
               ))}
-            </select>
+            </Select>
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => setMode("discard")}>Discard…</Button>
               <Button onClick={() => setMode("transfer")}>

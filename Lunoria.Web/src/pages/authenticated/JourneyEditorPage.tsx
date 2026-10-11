@@ -60,6 +60,7 @@ export function JourneyEditorPage() {
   const [objectivesScene, setObjectivesScene] = useState<Scene>();
   const [objectivesBusy, setObjectivesBusy] = useState(false);
   const [chestsScene, setChestsScene] = useState<Scene>();
+  const [isSavingChest, setIsSavingChest] = useState(false);
   const [charactersScene, setCharactersScene] = useState<Scene>();
   const [scenesReloadKey, setScenesReloadKey] = useState(0);
 
@@ -438,9 +439,16 @@ export function JourneyEditorPage() {
       {chestsScene && (
         <Drawer
           title={`${chestsScene.name} Chests`}
-          onClose={() => setChestsScene(undefined)}
+          closeDisabled={isSavingChest}
+          onClose={() => {
+            if (!isSavingChest) setChestsScene(undefined);
+          }}
         >
-          <SceneChestManager key={chestsScene.id} scene={chestsScene} />
+          <SceneChestManager
+            key={chestsScene.id}
+            scene={chestsScene}
+            onBusyChange={setIsSavingChest}
+          />
         </Drawer>
       )}
 
