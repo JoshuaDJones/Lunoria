@@ -23,6 +23,11 @@
       steps:
         - name: Check out repository
           uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+
+        - name: Block secrets before build
+          uses: ./.github/actions/secret-scan
 
         - name: Set up Node.js
           uses: actions/setup-node@v4
@@ -40,6 +45,11 @@
           env:
             VITE_API_BASE_URL: https://lunoria-api-test-jdj01-bcc6cjehdudmdugg.southcentralus-01.azurewebsites.net/api/v1
           run: npm run build
+
+        - name: Block secrets in frontend bundle
+          uses: ./.github/actions/secret-scan
+          with:
+            artifact-path: ./Lunoria.Web/dist
 
         - name: Deploy frontend
           uses: Azure/static-web-apps-deploy@v1

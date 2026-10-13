@@ -1,0 +1,14 @@
+# Historical occurrences only. User confirmed retirement on 2026-10-12:
+# old storage keys regenerated/revoked; JWT signing keys replaced everywhere.
+# Applied only by History mode, never current-source or artifact scans.
+1c29a3745bff683eeb9bf646bc829ba4d0ac5386:Eldoria.Api/appsettings.Development.json:lunoria-json-signing-storage-key:5
+240ce8e886efc4b693eff21de47e7af13aa2b384:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:15
+27d224abf74c8a12628bc6a4433932743d46cca5:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:15
+27d224abf74c8a12628bc6a4433932743d46cca5:Eldoria.Api/appsettings.Development.json:lunoria-json-signing-storage-key:15
+27d224abf74c8a12628bc6a4433932743d46cca5:Eldoria.Api/appsettings.Development.json:lunoria-json-signing-storage-key:20
+27d224abf74c8a12628bc6a4433932743d46cca5:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:20
+240ce8e886efc4b693eff21de47e7af13aa2b384:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:20
+081644ab66297b80d549d87f3e2327c645f6c5bd:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:15
+081644ab66297b80d549d87f3e2327c645f6c5bd:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:20
+5c1c549c496625f166f059d02b3e53b40d239435:Eldoria.Application/Services/AzureStorageBlob.cs:generic-api-key:11
+8247abd8c8287ff684f63e6e4b9ad22a11b065ce:Eldoria.Api/appsettings.json:lunoria-json-signing-storage-key:15

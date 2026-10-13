@@ -17,6 +17,11 @@
       steps:
         - name: Check out repository
           uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+
+        - name: Block secrets before build
+          uses: ./.github/actions/secret-scan
 
         - name: Set up .NET
           uses: actions/setup-dotnet@v4
@@ -28,6 +33,11 @@
 
         - name: Publish API
           run: dotnet publish Eldoria.Api/Eldoria.Api.csproj --configuration Release --output ./publish
+
+        - name: Block secrets in published API
+          uses: ./.github/actions/secret-scan
+          with:
+            artifact-path: ./publish
 
         - name: Upload deployment artifact
           uses: actions/upload-artifact@v4

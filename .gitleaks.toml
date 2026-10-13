@@ -1,0 +1,22 @@
+title = "Lunoria secret detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "lunoria-connection-password"
+description = "Password embedded in a database/storage connection string"
+regex = '''(?i);\s*(?:password|pwd|accountkey)\s*=\s*(?:\\?["'])?([^;\r\n"']{8,})'''
+secretGroup = 1
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''(?i)^(?:YOUR_[A-Z_]+|<[^>]+>|\$\{[^}]+\}|\*+)$''']
+
+[[rules]]
+id = "lunoria-json-signing-storage-key"
+description = "Literal signing/storage secret in JSON configuration"
+regex = '''(?i)"(?:Key|AccessKey|ClientSecret|AccountKey)"\s*:\s*"([^"\r\n]{16,})"'''
+secretGroup = 1
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''(?i)^(?:YOUR[ _][A-Z _]+|KEEP YOUR [A-Z _]+ HERE|<[^>]+>|\*+)$''']
