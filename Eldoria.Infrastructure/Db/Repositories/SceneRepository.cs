@@ -10,6 +10,12 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
+        public Task<Scene?> GetForUserAsync(int userId, int sceneId, CancellationToken ct) =>
+            _dbContext.Scenes
+                .AsNoTracking()
+                .Include(scene => scene.Grid)
+                .SingleOrDefaultAsync(scene => scene.Id == sceneId && scene.Journey.UserId == userId, ct);
+
         public async Task AddWithNextSortOrderAsync(Scene scene, CancellationToken ct)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(

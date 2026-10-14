@@ -4,7 +4,6 @@ using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using System.Threading.Tasks.Dataflow;
 
 namespace Eldoria.Application.Services
 {
@@ -89,12 +88,10 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<SceneDto>> GetByIdAsync(int userId, int id, CancellationToken ct)
         {
-            var scene = await _sceneRepository.GetByIdAsync(id, ct);
+            var scene = await _sceneRepository.GetForUserAsync(userId, id, ct);
 
             if(scene is null)
                 return Result<SceneDto>.Fail(new Error("Scene.NotFound", "The scene does not exist."));
-
-            scene.Grid = await _sceneGridRepository.GetForSceneAsync(id, ct);
 
             return Result<SceneDto>.Ok(scene.ToDto());
         }

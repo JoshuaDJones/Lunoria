@@ -37,7 +37,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };
