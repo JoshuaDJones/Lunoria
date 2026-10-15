@@ -10,11 +10,23 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public Task<Scene?> GetForUserAsync(int userId, int sceneId, CancellationToken ct) =>
+        private IQueryable<Scene> QueryForUser(int userId) =>
             _dbContext.Scenes
+                .Where(scene => scene.Journey.UserId == userId);
+
+        private IQueryable<Scene> QueryForJourneyUser(int userId, int journeyId, int sceneId) =>
+            QueryForUser(userId)
+                .Where(scene => scene.Id == sceneId && scene.JourneyId == journeyId);
+
+        // Tracked for update/delete; no unrelated navigation graph is attached.
+        public Task<Scene?> GetForJourneyUserAsync(int userId, int journeyId, int sceneId, CancellationToken ct) =>
+            QueryForJourneyUser(userId, journeyId, sceneId).SingleOrDefaultAsync(ct);
+
+        public Task<Scene?> GetForUserAsync(int userId, int sceneId, CancellationToken ct) =>
+            QueryForUser(userId)
                 .AsNoTracking()
                 .Include(scene => scene.Grid)
-                .SingleOrDefaultAsync(scene => scene.Id == sceneId && scene.Journey.UserId == userId, ct);
+                .SingleOrDefaultAsync(scene => scene.Id == sceneId, ct);
 
         public async Task AddWithNextSortOrderAsync(Scene scene, CancellationToken ct)
         {
@@ -80,48 +92,5 @@ namespace Eldoria.Infrastructure.Db.Repositories
             return true;
         }
 
-        public async Task<Scene?> GetSceneDetails(int sceneId, CancellationToken ct)
-        {
-            return await _dbContext.Scenes
-                .AsNoTracking()
-                .AsSplitQuery() // Prevents cartesian explosion in large include graphs
-
-                .Include(s => s.Grid)
-
-                // Scene Dialogs
-                .Include(s => s.SceneDialogs)
-                    .ThenInclude(sd => sd.DialogPages)
-                        .ThenInclude(p => p.DialogPageSections)
-                            .ThenInclude(dps => dps.Character)
-                                .ThenInclude(c => c.CharacterDialogSettings) // ✅ FIXED
-
-                // Scene Characters
-                .Include(s => s.SceneCharacters)
-                    .ThenInclude(sc => sc.Character)
-                        .ThenInclude(c => c.CharacterDialogSettings)
-
-                .Include(s => s.SceneCharacters)
-                    .ThenInclude(sc => sc.Character)
-                        .ThenInclude(c => c.BaseAlternateForm)
-                            .ThenInclude(af => af.CharacterDialogSettings)
-
-                .Include(s => s.SceneCharacters)
-                    .ThenInclude(sc => sc.Character)
-                        .ThenInclude(c => c.CharacterSpells)
-                            .ThenInclude(cs => cs.Spell)
-
-                .Include(s => s.SceneCharacters)
-                    .ThenInclude(sc => sc.SceneCharacterSpells)
-                        .ThenInclude(spell => spell.Spell)
-
-                .Include(s => s.SceneChests)
-                    .ThenInclude(chest => chest.LootEntries)
-
-                .Include(s => s.SceneEvents)
-                    .ThenInclude(sceneEvent => sceneEvent.SceneEventActions)
-
-                .Where(s => s.Id == sceneId)
-                .FirstOrDefaultAsync(ct);
-        }
     }
 }

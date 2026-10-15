@@ -2,7 +2,6 @@ import type { Character } from "@/features/characters/types";
 import type { CharacterSyncStatus } from "@/features/characterSync/types";
 import type { EquippableItem } from "@/features/equipment/types";
 import type { Item } from "@/features/items/types";
-import type { JourneyCharacter } from "@/features/journeys/types";
 import type { Spell } from "@/features/spells/types";
 
 export enum ActionTargetType {
@@ -251,11 +250,6 @@ export interface SceneGridInput {
   gridColor: string;
   background?: File;
   removeBackground?: boolean;
-}
-
-export interface SceneDashboard {
-  scene: Scene;
-  players: JourneyCharacter[];
 }
 
 export interface SceneInput {
