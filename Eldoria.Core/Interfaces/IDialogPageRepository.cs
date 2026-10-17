@@ -4,7 +4,13 @@ namespace Eldoria.Core.Interfaces;
 
 public interface IDialogPageRepository : IRepository<DialogPage>
 {
-    Task<DialogPage?> GetWithSectionsAsync(
+    Task<DialogPage?> GetForUserAsync(
+        int userId,
+        int dialogPageId,
+        CancellationToken ct = default);
+
+    Task<DialogPage?> GetWithSectionsForUserAsync(
+        int userId,
         int dialogPageId,
         CancellationToken ct = default);
 
