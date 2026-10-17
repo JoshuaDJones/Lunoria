@@ -1,4 +1,5 @@
 ﻿using Eldoria.Api.Requests;
+using Eldoria.Api.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -14,14 +15,14 @@ namespace Eldoria.Api.Controllers
         [HttpPost("{sceneId:int}")]
         public async Task<IActionResult> Post(int sceneId, [FromBody] CreateSceneDialogRequest req, CancellationToken ct)
         {
-            var result = await _sceneDialogService.CreateSceneDialogAsync(sceneId, req.Title, ct);
+            var result = await _sceneDialogService.CreateSceneDialogAsync(User.GetUserId(), sceneId, req.Title, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -29,14 +30,14 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{sceneId:int}")]
         public async Task<ActionResult<List<SceneDialogDto>>> Get(int sceneId, CancellationToken ct)
         {
-            var result = await _sceneDialogService.GetSceneDialogsAsync(sceneId, ct);
+            var result = await _sceneDialogService.GetSceneDialogsAsync(User.GetUserId(), sceneId, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -44,14 +45,14 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{sceneDialogId:int}")]
         public async Task<IActionResult> Delete(int sceneDialogId, CancellationToken ct)
         {
-            var result = await _sceneDialogService.DeleteSceneDialogAsync(sceneDialogId, ct);
+            var result = await _sceneDialogService.DeleteSceneDialogAsync(User.GetUserId(), sceneDialogId, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "SceneDialog.NotFound" => BadRequest(result.Error),
+                "SceneDialog.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -59,14 +60,14 @@ namespace Eldoria.Api.Controllers
         [HttpPatch("{sceneDialogId:int}")]
         public async Task<IActionResult> Edit(int sceneDialogId, [FromBody] UpdateSceneDialogRequest req, CancellationToken ct)
         {
-            var result = await _sceneDialogService.EditSceneDialogAsync(sceneDialogId, req.Title, ct);
+            var result = await _sceneDialogService.EditSceneDialogAsync(User.GetUserId(), sceneDialogId, req.Title, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "SceneDialog.NotFound" => BadRequest(result.Error),
+                "SceneDialog.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

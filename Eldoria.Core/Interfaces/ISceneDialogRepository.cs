@@ -11,6 +11,7 @@ namespace Eldoria.Core.Interfaces
 {
     public interface ISceneDialogRepository : IRepository<SceneDialog>
     {
-        Task<List<SceneDialog>> GetSceneDialogs(int sceneId, CancellationToken ct);
+        Task<SceneDialog?> GetForUserAsync(int userId, int sceneDialogId, CancellationToken ct);
+        Task<List<SceneDialog>> GetSceneDialogs(int userId, int sceneId, CancellationToken ct);
     }
 }
