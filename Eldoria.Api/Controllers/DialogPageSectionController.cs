@@ -22,7 +22,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "DialogPage.NotFound" => BadRequest(result.Error),
+                "DialogPage.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -37,7 +37,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "DialogPageSection.NotFound" => BadRequest(result.Error),
+                "DialogPageSection.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -45,14 +45,14 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{dialogPageSectionId:int}")]
         public async Task<IActionResult> Delete(int dialogPageSectionId, CancellationToken ct)
         {
-            var result = await _dialogPageSectionService.DeleteDialogPageSectionAsync(dialogPageSectionId, ct);
+            var result = await _dialogPageSectionService.DeleteDialogPageSectionAsync(User.GetUserId(), dialogPageSectionId, ct);
 
             if (result.Success)
                 return Ok();
 
             return result.Error?.Code switch
             {
-                "DialogPageSection.NotFound" => BadRequest(result.Error),
+                "DialogPageSection.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

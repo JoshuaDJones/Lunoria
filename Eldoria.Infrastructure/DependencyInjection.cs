@@ -21,6 +21,7 @@ namespace Eldoria.Infrastructure
             services.AddScoped<ISceneObjectiveRepository, SceneObjectiveRepository>();
             services.AddScoped<ISceneDialogRepository, SceneDialogRepository>();
             services.AddScoped<IDialogPageRepository, DialogPageRepository>();
+            services.AddScoped<IDialogPageSectionRepository, DialogPageSectionRepository>();
             services.AddScoped<IJourneyRepository, JourneyRepository>();
             services.AddScoped<IPlaythroughRepository, PlaythroughRepository>();
             services.AddScoped<IPlaythroughJoinSessionRepository, PlaythroughJoinSessionRepository>();

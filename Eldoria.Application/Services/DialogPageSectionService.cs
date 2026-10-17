@@ -6,17 +6,17 @@ using Eldoria.Core.Interfaces;
 namespace Eldoria.Application.Services
 {
     public class DialogPageSectionService(
-        IRepository<ScenePTDialogPage> dialogPageRepository,
-        IRepository<ScenePTDialogSection> dialogPageSectionRepository,
+        IDialogPageRepository dialogPageRepository,
+        IDialogPageSectionRepository dialogPageSectionRepository,
         ICharacterRepository characterRepository) : IDialogPageSectionService
     {
-        private readonly IRepository<ScenePTDialogPage> _dialogPageRepository = dialogPageRepository;
-        private readonly IRepository<ScenePTDialogSection> _dialogPageSectionRepository = dialogPageSectionRepository;
+        private readonly IDialogPageRepository _dialogPageRepository = dialogPageRepository;
+        private readonly IDialogPageSectionRepository _dialogPageSectionRepository = dialogPageSectionRepository;
         private readonly ICharacterRepository _characterRepository = characterRepository;
 
         public async Task<Result> CreateDialogPageSectionAsync(int userId, int dialogPageId, int? characterId, int orderNum, string readingText, bool isNarrator, CancellationToken ct)
         {
-            var dialogPage = await _dialogPageRepository.GetByIdAsync(dialogPageId, ct);
+            var dialogPage = await _dialogPageRepository.GetForUserAsync(userId, dialogPageId, ct);
 
             if (dialogPage is null)
                 return Result.Fail(new Error("DialogPage.NotFound", "Dialog page does not exist."));
@@ -57,9 +57,9 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        public async Task<Result> DeleteDialogPageSectionAsync(int dialogPageSectionId, CancellationToken ct)
+        public async Task<Result> DeleteDialogPageSectionAsync(int userId, int dialogPageSectionId, CancellationToken ct)
         {
-            var dialogPageSection = await _dialogPageSectionRepository.GetByIdAsync(dialogPageSectionId, ct);
+            var dialogPageSection = await _dialogPageSectionRepository.GetForUserAsync(userId, dialogPageSectionId, ct);
 
             if (dialogPageSection is null)
                 return Result.Fail(new Error("DialogPageSection.NotFound", "Dialog page section not found."));
@@ -72,7 +72,7 @@ namespace Eldoria.Application.Services
 
         public async Task<Result> EditDialogPageSectionAsync(int userId, int dialogPageSectionId, int? characterId, int? orderNum, string? readingText, bool? isNarrator, CancellationToken ct)
         {
-            var dialogPageSection = await _dialogPageSectionRepository.GetByIdAsync(dialogPageSectionId, ct);
+            var dialogPageSection = await _dialogPageSectionRepository.GetForUserAsync(userId, dialogPageSectionId, ct);
 
             if (dialogPageSection is null)
                 return Result.Fail(new Error("DialogPageSection.NotFound", "Dialog page section does not exist."));
