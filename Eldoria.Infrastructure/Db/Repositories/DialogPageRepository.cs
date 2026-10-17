@@ -8,11 +8,22 @@ namespace Eldoria.Infrastructure.Db.Repositories;
 public sealed class DialogPageRepository(ApplicationDbContext dbContext)
     : Repository<DialogPage>(dbContext), IDialogPageRepository
 {
-    public Task<DialogPage?> GetWithSectionsAsync(
+    private IQueryable<DialogPage> QueryForUser(int userId) =>
+        dbContext.Set<DialogPage>()
+            .Where(page => page.SceneDialog.Scene.Journey.UserId == userId);
+
+    public Task<DialogPage?> GetForUserAsync(
+        int userId,
+        int dialogPageId,
+        CancellationToken ct = default) =>
+        QueryForUser(userId).SingleOrDefaultAsync(page => page.Id == dialogPageId, ct);
+
+    public Task<DialogPage?> GetWithSectionsForUserAsync(
+        int userId,
         int dialogPageId,
         CancellationToken ct = default)
     {
-        return dbContext.Set<DialogPage>()
+        return QueryForUser(userId)
             .Include(page => page.DialogPageSections)
             .SingleOrDefaultAsync(page => page.Id == dialogPageId, ct);
     }

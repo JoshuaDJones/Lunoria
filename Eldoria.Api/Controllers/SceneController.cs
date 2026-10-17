@@ -24,7 +24,11 @@ namespace Eldoria.Api.Controllers
             if (result.Success)
                 return Ok(result.Value);
 
-            return BadRequest(result.Error);
+            return result.Error?.Code switch
+            {
+                "Journey.NotFound" => NotFound(result.Error),
+                _ => BadRequest(result.Error)
+            };
         }
 
         [HttpGet("{id:int}")]
@@ -37,24 +41,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
-                _ => BadRequest(result.Error)
-            };
-        }
-
-        [HttpGet("{id:int}/dashboard")]
-        public async Task<ActionResult<SceneDashboardDto>> GetDashboard(int id, [FromQuery] int journeyId, CancellationToken ct)
-        {
-            var result = await _sceneService.GetSceneDashboardAsync(User.GetUserId(), id, journeyId, ct);
-
-            if (result.Success)
-                return Ok(result.Value);
-
-            return result.Error?.Code switch
-            {
-                "Scene.NotFound" => BadRequest(result.Error),
-                "Journey.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };
@@ -70,7 +57,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 "Journey.NotFound" => BadRequest(result.Error),
                 "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)

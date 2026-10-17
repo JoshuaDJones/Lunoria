@@ -13,7 +13,6 @@ import type {
   SceneChestDraftInput,
   SceneChestLootEntry,
   SceneChestLootEntryInput,
-  SceneDashboard,
   SceneDialog,
   DialogPageType,
   SceneInput,
@@ -257,17 +256,6 @@ export async function listScenes(params: ListScenesParams): Promise<Scene[]> {
 
 export async function getScene(id: number): Promise<Scene> {
   const { data } = await apiClient.get<Scene>(`/Scene/${id}`);
-  return data;
-}
-
-export async function getLegacySceneDashboard(
-  sceneId: number,
-  journeyId: number,
-): Promise<SceneDashboard> {
-  const { data } = await apiClient.get<SceneDashboard>(
-    `/Scene/${sceneId}/dashboard`,
-    { params: { journeyId } },
-  );
   return data;
 }
 

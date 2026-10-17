@@ -9,18 +9,20 @@ namespace Eldoria.Application.Services;
 
 public class DialogPageService(
     IDialogPageRepository dialogPageRepository,
-    IRepository<SceneDialog> sceneDialogRepository,
+    ISceneDialogRepository sceneDialogRepository,
     IAzureStorageBlob azureStorageBlob,
     ILogger<DialogPageService> logger) : IDialogPageService
 {
     public async Task<Result> CreateDialogPageAsync(
+        int userId,
         int sceneDialogId,
         int orderNum,
         DialogPageType pageType,
         IFormFile media,
         CancellationToken ct)
     {
-        var sceneDialog = await sceneDialogRepository.GetByIdAsync(
+        var sceneDialog = await sceneDialogRepository.GetForUserAsync(
+            userId,
             sceneDialogId,
             ct);
 
@@ -64,10 +66,12 @@ public class DialogPageService(
     }
 
     public async Task<Result> DeleteDialogPageAsync(
+        int userId,
         int dialogPageId,
         CancellationToken ct)
     {
-        var dialogPage = await dialogPageRepository.GetByIdAsync(
+        var dialogPage = await dialogPageRepository.GetForUserAsync(
+            userId,
             dialogPageId,
             ct);
 
@@ -89,13 +93,15 @@ public class DialogPageService(
     }
 
     public async Task<Result> EditDialogPageAsync(
+        int userId,
         int dialogPageId,
         int? orderNum,
         DialogPageType? pageType,
         IFormFile? media,
         CancellationToken ct)
     {
-        var dialogPage = await dialogPageRepository.GetWithSectionsAsync(
+        var dialogPage = await dialogPageRepository.GetWithSectionsForUserAsync(
+            userId,
             dialogPageId,
             ct);
 

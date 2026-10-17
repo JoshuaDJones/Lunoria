@@ -10,9 +10,15 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public async Task<List<SceneDialog>> GetSceneDialogs(int sceneId, CancellationToken ct)
+        private IQueryable<SceneDialog> QueryForUser(int userId) =>
+            _dbContext.SceneDialogs.Where(dialog => dialog.Scene.Journey.UserId == userId);
+
+        public Task<SceneDialog?> GetForUserAsync(int userId, int sceneDialogId, CancellationToken ct) =>
+            QueryForUser(userId).SingleOrDefaultAsync(dialog => dialog.Id == sceneDialogId, ct);
+
+        public async Task<List<SceneDialog>> GetSceneDialogs(int userId, int sceneId, CancellationToken ct)
         {
-            return await _dbContext.SceneDialogs
+            return await QueryForUser(userId)
                 .AsNoTracking()
                 .Include(d => d.DialogPages)
                 .Include(d => d.DialogPages)

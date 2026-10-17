@@ -77,7 +77,11 @@ namespace Eldoria.Api.Controllers
             if(result.Success)
                 return CreatedAtAction(nameof(Get), new { id = result.Value?.Id }, result.Value);
 
-            return BadRequest(result.Error);
+            return result.Error?.Code switch
+            {
+                "Series.NotFound" => NotFound(result.Error),
+                _ => BadRequest(result.Error)
+            };
         }
 
         [HttpPut("{id:int}")]
