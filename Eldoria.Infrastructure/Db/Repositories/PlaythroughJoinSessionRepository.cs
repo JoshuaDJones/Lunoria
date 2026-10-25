@@ -46,7 +46,9 @@ public sealed class PlaythroughJoinSessionRepository(ApplicationDbContext dbCont
                     session.TokenHash == tokenHash &&
                     session.RevokedAt == null &&
                     session.ExpiresAt > now &&
-                    session.Playthrough.CompletedAt == null,
+                    session.Playthrough.CompletedAt == null &&
+                    !session.Playthrough.User.IsDeleted &&
+                    !session.Playthrough.User.IsLocked,
                 ct);
     }
 
@@ -62,6 +64,8 @@ public sealed class PlaythroughJoinSessionRepository(ApplicationDbContext dbCont
                 .ThenInclude(scene => scene.Objectives).ThenInclude(objective => objective.Points)
             .Where(playthrough =>
                 playthrough.CompletedAt == null &&
+                !playthrough.User.IsDeleted &&
+                !playthrough.User.IsLocked &&
                 playthrough.JoinSession != null &&
                 playthrough.JoinSession.TokenHash == tokenHash &&
                 playthrough.JoinSession.RevokedAt == null &&

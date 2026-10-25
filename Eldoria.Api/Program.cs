@@ -79,6 +79,8 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddInfrastructure(conn);
 builder.Services.AddApplication();
 builder.Services.AddSingleton<IPlaythroughRealtimeNotifier, PlaythroughRealtimeNotifier>();
+builder.Services.AddSingleton<GuestConnectionRegistry>();
+builder.Services.AddHostedService<GuestConnectionMonitor>();
 builder.Services.AddSignalR();
 builder.Services.AddRateLimiter(options =>
 {
