@@ -68,7 +68,7 @@ namespace Eldoria.Application.Services
                 return Result<List<SceneDialogDto>>.Fail(new Error("Scene.NotFound", "Scene was not found."));
 
             var sceneDialogs = await _sceneDialogRepository.GetSceneDialogs(userId, sceneId, ct);
-            var dtos = sceneDialogs.Select(d => d.ToDto()).ToList();
+            var dtos = sceneDialogs.Select(d => d.ToDto(userId)).ToList();
 
             return Result<List<SceneDialogDto>>.Ok(dtos);
         }

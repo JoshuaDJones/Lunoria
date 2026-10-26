@@ -53,7 +53,7 @@ namespace Eldoria.Application.Services
                 throw;
             }
 
-            return Result<SceneDto>.Ok(scene.ToDto());
+            return Result<SceneDto>.Ok(scene.ToDto(userId));
         }
 
         public async Task<Result> DeleteAsync(int userId, int id, int journeyId, CancellationToken ct)
@@ -83,7 +83,7 @@ namespace Eldoria.Application.Services
             if(scene is null)
                 return Result<SceneDto>.Fail(new Error("Scene.NotFound", "The scene does not exist."));
 
-            return Result<SceneDto>.Ok(scene.ToDto());
+            return Result<SceneDto>.Ok(scene.ToDto(userId));
         }
 
         public async Task<Result<List<SceneDto>>> GetListAsync(int userId, int journeyId, int skip, int take, CancellationToken ct)
@@ -96,7 +96,7 @@ namespace Eldoria.Application.Services
                 return Result<List<SceneDto>>.Fail(new Error("Journey.NotFound", "The journey does not exist."));
 
             var scenes = await _sceneRepository.GetJourneyScenes(journeyId, skip, take, ct);
-            var dtos = scenes.Select(s => s.ToDto()).ToList();
+            var dtos = scenes.Select(s => s.ToDto(userId)).ToList();
 
             return Result<List<SceneDto>>.Ok(dtos);
         }
@@ -141,7 +141,7 @@ namespace Eldoria.Application.Services
             if (removedGrid?.BackgroundImageUrl is not null)
                 await _azureStorageBlob.DeletePhotoFromUrl(removedGrid.BackgroundImageUrl);
 
-            return Result<SceneDto>.Ok(scene.ToDto());
+            return Result<SceneDto>.Ok(scene.ToDto(userId));
         }
 
         public async Task<Result> ReorderAsync(
