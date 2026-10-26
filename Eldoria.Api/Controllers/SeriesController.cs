@@ -71,6 +71,7 @@ namespace Eldoria.Api.Controllers
             {
                 "Series.NotFound" => NotFound(error),
                 "Series.NameExists" => Conflict(error),
+                "Series.OwnershipConflict" => Conflict(error),
                 _ => BadRequest(error)
             };
         }
