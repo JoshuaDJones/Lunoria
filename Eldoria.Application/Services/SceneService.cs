@@ -26,7 +26,7 @@ namespace Eldoria.Application.Services
                 return Result<SceneDto>.Fail(new Error("Journey.NotFound", "The associated journey does not exist."));
 
             if (journey.UserId != userId)
-                return Result<SceneDto>.Fail(new Error("Auth.Forbidden", "You do have the permission to this journey you are trying to add a scene to."));
+                return Result<SceneDto>.Fail(new Error("Journey.NotFound", "The associated journey does not exist."));
 
 
             var (photoUrl, fileName) = await _azureStorageBlob.UploadMedia(photo);
@@ -156,7 +156,7 @@ namespace Eldoria.Application.Services
                 return Result.Fail(new Error("Journey.NotFound", "The associated journey does not exist."));
 
             if (journey.UserId != userId)
-                return Result.Fail(new Error("Auth.Forbidden", "You do not have permission to reorder this journey's scenes."));
+                return Result.Fail(new Error("Journey.NotFound", "The associated journey does not exist."));
 
             if (scenes.Count == 0 ||
                 scenes.Select(scene => scene.SceneId).Distinct().Count() != scenes.Count ||

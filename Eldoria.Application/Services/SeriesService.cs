@@ -39,7 +39,7 @@ namespace Eldoria.Application.Services
                 return Result<SeriesDto>.Fail(new Error("Series.NotFound", "Series was not found."));
 
             if (series.UserId != userId)
-                return Result<SeriesDto>.Fail(new Error("Auth.Forbidden", "You do not have permission to access this series."));
+                return Result<SeriesDto>.Fail(new Error("Series.NotFound", "Series was not found."));
 
             var seriesDto = new SeriesDto
             {

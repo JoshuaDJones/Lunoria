@@ -71,6 +71,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> CreateDraft(int sceneId, [FromBody] SceneChestDraftRequest req, CancellationToken ct)
         {
             var result = await SaveDraft(sceneId, null, req, ct);
+
             return result.Success
                 ? CreatedAtAction(nameof(List), new { sceneId }, result.Value)
                 : ToError(result.Error);
@@ -206,10 +207,9 @@ namespace Eldoria.Api.Controllers
         private IActionResult ToError(Error? error) =>
             error?.Code switch
             {
-                "Auth.Forbidden" => Forbid(),
-                "Scene.NotFound" => BadRequest(error),
-                "SceneChest.NotFound" => BadRequest(error),
-                "SceneChestLootEntry.NotFound" => BadRequest(error),
+                "Scene.NotFound" => NotFound(error),
+                "SceneChest.NotFound" => NotFound(error),
+                "SceneChestLootEntry.NotFound" => NotFound(error),
                 _ => BadRequest(error)
             };
     }

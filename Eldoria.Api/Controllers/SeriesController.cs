@@ -70,7 +70,6 @@ namespace Eldoria.Api.Controllers
             return error.Code switch
             {
                 "Series.NotFound" => NotFound(error),
-                "Auth.Forbidden" => Forbid(),
                 "Series.NameExists" => Conflict(error),
                 _ => BadRequest(error)
             };

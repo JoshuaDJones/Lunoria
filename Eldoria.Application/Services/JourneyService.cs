@@ -39,7 +39,7 @@ namespace Eldoria.Application.Services
                 return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             if (journey.UserId != userId)
-                return Result<JourneyDto>.Fail(new Error("Auth.Forbidden", "You do not have permission to access this journey."));
+                return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             var journeyDto = new JourneyDto
             {
@@ -64,7 +64,7 @@ namespace Eldoria.Application.Services
                 return Result.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             if (journey.UserId != userId)
-                return Result.Fail(new Error("Auth.Forbidden", "You do not have permission to delete this journey."));
+                return Result.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
 
             await _azureStorageBlob.DeletePhotoFromUrl(journey.PhotoUrl);
@@ -118,7 +118,7 @@ namespace Eldoria.Application.Services
                 return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             if (journey.UserId != userId)
-                return Result<JourneyDto>.Fail(new Error("Auth.Forbidden", "You do not have permission to delete this journey."));
+                return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             journey.Name = name;
             journey.Description = description;

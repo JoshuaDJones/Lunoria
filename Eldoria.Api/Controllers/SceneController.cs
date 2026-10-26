@@ -42,7 +42,6 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "Scene.NotFound" => NotFound(result.Error),
-                "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };
         }
@@ -58,8 +57,7 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "Scene.NotFound" => NotFound(result.Error),
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -80,7 +78,9 @@ namespace Eldoria.Api.Controllers
             if (result.Success)
                 return CreatedAtAction(nameof(Get), new { id = result.Value?.Id }, result.Value);
 
-            return BadRequest(result.Error);
+            return result.Error.Code == "Journey.NotFound"
+                ? NotFound(result.Error)
+                : BadRequest(result.Error);
         }
 
         [HttpPut("{id:int}")]
@@ -103,8 +103,7 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "Scene.NotFound" => NotFound(result.Error),
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -118,6 +117,7 @@ namespace Eldoria.Api.Controllers
             var scenes = req.Scenes
                 .Select(scene => (SceneId: scene.Id, scene.SortOrder))
                 .ToList();
+
             var result = await _sceneService.ReorderAsync(
                 User.GetUserId(),
                 journeyId,
@@ -129,7 +129,6 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Auth.Forbidden" => Forbid(),
                 "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };

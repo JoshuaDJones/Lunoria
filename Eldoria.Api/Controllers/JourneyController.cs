@@ -18,6 +18,7 @@ namespace Eldoria.Api.Controllers
         public async Task<ActionResult<JourneyCharacterSyncSummaryDto>> CharacterSyncSummary(int id, CancellationToken ct)
         {
             var result = await characterSyncSummaryService.GetAsync(User.GetUserId(), id, ct);
+
             return result.Success ? Ok(result.Value) : result.Error.Code switch
             {
                 "Journey.NotFound" => NotFound(result.Error),
@@ -46,8 +47,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -62,8 +62,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -96,7 +95,6 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "Journey.NotFound" => NotFound(result.Error),
-                "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };
         }

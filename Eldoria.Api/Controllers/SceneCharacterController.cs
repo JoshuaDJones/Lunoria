@@ -113,10 +113,9 @@ namespace Eldoria.Api.Controllers
         private IActionResult ToError(Error? error) =>
             error?.Code switch
             {
-                "Auth.Forbidden" => Forbid(),
                 "SceneCharacter.NotFound" => NotFound(error),
-                "Scene.NotFound" => BadRequest(error),
-                "Character.NotFound" => BadRequest(error),
+                "Scene.NotFound" => NotFound(error),
+                "Character.NotFound" => NotFound(error),
                 _ => BadRequest(error)
             };
 

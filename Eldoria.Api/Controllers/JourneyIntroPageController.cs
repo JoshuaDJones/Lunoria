@@ -27,8 +27,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -55,8 +54,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -83,8 +81,7 @@ namespace Eldoria.Api.Controllers
             return result.Error?.Code switch
             {
                 "JourneyIntroPage.NotFound" => NotFound(result.Error),
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -106,9 +103,8 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "JourneyIntroPage.NotFound" => BadRequest(result.Error),
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "JourneyIntroPage.NotFound" => NotFound(result.Error),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -122,6 +118,7 @@ namespace Eldoria.Api.Controllers
             var pages = req.Pages
                 .Select(page => (PageId: page.Id, page.SortOrder))
                 .ToList();
+
             var result = await _journeyIntroPageService.ReorderAsync(
                 User.GetUserId(),
                 journeyId,
@@ -133,8 +130,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Auth.Forbidden" => Forbid(),
+                "Journey.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

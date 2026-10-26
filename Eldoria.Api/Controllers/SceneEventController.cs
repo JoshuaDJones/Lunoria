@@ -22,8 +22,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Auth.Forbidden" => Forbid(),
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -212,10 +211,9 @@ namespace Eldoria.Api.Controllers
         private IActionResult ToError(Eldoria.Application.Common.Error? error) =>
             error?.Code switch
             {
-                "Auth.Forbidden" => Forbid(),
-                "Scene.NotFound" => BadRequest(error),
-                "SceneEvent.NotFound" => BadRequest(error),
-                "SceneEventAction.NotFound" => BadRequest(error),
+                "Scene.NotFound" => NotFound(error),
+                "SceneEvent.NotFound" => NotFound(error),
+                "SceneEventAction.NotFound" => NotFound(error),
                 _ => BadRequest(error)
             };
     }

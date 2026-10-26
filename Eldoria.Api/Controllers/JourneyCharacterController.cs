@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Common;
+using Eldoria.Core.Exceptions;
 
 namespace Eldoria.Api.Controllers
 {
@@ -44,14 +45,16 @@ namespace Eldoria.Api.Controllers
             try
             {
                 var result = await unitOfWork.ExecuteAsync(change, ct);
+
                 return result.Success ? Ok() : result.Error.Code switch
                 {
                     "Journey.NotFound" => NotFound(result.Error),
+                    "Character.NotFound" => NotFound(result.Error),
                     "JourneyCharacter.RosterChanged" => Conflict(result.Error),
                     _ => BadRequest(result.Error)
                 };
             }
-            catch (Eldoria.Core.Exceptions.CharacterSyncConflictException)
+            catch (CharacterSyncConflictException)
             {
                 return Conflict(new Error("JourneyCharacter.RosterChanged", "The player roster changed. Reload it and try again."));
             }
@@ -67,8 +70,8 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Journey.NotFound" => BadRequest(result.Error),
-                "Character.NotFound" => BadRequest(result.Error),
+                "Journey.NotFound" => NotFound(result.Error),
+                "Character.NotFound" => NotFound(result.Error),
                 "JourneyCharacter.InUse" => Conflict(result.Error),
                 _ => BadRequest(result.Error)
             };
@@ -84,7 +87,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "JourneyCharacter.NotFound" => BadRequest(result?.Error),
+                "JourneyCharacter.NotFound" => NotFound(result?.Error),
                 _ => BadRequest(result?.Error)
             };
         }
