@@ -37,7 +37,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Spell.NotFound" => BadRequest(result.Error),
+                "Spell.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -52,7 +52,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Spell.NotFound" => BadRequest(result.Error),
+                "Spell.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

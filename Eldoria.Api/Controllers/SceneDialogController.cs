@@ -1,10 +1,8 @@
 ﻿using Eldoria.Api.Requests;
-using Eldoria.Application.Common;
+using Eldoria.Api.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
-using Eldoria.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace Eldoria.Api.Controllers
 {
@@ -17,14 +15,14 @@ namespace Eldoria.Api.Controllers
         [HttpPost("{sceneId:int}")]
         public async Task<IActionResult> Post(int sceneId, [FromBody] CreateSceneDialogRequest req, CancellationToken ct)
         {
-            var result = await _sceneDialogService.CreateSceneDialogAsync(sceneId, req.Title, ct);
+            var result = await _sceneDialogService.CreateSceneDialogAsync(User.GetUserId(), sceneId, req.Title, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -32,14 +30,14 @@ namespace Eldoria.Api.Controllers
         [HttpGet("{sceneId:int}")]
         public async Task<ActionResult<List<SceneDialogDto>>> Get(int sceneId, CancellationToken ct)
         {
-            var result = await _sceneDialogService.GetSceneDialogsAsync(sceneId, ct);
+            var result = await _sceneDialogService.GetSceneDialogsAsync(User.GetUserId(), sceneId, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "Scene.NotFound" => BadRequest(result.Error),
+                "Scene.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -47,14 +45,14 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{sceneDialogId:int}")]
         public async Task<IActionResult> Delete(int sceneDialogId, CancellationToken ct)
         {
-            var result = await _sceneDialogService.DeleteSceneDialogAsync(sceneDialogId, ct);
+            var result = await _sceneDialogService.DeleteSceneDialogAsync(User.GetUserId(), sceneDialogId, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "SceneDialog.NotFound" => BadRequest(result.Error),
+                "SceneDialog.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -62,38 +60,17 @@ namespace Eldoria.Api.Controllers
         [HttpPatch("{sceneDialogId:int}")]
         public async Task<IActionResult> Edit(int sceneDialogId, [FromBody] UpdateSceneDialogRequest req, CancellationToken ct)
         {
-            var result = await _sceneDialogService.EditSceneDialogAsync(sceneDialogId, req.Title, ct);
+            var result = await _sceneDialogService.EditSceneDialogAsync(User.GetUserId(), sceneDialogId, req.Title, ct);
 
             if (result.Success)
                 return Ok(result);
 
             return result.Error?.Code switch
             {
-                "SceneDialog.NotFound" => BadRequest(result.Error),
+                "SceneDialog.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
 
-        [HttpGet("/api/v1/SceneDialog/give-me-all/{journeyId:int}")]
-        public async Task<IActionResult> GetAll(int journeyId, CancellationToken ct)
-        {
-            var sceneids = new List<int> { 1003, 1004, 1005, 1006, 1007 };
-            List<SceneDialogDto> sceneDialogs = [];
-
-            foreach (var id in sceneids)
-            {
-                var result = await _sceneDialogService.GetSceneDialogsAsync(id, ct);
-
-                if(result.Value is not null)
-                {
-                    foreach(var d in result.Value)
-                    {
-                        sceneDialogs.Add(d);
-                    }
-                }                   
-            }
-
-            return Ok(Result<List<SceneDialogDto>>.Ok(sceneDialogs));
-        }
     }
 }

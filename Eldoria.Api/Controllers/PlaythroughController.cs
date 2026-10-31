@@ -27,7 +27,6 @@ namespace Eldoria.Api.Controllers
             return result.Error.Code switch
             {
                 "Journey.NotFound" => NotFound(result.Error),
-                "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };
         }
@@ -48,7 +47,6 @@ namespace Eldoria.Api.Controllers
             return result.Error.Code switch
             {
                 "Journey.NotFound" => NotFound(result.Error),
-                "Auth.Forbidden" => Forbid(),
                 _ => BadRequest(result.Error)
             };
         }

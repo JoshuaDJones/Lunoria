@@ -7,14 +7,14 @@ namespace Eldoria.Application.Services
 {
     public class SceneDialogService(
         ISceneDialogRepository sceneDialogRepository,
-        IRepository<Scene> sceneRepository) : ISceneDialogService
+        ISceneRepository sceneRepository) : ISceneDialogService
     {
         private readonly ISceneDialogRepository _sceneDialogRepository = sceneDialogRepository;
-        private readonly IRepository<Scene> _sceneRepository = sceneRepository;
+        private readonly ISceneRepository _sceneRepository = sceneRepository;
 
-        public async Task<Result> CreateSceneDialogAsync(int sceneId, string sceneDialogTitle, CancellationToken ct)
+        public async Task<Result> CreateSceneDialogAsync(int userId, int sceneId, string sceneDialogTitle, CancellationToken ct)
         {
-            var scene = await _sceneRepository.GetByIdAsync(sceneId, ct);
+            var scene = await _sceneRepository.GetForUserAsync(userId, sceneId, ct);
 
             if (scene is null)
                 return Result.Fail(new Error("Scene.NotFound", "Scene was not found."));
@@ -33,9 +33,9 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        public async Task<Result> DeleteSceneDialogAsync(int sceneDialogId, CancellationToken ct)
+        public async Task<Result> DeleteSceneDialogAsync(int userId, int sceneDialogId, CancellationToken ct)
         {
-            var sceneDialog = await _sceneDialogRepository.GetByIdAsync(sceneDialogId, ct);
+            var sceneDialog = await _sceneDialogRepository.GetForUserAsync(userId, sceneDialogId, ct);
 
             if (sceneDialog is null)
                 return Result.Fail(new Error("SceneDialog.NotFound", "Scene dialog does not exist."));
@@ -46,9 +46,9 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        public async Task<Result> EditSceneDialogAsync(int sceneDialogId, string title, CancellationToken ct)
+        public async Task<Result> EditSceneDialogAsync(int userId, int sceneDialogId, string title, CancellationToken ct)
         {
-            var sceneDialog = await _sceneDialogRepository.GetByIdAsync(sceneDialogId, ct);
+            var sceneDialog = await _sceneDialogRepository.GetForUserAsync(userId, sceneDialogId, ct);
 
             if (sceneDialog is null)
                 return Result.Fail(new Error("SceneDialog.NotFound", "Scene dialog does not exist."));
@@ -60,15 +60,15 @@ namespace Eldoria.Application.Services
             return Result.Ok();
         }
 
-        public async Task<Result<List<SceneDialogDto>>> GetSceneDialogsAsync(int sceneId, CancellationToken ct)
+        public async Task<Result<List<SceneDialogDto>>> GetSceneDialogsAsync(int userId, int sceneId, CancellationToken ct)
         {
-            var scene = await _sceneRepository.GetByIdAsync(sceneId, ct);
+            var scene = await _sceneRepository.GetForUserAsync(userId, sceneId, ct);
 
             if (scene is null)
                 return Result<List<SceneDialogDto>>.Fail(new Error("Scene.NotFound", "Scene was not found."));
 
-            var sceneDialogs = await _sceneDialogRepository.GetSceneDialogs(sceneId, ct);
-            var dtos = sceneDialogs.Select(d => d.ToDto()).ToList();
+            var sceneDialogs = await _sceneDialogRepository.GetSceneDialogs(userId, sceneId, ct);
+            var dtos = sceneDialogs.Select(d => d.ToDto(userId)).ToList();
 
             return Result<List<SceneDialogDto>>.Ok(dtos);
         }

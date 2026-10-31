@@ -1,9 +1,10 @@
 using Eldoria.Api.Common;
-using Eldoria.Api.Requests;
 using Eldoria.Api.PlaythroughRealtime;
+using Eldoria.Api.Requests;
 using Eldoria.Application.Common;
 using Eldoria.Application.Dtos;
 using Eldoria.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eldoria.Api.Controllers;
@@ -37,7 +38,7 @@ public sealed class ScenePlaythroughController(
         };
     }
 
-    [Microsoft.AspNetCore.Authorization.Authorize]
+    [Authorize]
     [HttpPut("objectives/current")]
     public async Task<IActionResult> SelectObjective(int playthroughId, int sceneId,
         SelectSceneObjectiveInput input, CancellationToken ct)
@@ -59,8 +60,11 @@ public sealed class ScenePlaythroughController(
             null,
             ct);
 
-        if (!result.Success) return ToError(result.Error);
+        if (!result.Success) 
+            return ToError(result.Error);
+
         await realtimeNotifier.NotifyUpdatedAsync(playthroughId, result.Value!.Started ? "SceneStarted" : "SceneAwaitingInventory", ct);
+
         return Ok(result.Value);
     }
 
@@ -76,8 +80,12 @@ public sealed class ScenePlaythroughController(
         [FromBody] SceneInventoryResolutionInput input, CancellationToken ct)
     {
         var result = await scenePlaythroughService.ContinueStartAsync(User.GetUserId(), playthroughId, sceneId, input, ct);
-        if (!result.Success) return ToError(result.Error);
+
+        if (!result.Success) 
+            return ToError(result.Error);
+
         await realtimeNotifier.NotifyUpdatedAsync(playthroughId, result.Value!.Started ? "SceneStarted" : "SceneAwaitingInventory", ct);
+
         return Ok(result.Value);
     }
 
@@ -122,8 +130,12 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.ActivateJourneyCharacterAsync(
-            User.GetUserId(), playthroughId, sceneId,
-            journeyPlaythroughCharacterId, ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId,
+            journeyPlaythroughCharacterId, 
+            ct);
+
         return await CompleteMutationAsync(
             result, playthroughId, "JourneyCharacterActivated", ct);
     }
@@ -136,9 +148,17 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.AddPlaythroughCharacterAsync(
-            User.GetUserId(), playthroughId, sceneId, playthroughCharacterId, ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            playthroughCharacterId, 
+            ct);
+
         return await CompleteMutationAsync(
-            result, playthroughId, "SceneCharacterAdded", ct);
+            result, 
+            playthroughId, 
+            "SceneCharacterAdded", 
+            ct);
     }
 
     [HttpDelete("participants/{participantId:int}")]
@@ -146,7 +166,12 @@ public sealed class ScenePlaythroughController(
         int playthroughId, int sceneId, int participantId, CancellationToken ct)
     {
         var result = await scenePlaythroughService.RemoveSceneParticipantAsync(
-            User.GetUserId(), playthroughId, sceneId, participantId, ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            participantId, 
+            ct);
+
         return await CompleteMutationAsync(result, playthroughId, "SceneCharacterRemoved", ct);
     }
 
@@ -158,9 +183,13 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.AddChestAsync(
-            User.GetUserId(), playthroughId, sceneId, request.ToDto(), ct);
-        return await CompleteMutationAsync(
-            result, playthroughId, "SceneChestAdded", ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            request.ToDto(), 
+            ct);
+
+        return await CompleteMutationAsync(result, playthroughId, "SceneChestAdded", ct);
     }
 
     [HttpPut("participants/{participantId:int}/stats")]
@@ -172,10 +201,14 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.UpdateParticipantStatsAsync(
-            User.GetUserId(), playthroughId, sceneId, participantId,
-            request.ToDto(), ct);
-        return await CompleteMutationAsync(
-            result, playthroughId, "ParticipantStatsUpdated", ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            participantId,
+            request.ToDto(), 
+            ct);
+
+        return await CompleteMutationAsync(result, playthroughId, "ParticipantStatsUpdated", ct);
     }
 
     [HttpPost("participants/{participantId:int}/movement")]
@@ -187,13 +220,17 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.RecordMovementAsync(
-            User.GetUserId(), playthroughId, sceneId, participantId,
-            request.Roll, ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            participantId,
+            request.Roll, 
+            ct);
 
         if (result.Success)
         {
-            await realtimeNotifier.NotifyUpdatedAsync(
-                playthroughId, "MovementRecorded", ct);
+            await realtimeNotifier.NotifyUpdatedAsync(playthroughId, "MovementRecorded", ct);
+
             return Ok(result.Value);
         }
 
@@ -216,7 +253,12 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.TransformAsync(
-            User.GetUserId(), playthroughId, sceneId, participantId, ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            participantId, 
+            ct);
+
         return await CompleteMutationAsync(
             result, playthroughId, "ParticipantTransformed", ct);
     }
@@ -229,9 +271,13 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.ForfeitActionAsync(
-            User.GetUserId(), playthroughId, sceneId, participantId, ct);
-        return await CompleteMutationAsync(
-            result, playthroughId, "ActionForfeited", ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            participantId, 
+            ct);
+
+        return await CompleteMutationAsync(result, playthroughId, "ActionForfeited", ct);
     }
 
     [HttpPost("participants/{participantId:int}/campfire")]
@@ -243,9 +289,14 @@ public sealed class ScenePlaythroughController(
         CancellationToken ct)
     {
         var result = await scenePlaythroughService.CampfireAsync(
-            User.GetUserId(), playthroughId, sceneId, participantId, request.Resource, ct);
-        return await CompleteMutationAsync(
-            result, playthroughId, "CampfireUsed", ct);
+            User.GetUserId(), 
+            playthroughId, 
+            sceneId, 
+            participantId, 
+            request.Resource, 
+            ct);
+        
+        return await CompleteMutationAsync(result, playthroughId, "CampfireUsed", ct);
     }
 
     [HttpPost("participants/{participantId:int}/attack")]
@@ -273,6 +324,7 @@ public sealed class ScenePlaythroughController(
         {
             await realtimeNotifier.NotifyUpdatedAsync(
                 playthroughId, "AttackResolved", ct);
+
             return Ok(result.Value);
         }
 
@@ -307,10 +359,12 @@ public sealed class ScenePlaythroughController(
         if (result.Success)
         {
             var chestResult = result.Value!;
+
             await realtimeNotifier.NotifyUpdatedAsync(
                 playthroughId,
                 chestResult.Awarded ? "ChestOpened" : "ActionForfeited",
                 ct);
+
             return Ok(chestResult);
         }
 
@@ -337,6 +391,7 @@ public sealed class ScenePlaythroughController(
         {
             await realtimeNotifier.NotifyUpdatedAsync(
                 playthroughId, "ConsumableUsed", ct);
+
             return Ok(result.Value);
         }
 
@@ -407,6 +462,7 @@ public sealed class ScenePlaythroughController(
         "ScenePlaythrough.TradeUnavailable" => Conflict(error),
         "ScenePlaythrough.TransformUnavailable" => Conflict(error),
         "ScenePlaythrough.TradeItemNotFound" => NotFound(error),
+        "ScenePlaythrough.InventoryItemNotFound" => NotFound(error),
         "ScenePlaythrough.TradeInventoryFull" => Conflict(error),
         "ScenePlaythrough.NotCurrentTurn" => Conflict(error),
         "ScenePlaythrough.EventExecutionFailed" => Conflict(error),

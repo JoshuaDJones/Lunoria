@@ -45,11 +45,13 @@ namespace Eldoria.Application.Services
             var (_, error) = await GetOwnedSceneAsync(userId, sceneId, ct);
             if (error is not null)
                 return Result<SceneEventDto>.Fail(error);
+
             var sceneEvent = eventId.HasValue
                 ? await GetOwnedEventAsync(userId, sceneId, eventId.Value, ct)
                 : new SceneEvent { SceneId = sceneId };
             if (sceneEvent is null)
                 return Result<SceneEventDto>.Fail(NotFoundEvent);
+
             if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 200 || description?.Length > 2000 ||
                 actions is null || actions.Count is < 1 or > 100)
                 return Result<SceneEventDto>.Fail(new Error("SceneEvent.InvalidDraft", "Provide an event name and between one and 100 actions."));
@@ -57,25 +59,40 @@ namespace Eldoria.Application.Services
             var existing = sceneEvent.SceneEventActions.ToDictionary(action => action.Id);
             var seenIds = new HashSet<int>();
             var draft = new List<SceneEventAction>();
+
             foreach (var input in actions)
             {
                 if (input is null || string.IsNullOrWhiteSpace(input.Name) || input.Name.Trim().Length > 200)
                     return Result<SceneEventDto>.Fail(new Error("SceneEventAction.InvalidName", "Each action needs a name of at most 200 characters."));
+
                 SceneEventAction? original = null;
                 if (input.Id.HasValue && (!seenIds.Add(input.Id.Value) || !existing.TryGetValue(input.Id.Value, out original)))
                     return Result<SceneEventDto>.Fail(NotFoundAction);
+
                 var validationError = await ValidateActionAsync(userId, sceneId, input.ActionTargetType,
                     input.EventActionType, input.CharacterStatType, input.AdjustmentOperation, input.CharacterId,
                     ct, input.AlternateFormId, input.Grant, original?.CharacterAddSpellAction?.SpellId);
                 if (validationError is not null)
                     return Result<SceneEventDto>.Fail(validationError);
-                var action = BuildAction(sceneEvent.Id, input.Name, input.ActionTargetType, input.EventActionType,
-                    input.CharacterStatType, input.AdjustmentOperation, input.Value, input.CharacterId, input.AlternateFormId, input.Grant);
+
+                var action = BuildAction(
+                    sceneEvent.Id,
+                    input.Name,
+                    input.ActionTargetType,
+                    input.EventActionType,
+                    input.CharacterStatType,
+                    input.AdjustmentOperation,
+                    input.Value,
+                    input.CharacterId,
+                    input.AlternateFormId,
+                    input.Grant);
+
                 action.SortOrder = draft.Count;
                 draft.Add(action);
             }
             // All action ownership/payload checks finish before any writes occur.
             await _sceneEventRepository.SaveDraftAsync(sceneEvent, name.Trim(), description?.Trim(), draft, ct);
+
             var saved = await _sceneEventRepository.GetForUserAsync(userId, sceneEvent.Id, ct);
             return Result<SceneEventDto>.Ok(saved!.ToDto());
         }
@@ -184,12 +201,33 @@ namespace Eldoria.Application.Services
             if (sceneEvent is null)
                 return Result<SceneEventActionDto>.Fail(NotFoundEvent);
 
-            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId, grant, null);
+            var validationError = await ValidateActionAsync(
+                userId,
+                sceneEvent.SceneId,
+                targetType,
+                actionType,
+                statType,
+                operation,
+                characterId,
+                ct,
+                alternateFormId,
+                grant,
+                null);
 
             if (validationError is not null)
                 return Result<SceneEventActionDto>.Fail(validationError);
 
-            var action = BuildAction(eventId, name, targetType, actionType, statType, operation, value, characterId, alternateFormId, grant);
+            var action = BuildAction(
+                eventId,
+                name,
+                targetType,
+                actionType,
+                statType,
+                operation,
+                value,
+                characterId,
+                alternateFormId,
+                grant);
 
             await _sceneEventRepository.AddActionWithNextSortOrderAsync(action, ct);
 
@@ -222,7 +260,18 @@ namespace Eldoria.Application.Services
             if (action is null || action.SceneEventId != eventId)
                 return Result<SceneEventActionDto>.Fail(NotFoundAction);
 
-            var validationError = await ValidateActionAsync(userId, sceneEvent.SceneId, targetType, actionType, statType, operation, characterId, ct, alternateFormId, grant, action.CharacterAddSpellAction?.SpellId);
+            var validationError = await ValidateActionAsync(
+                userId,
+                sceneEvent.SceneId,
+                targetType,
+                actionType,
+                statType,
+                operation,
+                characterId,
+                ct,
+                alternateFormId,
+                grant,
+                action.CharacterAddSpellAction?.SpellId);
 
             if (validationError is not null)
                 return Result<SceneEventActionDto>.Fail(validationError);
@@ -230,7 +279,14 @@ namespace Eldoria.Application.Services
             action.Name = name.Trim();
             action.ActionTargetType = targetType;
             action.EventActionType = actionType;
-            SetActionPayload(action, statType, operation, value, characterId, alternateFormId, grant);
+            SetActionPayload(
+                action,
+                statType,
+                operation,
+                value,
+                characterId,
+                alternateFormId,
+                grant);
 
             await _sceneEventRepository.SaveChangesAsync(ct);
 
@@ -290,7 +346,7 @@ namespace Eldoria.Application.Services
 
             return journey?.UserId == userId
                 ? (scene, null)
-                : (null, new Error("Auth.Forbidden", "You do not have permission to modify this scene."));
+                : (null, new Error("Scene.NotFound", "The scene does not exist."));
         }
 
         private async Task<SceneEvent?> GetOwnedEventAsync(int userId, int sceneId, int eventId, CancellationToken ct)
@@ -304,10 +360,10 @@ namespace Eldoria.Application.Services
             if (!Enum.IsDefined(targetType) || !Enum.IsDefined(actionType) || !Enum.IsDefined(statType) || !Enum.IsDefined(operation))
                 return new Error("SceneEventAction.InvalidType", "One or more action values are invalid.");
 
-            if (actionType is not (EventActionType.CharacterStatAdjustment 
-                    or EventActionType.CharacterChangeAlternateForm 
-                    or EventActionType.CharacterClearAlternateForm 
-                    or EventActionType.CharacterAddSpell 
+            if (actionType is not (EventActionType.CharacterStatAdjustment
+                    or EventActionType.CharacterChangeAlternateForm
+                    or EventActionType.CharacterClearAlternateForm
+                    or EventActionType.CharacterAddSpell
                     or EventActionType.CharacterGiveItem
                     or EventActionType.CharacterInAlternateForm))
                 return new Error("SceneEventAction.UnsupportedType", "The action type is not supported.");
@@ -316,6 +372,7 @@ namespace Eldoria.Application.Services
             {
                 if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
                     return new Error("SceneEventAction.InvalidTarget", "Select one or all journey characters.");
+
                 if (actionType == EventActionType.CharacterAddSpell)
                 {
                     var spells = grant?.SpellId is int spellId
@@ -329,12 +386,14 @@ namespace Eldoria.Application.Services
                     if (grant is null || grant.Quantity is < 1 or > 1000 ||
                         grant.ConsumableItemId.HasValue == grant.EquippableItemId.HasValue)
                         return new Error("SceneEventAction.InvalidItem", "Select exactly one item and a quantity between 1 and 1000.");
+
                     if (grant.ConsumableItemId is int consumableId)
                     {
                         var item = await consumableRepository.GetByIdAsync(consumableId, ct);
                         if (item?.UserId != userId)
                             return new Error("SceneEventAction.InvalidItem", "The consumable item was not found or is not owned by you.");
                     }
+
                     if (grant.EquippableItemId is int equippableId &&
                         await equippableRepository.GetByIdForUserAsync(userId, equippableId, ct) is null)
                         return new Error("SceneEventAction.InvalidItem", "The equipment was not found or is not owned by you.");
@@ -364,7 +423,7 @@ namespace Eldoria.Application.Services
 
                 var (ownedScene, sceneError) = await GetOwnedSceneAsync(userId, sceneId, ct);
 
-                if (sceneError is not null) 
+                if (sceneError is not null)
                     return sceneError;
 
                 var targets = await _journeyCharacterRepository.GetJourneyCharacters(ownedScene!.JourneyId, ct);
@@ -389,7 +448,7 @@ namespace Eldoria.Application.Services
             {
                 var (scene, error) = await GetOwnedSceneAsync(userId, sceneId, ct);
 
-                if (error is not null) 
+                if (error is not null)
                     return error;
 
                 var characters = await _journeyCharacterRepository.GetJourneyCharacters(scene!.JourneyId, ct);
@@ -403,12 +462,12 @@ namespace Eldoria.Application.Services
 
         private static SceneEventAction BuildAction(int eventId, string name, ActionTargetType targetType, EventActionType actionType, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId, SceneEventGrantInput? grant)
         {
-            var action = new SceneEventAction 
-            { 
-                SceneEventId = eventId, 
-                Name = name.Trim(), 
-                ActionTargetType = targetType, 
-                EventActionType = actionType 
+            var action = new SceneEventAction
+            {
+                SceneEventId = eventId,
+                Name = name.Trim(),
+                ActionTargetType = targetType,
+                EventActionType = actionType
             };
 
             SetActionPayload(action, statType, operation, value, characterId, alternateFormId, grant);

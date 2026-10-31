@@ -1,5 +1,4 @@
 ﻿using Eldoria.Core.Entities;
-using Eldoria.Core.Entities.Playthrough.Scene;
 using Eldoria.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,22 +9,40 @@ namespace Eldoria.Infrastructure.Db.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public async Task<List<SceneDialog>> GetSceneDialogs(int sceneId, CancellationToken ct)
+        private IQueryable<SceneDialog> QueryForUser(int userId) =>
+            _dbContext.SceneDialogs.Where(dialog => dialog.Scene.Journey.UserId == userId);
+
+        public Task<SceneDialog?> GetForUserAsync(int userId, int sceneDialogId, CancellationToken ct) =>
+            QueryForUser(userId).SingleOrDefaultAsync(dialog => dialog.Id == sceneDialogId, ct);
+
+        public async Task<List<SceneDialog>> GetSceneDialogs(int userId, int sceneId, CancellationToken ct)
         {
-            return await _dbContext.SceneDialogs
+            var dialogs = await QueryForUser(userId)
                 .AsNoTracking()
                 .Include(d => d.DialogPages)
-                .Include(d => d.DialogPages)
                     .ThenInclude(p => p.DialogPageSections)
-                .Include(sd => sd.DialogPages)
-                    .ThenInclude(p => p.DialogPageSections)
-                        .ThenInclude(s => s.Character)
-                .Include(sd => sd.DialogPages)
-                    .ThenInclude(p => p.DialogPageSections)
-                        .ThenInclude(s => s.Character)
-                            .ThenInclude(s => s.CharacterDialogSettings)
                 .Where(d => d.SceneId == sceneId)
                 .ToListAsync(ct);
+
+            var sections = dialogs.SelectMany(d => d.DialogPages)
+                .SelectMany(p => p.DialogPageSections).ToList();
+
+            var characterIds = sections.Where(s => s.CharacterId.HasValue)
+                .Select(s => s.CharacterId!.Value).Distinct().ToList();
+            if (characterIds.Count == 0)
+                return dialogs;
+
+            var characters = await _dbContext.Characters.AsNoTracking()
+                .Where(c => c.UserId == userId && characterIds.Contains(c.Id))
+                .Include(c => c.CharacterDialogSettings)
+                .ToDictionaryAsync(c => c.Id, ct);
+
+            foreach (var section in sections)
+                section.Character = section.CharacterId is int id && characters.TryGetValue(id, out var character)
+                    ? character
+                    : null;
+
+            return dialogs;
         }
     }
 }

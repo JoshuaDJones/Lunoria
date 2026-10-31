@@ -2,6 +2,7 @@
 using Eldoria.Application.Dtos;
 using Eldoria.Core.Entities;
 using Eldoria.Core.Interfaces;
+using Eldoria.Core.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +40,7 @@ namespace Eldoria.Application.Services
                 return Result<SeriesDto>.Fail(new Error("Series.NotFound", "Series was not found."));
 
             if (series.UserId != userId)
-                return Result<SeriesDto>.Fail(new Error("Auth.Forbidden", "You do not have permission to access this series."));
+                return Result<SeriesDto>.Fail(new Error("Series.NotFound", "Series was not found."));
 
             var seriesDto = new SeriesDto
             {
@@ -50,7 +51,7 @@ namespace Eldoria.Application.Services
                 FileName = series.FileName,
                 CreatedAt = series.CreatedAt,
                 UpdatedAt = series.UpdatedAt,
-                Journeys = [.. series.Journeys.Select(j => j.ToDto())]
+                Journeys = [.. series.Journeys.Where(j => j.UserId == userId).Select(j => j.ToDto())]
             };
 
             return Result<SeriesDto>.Ok(seriesDto);
@@ -163,7 +164,7 @@ namespace Eldoria.Application.Services
                 FileName = existingSeries.FileName,
                 CreatedAt = existingSeries.CreatedAt,
                 UpdatedAt = existingSeries.UpdatedAt,
-                Journeys = [.. existingSeries.Journeys.Select(j => j.ToDto())]
+                Journeys = [.. existingSeries.Journeys.Where(j => j.UserId == userId).Select(j => j.ToDto())]
             });
         }
 
@@ -174,11 +175,18 @@ namespace Eldoria.Application.Services
             if (series is null)
                 return Result.Fail(new Error("Series.NotFound", "Series was not found."));
 
+            var deletion = await _seriesRepository.DeleteForUserAsync(userId, id, ct);
+
+            if (deletion == SeriesDeletionResult.NotFound)
+                return Result.Fail(new Error("Series.NotFound", "Series was not found."));
+
+            if (deletion == SeriesDeletionResult.OwnershipConflict)
+                return Result.Fail(new Error(
+                    "Series.OwnershipConflict",
+                    "This series cannot be deleted because its relationships require administrator review."));
+
             if (!string.IsNullOrWhiteSpace(series.PhotoUrl))
                 await _azureStorageBlob.DeletePhotoFromUrl(series.PhotoUrl);
-
-            _seriesRepository.Remove(series);
-            await _seriesRepository.SaveChangesAsync(ct);
 
             return Result.Ok();
         }

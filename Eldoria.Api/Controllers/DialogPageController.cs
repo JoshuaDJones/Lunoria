@@ -1,4 +1,5 @@
 ﻿using Eldoria.Api.Requests;
+using Eldoria.Api.Common;
 using Eldoria.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Create(int sceneDialogId, [FromForm] CreateDialogPageRequest req, CancellationToken ct)
         {
             var result = await _dialogPageService.CreateDialogPageAsync(
+                User.GetUserId(),
                 sceneDialogId,
                 req.OrderNum!.Value,
                 req.PageType!.Value,
@@ -29,7 +31,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "SceneDialog.NotFound" => BadRequest(result.Error),
+                "SceneDialog.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -41,6 +43,7 @@ namespace Eldoria.Api.Controllers
         public async Task<IActionResult> Update(int dialogPageId, [FromForm] UpdateDialogPageRequest req, CancellationToken ct)
         {
             var result = await _dialogPageService.EditDialogPageAsync(
+                User.GetUserId(),
                 dialogPageId,
                 req.OrderNum,
                 req.PageType,
@@ -52,7 +55,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "DialogPage.NotFound" => BadRequest(result.Error),
+                "DialogPage.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -60,14 +63,14 @@ namespace Eldoria.Api.Controllers
         [HttpDelete("{dialogPageId:int}")]
         public async Task<IActionResult> Delete(int dialogPageId, CancellationToken ct)
         {
-            var result = await _dialogPageService.DeleteDialogPageAsync(dialogPageId, ct);
+            var result = await _dialogPageService.DeleteDialogPageAsync(User.GetUserId(), dialogPageId, ct);
 
             if (result.Success)
                 return Ok();
 
             return result.Error?.Code switch
             {
-                "DialogPage.NotFound" => BadRequest(result.Error),
+                "DialogPage.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

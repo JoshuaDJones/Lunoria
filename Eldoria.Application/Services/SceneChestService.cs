@@ -51,6 +51,7 @@ namespace Eldoria.Application.Services
                 return Result<SceneChestDto>.Fail(error);
 
             dieSides = FixedDieSides;
+
             var validationError = ValidateChest(name, dieSides);
             if (validationError is not null)
                 return Result<SceneChestDto>.Fail(validationError);
@@ -81,6 +82,7 @@ namespace Eldoria.Application.Services
                 return Result<SceneChestDto>.Fail(NotFoundChest);
 
             dieSides = FixedDieSides;
+
             var validationError = ValidateChest(name, dieSides);
             if (validationError is not null)
                 return Result<SceneChestDto>.Fail(validationError);
@@ -92,6 +94,7 @@ namespace Eldoria.Application.Services
 
             chest.Name = name.Trim();
             chest.DieSides = dieSides;
+
             await _sceneChestRepository.SaveChangesAsync(ct);
 
             return Result<SceneChestDto>.Ok(chest.ToDto());
@@ -115,29 +118,36 @@ namespace Eldoria.Application.Services
             var nameError = ValidateChest(name, FixedDieSides);
             if (nameError is not null)
                 return Result<SceneChestDto>.Fail(nameError);
+
             if (name.Trim().Length > 250 || entries is null || entries.Count is < 1 or > 6)
                 return Result<SceneChestDto>.Fail(new Error(
                     "SceneChest.InvalidDraft", "Provide a name up to 250 characters and between one and six loot entries."));
 
             var covered = new bool[FixedDieSides + 1];
             var draftChest = new SceneChest { DieSides = FixedDieSides };
+
             foreach (var entry in entries)
             {
                 if (entry is null)
                     return Result<SceneChestDto>.Fail(new Error("SceneChest.InvalidDraft", "A loot entry is required."));
+
                 var validationError = await ValidateLootEntryAsync(
                     userId, draftChest, entry.RollMinimum, entry.RollMaximum, entry.Quantity,
                     entry.EquippableItemId, entry.ConsumableItemId, ct);
+
                 if (validationError is not null)
                     return Result<SceneChestDto>.Fail(validationError);
+
                 for (var roll = entry.RollMinimum; roll <= entry.RollMaximum; roll++)
                 {
                     if (covered[roll])
                         return Result<SceneChestDto>.Fail(new Error(
                             "SceneChest.OverlappingLoot", $"Roll {roll} has more than one loot entry."));
+
                     covered[roll] = true;
                 }
             }
+
             if (covered.Skip(1).Any(value => !value))
                 return Result<SceneChestDto>.Fail(new Error(
                     "SceneChest.IncompleteLoot", "Configure one loot outcome for every roll from 1 to 6."));
@@ -145,9 +155,11 @@ namespace Eldoria.Application.Services
             // Validate the entire draft before mutating tracked entities.
             foreach (var oldEntry in chest.LootEntries.ToList())
                 _sceneChestLootEntryRepository.Remove(oldEntry);
+
             chest.LootEntries.Clear();
             chest.Name = name.Trim();
             chest.DieSides = FixedDieSides;
+
             foreach (var entry in entries)
                 chest.LootEntries.Add(new SceneChestLootEntry
                 {
@@ -160,8 +172,10 @@ namespace Eldoria.Application.Services
 
             if (!sceneChestId.HasValue)
                 await _sceneChestRepository.AddAsync(chest, ct);
+
             // A single EF SaveChanges transaction persists the chest and all loot entries.
             await _sceneChestRepository.SaveChangesAsync(ct);
+
             var saved = await _sceneChestRepository.GetForUserAsync(userId, chest.Id, ct);
             return Result<SceneChestDto>.Ok(saved!.ToDto());
         }
@@ -304,7 +318,7 @@ namespace Eldoria.Application.Services
             var journey = await _journeyRepository.GetByIdAsync(scene.JourneyId, ct);
             return journey?.UserId == userId
                 ? (scene, null)
-                : (null, new Error("Auth.Forbidden", "You do not have permission to modify this scene."));
+                : (null, new Error("Scene.NotFound", "The scene does not exist."));
         }
 
         private async Task<SceneChest?> GetOwnedChestAsync(

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui";
+import { CharacterType } from "@/features/characters";
 import { type ScenePlaythroughCharacterOption } from "@/features/journeys";
 
 const ActionDialogContent = ({
@@ -18,6 +19,9 @@ const ActionDialogContent = ({
   const submitting = useRef(false);
   const [busyId, setBusyId] = useState<number>();
   const [error, setError] = useState("");
+  const enemies = playthroughCharacters.filter(
+    (character) => character.characterType === CharacterType.Enemy,
+  );
   const activate = async (characterId: number) => {
     if (submitting.current) return;
     submitting.current = true;
@@ -70,7 +74,7 @@ const ActionDialogContent = ({
       >
         Skip Activation {"\u2192"}
       </Button>
-      {playthroughCharacters.map((character) => (
+      {enemies.map((character) => (
         <div
           className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 mb-2"
           key={character.id}
@@ -103,9 +107,9 @@ const ActionDialogContent = ({
           </Button>
         </div>
       ))}
-      {playthroughCharacters.length === 0 && (
+      {enemies.length === 0 && (
         <p className="text-content-muted">
-          No NPC or enemy characters are available.
+          No enemies are available to activate.
         </p>
       )}
       {error && (

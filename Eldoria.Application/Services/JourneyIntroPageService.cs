@@ -90,8 +90,10 @@ namespace Eldoria.Application.Services
                 (newImageUrl, _) = await _azureStorageBlob.UploadMedia(image);
 
             var previousImageUrl = page.PreviewPhotoUrl;
+
             page.Type = type;
             page.Config = config;
+
             if (newImageUrl is not null)
                 page.PreviewPhotoUrl = newImageUrl;
 
@@ -104,6 +106,7 @@ namespace Eldoria.Application.Services
             {
                 if (newImageUrl is not null)
                     await _azureStorageBlob.DeletePhotoFromUrl(newImageUrl);
+
                 throw;
             }
 
@@ -163,15 +166,17 @@ namespace Eldoria.Application.Services
             var journey = await _journeyRepository.GetByIdAsync(journeyId, ct);
             if (journey is null)
                 return new Error("Journey.NotFound", "The journey does not exist.");
+
             return journey.UserId == userId
                 ? null
-                : new Error("Auth.Forbidden", "You do not have permission to modify this journey.");
+                : new Error("Journey.NotFound", "The journey does not exist.");
         }
 
         private static Error? Validate(IntroPageType type, string config)
         {
             if (!Enum.IsDefined(type))
                 return new Error("JourneyIntroPage.InvalidType", "The intro page type is invalid.");
+
             if (config.Length > 100_000)
                 return new Error("JourneyIntroPage.ConfigTooLarge", "The intro page content is too large.");
 

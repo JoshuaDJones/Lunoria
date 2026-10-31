@@ -5,7 +5,7 @@ namespace Eldoria.Application.Common
 {
     public static class DialogPageSectionMappings
     {
-        public static DialogPageSectionDto ToDto(this ScenePTDialogSection dialogPageSection)
+        public static DialogPageSectionDto ToDto(this ScenePTDialogSection dialogPageSection, int userId)
         {
             return new DialogPageSectionDto
             {
@@ -13,7 +13,9 @@ namespace Eldoria.Application.Common
                 OrderNum = dialogPageSection.OrderNum,
                 ReadingText = dialogPageSection.ReadingText,
                 IsNarrator = dialogPageSection.IsNarrator,
-                Character = dialogPageSection.Character?.ToDto(),
+                Character = dialogPageSection.Character is { } character && character.UserId == userId
+                    ? character.ToDto()
+                    : null,
             };
         }
     }

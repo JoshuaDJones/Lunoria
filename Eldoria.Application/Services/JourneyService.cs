@@ -8,9 +8,11 @@ namespace Eldoria.Application.Services
 {
     public class JourneyService(
         IJourneyRepository journeyRepository,
+        ISeriesRepository seriesRepository,
         IAzureStorageBlob azureStorageBlob) : IJourneyService
     {
         private readonly IJourneyRepository _journeyRepository = journeyRepository;
+        private readonly ISeriesRepository _seriesRepository = seriesRepository;
         private readonly IAzureStorageBlob _azureStorageBlob = azureStorageBlob;
 
         public async Task<Result<List<JourneyDto>>> GetListAsync(int userId, int skip, int take, CancellationToken ct = default)
@@ -37,7 +39,7 @@ namespace Eldoria.Application.Services
                 return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             if (journey.UserId != userId)
-                return Result<JourneyDto>.Fail(new Error("Auth.Forbidden", "You do not have permission to access this journey."));
+                return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             var journeyDto = new JourneyDto
             {
@@ -46,7 +48,7 @@ namespace Eldoria.Application.Services
                 Description = journey.Description,
                 PhotoUrl = journey.PhotoUrl,
                 CreatedAt = journey.CreatedAt,
-                Scenes = journey.Scenes.Select(jc => jc.ToDto()).ToList(),
+                Scenes = journey.Scenes.Select(jc => jc.ToDto(userId)).ToList(),
                 JourneyCharacters = journey.JourneyCharacters.Select(jc => jc.ToDto()).ToList(),
                 IntroPages = journey.IntroPages.Select(ip => ip.ToDto()).ToList()
             };
@@ -62,7 +64,7 @@ namespace Eldoria.Application.Services
                 return Result.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             if (journey.UserId != userId)
-                return Result.Fail(new Error("Auth.Forbidden", "You do not have permission to delete this journey."));
+                return Result.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
 
             await _azureStorageBlob.DeletePhotoFromUrl(journey.PhotoUrl);
@@ -75,6 +77,11 @@ namespace Eldoria.Application.Services
 
         public async Task<Result<JourneyDto>> CreateAsync(int userId, int seriesId, string name, string description, IFormFile photo, CancellationToken ct)
         {
+            var series = await _seriesRepository.GetForUserAsync(userId, seriesId, ct);
+
+            if (series is null)
+                return Result<JourneyDto>.Fail(new Error("Series.NotFound", "Series was not found."));
+
             var (photoUrl, filename) = await _azureStorageBlob.UploadMedia(photo);
 
             var journey = new Journey
@@ -111,7 +118,7 @@ namespace Eldoria.Application.Services
                 return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             if (journey.UserId != userId)
-                return Result<JourneyDto>.Fail(new Error("Auth.Forbidden", "You do not have permission to delete this journey."));
+                return Result<JourneyDto>.Fail(new Error("Journey.NotFound", "Journey was not found."));
 
             journey.Name = name;
             journey.Description = description;

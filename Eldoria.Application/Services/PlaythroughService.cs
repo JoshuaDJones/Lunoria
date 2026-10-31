@@ -35,8 +35,8 @@ public sealed class PlaythroughService(
         {
             return Result<PlaythroughCreatedDto>.Fail(
                 new Error(
-                    "Auth.Forbidden",
-                    "You do not have permission to start a playthrough for this journey."));
+                    "Journey.NotFound",
+                    "Journey was not found."));
         }
 
         var unfinishedPlaythroughs =
@@ -81,8 +81,6 @@ public sealed class PlaythroughService(
             StartedAt = startedAt
         };
 
-        // Add scenes from journey to playthrough
-
         var scenePTsBySourceId = sourceJourney.Scenes
             .Select(scene => new ScenePT
             {
@@ -101,8 +99,6 @@ public sealed class PlaythroughService(
                 scene => scene);
 
         newPlaythrough.Scenes = [.. scenePTsBySourceId.Values];
-
-        // Add intro pages from journey to playthrough
 
         var introPagePTList = sourceJourney.IntroPages
             .Select(introPage => new PlaythroughIntroPage
@@ -126,8 +122,6 @@ public sealed class PlaythroughService(
             }
         ];
 
-        // Add spell types to playthrough
-
         var spellTypes = assets.SpellTypes;
 
         var playthroughSpellTypesBySourceId = spellTypes
@@ -144,8 +138,6 @@ public sealed class PlaythroughService(
                 spellType => spellType);
 
         newPlaythrough.SpellTypes = [.. playthroughSpellTypesBySourceId.Values];
-
-        // Add Spells to playthrough
 
         var spells = assets.Spells;
 
@@ -171,8 +163,6 @@ public sealed class PlaythroughService(
                 spell => spell);
 
         newPlaythrough.Spells = [.. playthroughSpellsBySourceId.Values];
-
-        // Add characters to playthrough
 
         var characters = assets.Characters;
 
@@ -228,8 +218,6 @@ public sealed class PlaythroughService(
 
         newPlaythrough.Characters = [.. playthroughCharactersBySourceId.Values];
 
-        // Add consumables to playthrough
-
         var consumables = assets.Consumables;
 
         var playthroughConsumablesBySourceId = consumables
@@ -249,8 +237,6 @@ public sealed class PlaythroughService(
 
         newPlaythrough.ConsumableItems =
             [.. playthroughConsumablesBySourceId.Values];
-
-        // Add equippables to playthrough
 
         var equippables = assets.Equippables;
 
@@ -288,8 +274,6 @@ public sealed class PlaythroughService(
 
         newPlaythrough.EquippableItems =
             [.. playthroughEquippablesBySourceId.Values];
-
-        // Add JourneyCharacter to playthrough
 
         var journeyCharacters = sourceJourney.JourneyCharacters;
 
@@ -345,8 +329,6 @@ public sealed class PlaythroughService(
 
         newPlaythrough.JourneyCharacters =
             [.. journeyPTCharactersBySourceId.Values];
-
-        // Add the remaining scene graph to playthrough
 
         foreach (var sourceScene in sourceJourney.Scenes)
         {
@@ -577,9 +559,6 @@ public sealed class PlaythroughService(
                         })]
                 })];
         }
-
-
-
 
         await playthroughRepository.AddAsync(newPlaythrough, ct);
         await playthroughRepository.SaveChangesAsync(ct);
@@ -823,30 +802,38 @@ public sealed class PlaythroughService(
 
                 var addSpell = action.CharacterAddSpellAction;
                 var grant = action.CharacterGiveItemAction;
+
                 if (action.EventActionType == EventActionType.CharacterGiveItem &&
                     (grant is null || grant.Quantity is < 1 or > 1000 ||
                      grant.ConsumableItemId.HasValue == grant.EquippableItemId.HasValue))
                     return new Error("Playthrough.InvalidSourceGraph", "An item-grant event has invalid item or quantity settings.");
+
                 if (grant?.CharacterId is int grantTargetId && !characterIds.Contains(grantTargetId))
                     return Missing("event item recipient", grantTargetId);
+
                 if (grant?.ConsumableItemId is int grantConsumableId && !consumableIds.Contains(grantConsumableId))
                     return Missing("event consumable", grantConsumableId);
+
                 if (grant?.EquippableItemId is int grantEquippableId && !equippableIds.Contains(grantEquippableId))
                     return Missing("event equipment", grantEquippableId);
+
                 var change = action.CharacterChangeAlternateFormAction;
                 var inForm = action.CharacterInAlternateFormAction;
+
                 if (action.EventActionType == EventActionType.CharacterInAlternateForm)
                 {
                     if (action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter) ||
                         (action.ActionTargetType == ActionTargetType.AllJourneyCharacters && inForm?.CharacterId is not null) ||
                         (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && inForm?.CharacterId is null))
                         return new Error("Playthrough.InvalidSourceGraph", "An enter-alternate-form event has invalid target settings.");
+
                     if (inForm?.CharacterId is int inFormTargetId &&
                         (!characterIds.Contains(inFormTargetId) || !journey.JourneyCharacters.Any(character => character.CharacterId == inFormTargetId)))
                         return Missing("event transformation journey character", inFormTargetId);
                 }
                 if (change?.CharacterId is int targetId && !characterIds.Contains(targetId))
                     return Missing("event alternate-form target", targetId);
+
                 if (change?.AlternateFormId is int eventAlternateFormId && !characterIds.Contains(eventAlternateFormId))
                     return Missing("event alternate form", eventAlternateFormId);
 
@@ -880,7 +867,7 @@ public sealed class PlaythroughService(
         if (journey.UserId != userId)
         {
             return Result<List<PlaythroughSummaryDto>>.Fail(
-                new Error("Auth.Forbidden", "You do not have permission to access this journey."));
+                new Error("Journey.NotFound", "Journey was not found."));
         }
 
         var playthroughs = await playthroughRepository.ListForJourneyAsync(

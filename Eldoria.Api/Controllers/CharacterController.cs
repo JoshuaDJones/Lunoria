@@ -38,7 +38,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Character.NotFound" => BadRequest(result.Error),
+                "Character.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }
@@ -53,7 +53,7 @@ namespace Eldoria.Api.Controllers
 
             return result.Error?.Code switch
             {
-                "Character.NotFound" => BadRequest(result.Error),
+                "Character.NotFound" => NotFound(result.Error),
                 _ => BadRequest(result.Error)
             };
         }

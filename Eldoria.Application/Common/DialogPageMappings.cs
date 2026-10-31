@@ -5,7 +5,7 @@ namespace Eldoria.Application.Common
 {
     public static class DialogPageMappings
     {
-        public static DialogPageDto ToDto(this ScenePTDialogPage dialogPage)
+        public static DialogPageDto ToDto(this ScenePTDialogPage dialogPage, int userId)
         {
             return new DialogPageDto
             {
@@ -14,7 +14,7 @@ namespace Eldoria.Application.Common
                 PageType = dialogPage.PageType,
                 MediaUrl = dialogPage.MediaUrl,
                 MediaContentType = dialogPage.MediaContentType,
-                DialogPageSections = [.. dialogPage.DialogPageSections.Select(s => s.ToDto())]
+                DialogPageSections = [.. dialogPage.DialogPageSections.Select(s => s.ToDto(userId))]
             };
         }
     }

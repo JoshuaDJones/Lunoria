@@ -7,6 +7,7 @@ namespace Eldoria.Application.Services;
 public interface IDialogPageService
 {
     Task<Result> CreateDialogPageAsync(
+        int userId,
         int sceneDialogId,
         int orderNum,
         DialogPageType pageType,
@@ -14,6 +15,7 @@ public interface IDialogPageService
         CancellationToken ct);
 
     Task<Result> EditDialogPageAsync(
+        int userId,
         int dialogPageId,
         int? orderNum,
         DialogPageType? pageType,
@@ -21,6 +23,7 @@ public interface IDialogPageService
         CancellationToken ct);
 
     Task<Result> DeleteDialogPageAsync(
+        int userId,
         int dialogPageId,
         CancellationToken ct);
 }

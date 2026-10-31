@@ -51,11 +51,15 @@ export function getAccessToken(): string | null {
 export function getApiError(error: unknown): ApiError {
   if (error instanceof AxiosError) {
     const responseError = error.response?.data as Partial<ApiError> | undefined;
+    
+    const fallbackMessage = error.response?.status === 404
+      ? "The requested resource was not found."
+      : error.message;
 
     return {
       code:
         responseError?.code ?? `Http.${error.response?.status ?? "Unknown"}`,
-      message: responseError?.message ?? error.message,
+      message: responseError?.message ?? fallbackMessage,
     };
   }
 
