@@ -37,7 +37,8 @@ export function actionToInput(
     action.characterAddSpellAction ??
     action.characterGiveItemAction ??
     action.characterChangeAlternateFormAction ??
-    action.characterInAlternateFormAction;
+    action.characterInAlternateFormAction ??
+    action.characterActivationAction;
   return {
     id: action.id > 0 ? action.id : undefined,
     name: action.name,
@@ -114,6 +115,10 @@ export function draftAction(
           alternateFormName: labels.alternateName ?? null,
         }
       : null,
+    characterActivationAction:
+      [EventActionType.CharacterDisable, EventActionType.CharacterEnable].includes(input.eventActionType)
+        ? target
+        : null,
     characterInAlternateFormAction:
       input.eventActionType === EventActionType.CharacterInAlternateForm
         ? target
@@ -134,8 +139,13 @@ export function actionSummary(
         action.characterGiveItemAction?.characterName ??
         action.characterChangeAlternateFormAction?.characterName ??
         action.characterInAlternateFormAction?.characterName ??
+        action.characterActivationAction?.characterName ??
         action.characterStatAdjustmentAction?.character?.name ??
         "Unavailable player");
+  if (action.eventActionType === EventActionType.CharacterDisable)
+    return `${target} ? disable`;
+  if (action.eventActionType === EventActionType.CharacterEnable)
+    return `${target} ? enable`;
   if (action.characterGiveItemAction)
     return `${target} → ${action.characterGiveItemAction.itemName} ×${action.characterGiveItemAction.quantity}`;
   if (action.characterAddSpellAction)

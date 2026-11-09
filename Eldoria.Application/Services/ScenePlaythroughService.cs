@@ -1461,6 +1461,8 @@ public sealed partial class ScenePlaythroughService(
     {
         return action.EventActionType switch
         {
+            EventActionType.CharacterDisable or EventActionType.CharacterEnable =>
+                ExecuteCharacterActivation(scene, action),
             EventActionType.CharacterStatAdjustment =>
                 ExecuteCharacterStatAdjustment(scene, action),
             EventActionType.CharacterAddSpell =>
@@ -1473,6 +1475,30 @@ public sealed partial class ScenePlaythroughService(
                 action,
                 $"Action type '{action.EventActionType}' is not supported.")
         };
+    }
+
+    private static Error? ExecuteCharacterActivation(ScenePT scene, ScenePTActionEvent action)
+    {
+        var activation = action.CharacterActivationAction;
+        if (activation is null ||
+            action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter) ||
+            (action.ActionTargetType == ActionTargetType.AllJourneyCharacters && activation.PlaythroughCharacterId is not null) ||
+            (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && activation.PlaythroughCharacterId is null))
+            return EventExecutionError(action, "The journey character activation target is invalid.");
+
+        var targets = scene.Playthrough.JourneyCharacters.Where(character =>
+            action.ActionTargetType == ActionTargetType.AllJourneyCharacters ||
+            character.PlaythroughCharacterId == activation.PlaythroughCharacterId).ToList();
+        if (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && targets.Count != 1)
+            return EventExecutionError(action, "The targeted journey character is missing or ambiguous.");
+
+        var enabled = action.EventActionType == EventActionType.CharacterEnable;
+        foreach (var character in targets)
+        {
+            character.IsActive = enabled;
+            AddEvent(scene, $"{character.PlaythroughCharacter.Name} was {(enabled ? "enabled" : "disabled")}");
+        }
+        return null;
     }
 
     private static Error? ExecuteCharacterChangeAlternateForm(

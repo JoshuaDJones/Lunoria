@@ -527,6 +527,15 @@ public sealed class PlaythroughService(
                                             : null
                                     }
                                     : null,
+                            CharacterActivationAction =
+                                action.CharacterActivationAction is { } activation
+                                    ? new PTCharacterActivationAction
+                                    {
+                                        PlaythroughCharacter = activation.CharacterId is int activationTargetId
+                                            ? playthroughCharactersBySourceId[activationTargetId]
+                                            : null
+                                    }
+                                    : null,
                             CharacterGiveItemAction = action.CharacterGiveItemAction is { } grant
                                 ? new PTCharacterGiveItemAction
                                 {
@@ -629,6 +638,7 @@ public sealed class PlaythroughService(
                     action.CharacterAddSpellAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterInAlternateFormAction?.CharacterId);
+                AddIfPresent(characterIds, action.CharacterActivationAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterGiveItemAction?.CharacterId);
                 AddIfPresent(characterIds, action.CharacterChangeAlternateFormAction?.AlternateFormId);
             }
@@ -830,6 +840,18 @@ public sealed class PlaythroughService(
                     if (inForm?.CharacterId is int inFormTargetId &&
                         (!characterIds.Contains(inFormTargetId) || !journey.JourneyCharacters.Any(character => character.CharacterId == inFormTargetId)))
                         return Missing("event transformation journey character", inFormTargetId);
+                }
+                var activation = action.CharacterActivationAction;
+                if (action.EventActionType is EventActionType.CharacterDisable or EventActionType.CharacterEnable)
+                {
+                    if (activation is null || action.ActionTargetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter) ||
+                        (action.ActionTargetType == ActionTargetType.AllJourneyCharacters && activation?.CharacterId is not null) ||
+                        (action.ActionTargetType == ActionTargetType.SingleJourneyCharacter && activation?.CharacterId is null))
+                        return new Error("Playthrough.InvalidSourceGraph", "A character activation event has invalid target settings.");
+
+                    if (activation?.CharacterId is int activationTargetId &&
+                        (!characterIds.Contains(activationTargetId) || !journey.JourneyCharacters.Any(character => character.CharacterId == activationTargetId)))
+                        return Missing("event activation journey character", activationTargetId);
                 }
                 if (change?.CharacterId is int targetId && !characterIds.Contains(targetId))
                     return Missing("event alternate-form target", targetId);

@@ -1,4 +1,4 @@
-﻿namespace Eldoria.Core.Enums
+namespace Eldoria.Core.Enums
 {
     public enum EventActionType
     {
@@ -7,6 +7,8 @@
         CharacterChangeAlternateForm = 3,
         CharacterGiveItem = 4,
         CharacterClearAlternateForm = 5,
-        CharacterInAlternateForm = 6
+        CharacterInAlternateForm = 6,
+        CharacterDisable = 7,
+        CharacterEnable = 8
     }
 }

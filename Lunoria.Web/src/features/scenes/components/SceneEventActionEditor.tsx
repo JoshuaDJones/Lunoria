@@ -38,6 +38,7 @@ export function SceneEventActionEditor({
   const adjustment = action?.characterStatAdjustmentAction;
   const change = action?.characterChangeAlternateFormAction;
   const inForm = action?.characterInAlternateFormAction;
+  const activation = action?.characterActivationAction;
   const spellGrant = action?.characterAddSpellAction;
   const itemGrant = action?.characterGiveItemAction;
   const [spellId, setSpellId] = useState(String(spellGrant?.spellId ?? ""));
@@ -73,6 +74,8 @@ export function SceneEventActionEditor({
     actionType === EventActionType.CharacterClearAlternateForm;
   const entersAlternateForm =
     actionType === EventActionType.CharacterInAlternateForm;
+  const changesActivation = actionType === EventActionType.CharacterDisable ||
+    actionType === EventActionType.CharacterEnable;
   const givesSpell = actionType === EventActionType.CharacterAddSpell;
   const givesItem = actionType === EventActionType.CharacterGiveItem;
   const loadGrantOptions = () => {
@@ -139,6 +142,7 @@ export function SceneEventActionEditor({
         itemGrant?.characterId ??
         change?.characterId ??
         inForm?.characterId ??
+        activation?.characterId ??
         adjustment?.characterId ??
         "",
     ),
@@ -167,7 +171,7 @@ export function SceneEventActionEditor({
           name: name.trim(),
           actionTargetType: targetType,
           eventActionType: actionType,
-          ...(entersAlternateForm
+          ...(entersAlternateForm || changesActivation
             ? {}
             : clearsAlternateForm
               ? { alternateFormId: null }
@@ -256,6 +260,8 @@ export function SceneEventActionEditor({
           <option value={EventActionType.CharacterInAlternateForm}>
             Enter alternate form
           </option>
+          <option value={EventActionType.CharacterDisable}>Disable journey character</option>
+          <option value={EventActionType.CharacterEnable}>Enable journey character</option>
           <option value={EventActionType.CharacterAddSpell}>Give spell</option>
           <option value={EventActionType.CharacterGiveItem}>Give item</option>
         </Select>
@@ -390,6 +396,11 @@ export function SceneEventActionEditor({
             </p>
           )}
         </>
+      ) : changesActivation ? (
+        <p className="text-sm text-content-secondary">
+          Enables or disables the selected players before this scene starts.
+          This persists into later scenes until changed by another event or manual activation.
+        </p>
       ) : entersAlternateForm ? (
         <p className="text-sm text-content-secondary">
           Transforms characters at scene start using their assigned alternate

@@ -139,6 +139,30 @@ namespace Eldoria.Infrastructure.Migrations
                     b.ToTable("Characters");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.CharacterActivationAction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SceneEventActionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("SceneEventActionId")
+                        .IsUnique();
+
+                    b.ToTable("CharacterActivationActions", (string)null);
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.CharacterAddSpellAction", b =>
                 {
                     b.Property<int>("Id")
@@ -1372,6 +1396,30 @@ namespace Eldoria.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("JourneyPTCharacterSpells", (string)null);
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Scene.PTCharacterActivationAction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("PlaythroughCharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScenePTActionEventId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaythroughCharacterId");
+
+                    b.HasIndex("ScenePTActionEventId")
+                        .IsUnique();
+
+                    b.ToTable("PTCharacterActivationActions", (string)null);
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Scene.PTCharacterAddSpellAction", b =>
@@ -3131,6 +3179,24 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Eldoria.Core.Entities.CharacterActivationAction", b =>
+                {
+                    b.HasOne("Eldoria.Core.Entities.Character", "Character")
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Eldoria.Core.Entities.SceneEventAction", "SceneEventAction")
+                        .WithOne("CharacterActivationAction")
+                        .HasForeignKey("Eldoria.Core.Entities.CharacterActivationAction", "SceneEventActionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+
+                    b.Navigation("SceneEventAction");
+                });
+
             modelBuilder.Entity("Eldoria.Core.Entities.CharacterAddSpellAction", b =>
                 {
                     b.HasOne("Eldoria.Core.Entities.Character", "Character")
@@ -3604,6 +3670,24 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Navigation("JourneyPTCharacter");
 
                     b.Navigation("PlaythroughSpell");
+                });
+
+            modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Scene.PTCharacterActivationAction", b =>
+                {
+                    b.HasOne("Eldoria.Core.Entities.Playthrough.Base.PlaythroughCharacter", "PlaythroughCharacter")
+                        .WithMany()
+                        .HasForeignKey("PlaythroughCharacterId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Eldoria.Core.Entities.Playthrough.Scene.ScenePTActionEvent", "ScenePTActionEvent")
+                        .WithOne("CharacterActivationAction")
+                        .HasForeignKey("Eldoria.Core.Entities.Playthrough.Scene.PTCharacterActivationAction", "ScenePTActionEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlaythroughCharacter");
+
+                    b.Navigation("ScenePTActionEvent");
                 });
 
             modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Scene.PTCharacterAddSpellAction", b =>
@@ -4371,6 +4455,8 @@ namespace Eldoria.Infrastructure.Migrations
 
             modelBuilder.Entity("Eldoria.Core.Entities.Playthrough.Scene.ScenePTActionEvent", b =>
                 {
+                    b.Navigation("CharacterActivationAction");
+
                     b.Navigation("CharacterAddSpellAction");
 
                     b.Navigation("CharacterChangeAlternateFormAction");
@@ -4457,6 +4543,8 @@ namespace Eldoria.Infrastructure.Migrations
 
             modelBuilder.Entity("Eldoria.Core.Entities.SceneEventAction", b =>
                 {
+                    b.Navigation("CharacterActivationAction");
+
                     b.Navigation("CharacterAddSpellAction");
 
                     b.Navigation("CharacterChangeAlternateFormAction");

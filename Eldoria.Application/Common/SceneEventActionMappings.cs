@@ -48,5 +48,12 @@ public static class SceneEventActionMappings
                 CharacterName = inForm.Character?.Name,
             }
             : null,
+        CharacterActivationAction = action.CharacterActivationAction is { } activation
+            ? new CharacterActivationActionDto
+            {
+                CharacterId = activation.CharacterId,
+                CharacterName = activation.Character?.Name,
+            }
+            : null,
     };
 }

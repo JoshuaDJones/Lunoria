@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Enums;
+using Eldoria.Core.Enums;
 
 namespace Eldoria.Core.Entities
 {
@@ -18,5 +18,6 @@ namespace Eldoria.Core.Entities
         public CharacterGiveItemAction? CharacterGiveItemAction { get; set; }
         public CharacterChangeAlternateFormAction? CharacterChangeAlternateFormAction { get; set; }
         public CharacterInAlternateFormAction? CharacterInAlternateFormAction { get; set; }
+        public CharacterActivationAction? CharacterActivationAction { get; set; }
     }
 }

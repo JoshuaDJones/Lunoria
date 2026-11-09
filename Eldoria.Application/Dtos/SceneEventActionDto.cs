@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Enums;
+using Eldoria.Core.Enums;
 
 namespace Eldoria.Application.Dtos
 {
@@ -15,5 +15,6 @@ namespace Eldoria.Application.Dtos
         public CharacterGiveItemActionDto? CharacterGiveItemAction { get; set; }
         public CharacterChangeAlternateFormActionDto? CharacterChangeAlternateFormAction { get; set; }
         public CharacterInAlternateFormActionDto? CharacterInAlternateFormAction { get; set; }
+        public CharacterActivationActionDto? CharacterActivationAction { get; set; }
     }
 }

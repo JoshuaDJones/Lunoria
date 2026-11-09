@@ -365,7 +365,9 @@ namespace Eldoria.Application.Services
                     or EventActionType.CharacterClearAlternateForm
                     or EventActionType.CharacterAddSpell
                     or EventActionType.CharacterGiveItem
-                    or EventActionType.CharacterInAlternateForm))
+                    or EventActionType.CharacterInAlternateForm
+                    or EventActionType.CharacterDisable
+                    or EventActionType.CharacterEnable))
                 return new Error("SceneEventAction.UnsupportedType", "The action type is not supported.");
 
             if (actionType is EventActionType.CharacterAddSpell or EventActionType.CharacterGiveItem)
@@ -432,10 +434,10 @@ namespace Eldoria.Application.Services
                     return new Error("SceneEventAction.InvalidAlternateForm", "A character cannot be its own alternate form.");
             }
 
-            if (actionType == EventActionType.CharacterInAlternateForm)
+            if (actionType is EventActionType.CharacterInAlternateForm or EventActionType.CharacterDisable or EventActionType.CharacterEnable)
             {
                 if (targetType is not (ActionTargetType.AllJourneyCharacters or ActionTargetType.SingleJourneyCharacter))
-                    return new Error("SceneEventAction.InvalidTarget", "Setting characters to alternate forms can only be applied to journey characters.");
+                    return new Error("SceneEventAction.InvalidTarget", "This action can only be applied to journey characters.");
             }
 
             if (targetType == ActionTargetType.AllJourneyCharacters && characterId is not null)
@@ -477,6 +479,9 @@ namespace Eldoria.Application.Services
 
         private static void SetActionPayload(SceneEventAction action, CharacterStatType statType, AdjustmentOperation operation, int value, int? characterId, int? alternateFormId, SceneEventGrantInput? grant)
         {
+            if (action.EventActionType is not (EventActionType.CharacterDisable or EventActionType.CharacterEnable))
+                action.CharacterActivationAction = null;
+
             if (action.EventActionType != EventActionType.CharacterStatAdjustment)
                 action.CharacterStatAdjustmentAction = null;
 
@@ -491,6 +496,13 @@ namespace Eldoria.Application.Services
 
             if (action.EventActionType != EventActionType.CharacterGiveItem)
                 action.CharacterGiveItemAction = null;
+
+            if (action.EventActionType is EventActionType.CharacterDisable or EventActionType.CharacterEnable)
+            {
+                action.CharacterActivationAction ??= new CharacterActivationAction();
+                action.CharacterActivationAction.CharacterId = characterId;
+                return;
+            }
 
             if (action.EventActionType == EventActionType.CharacterAddSpell)
             {

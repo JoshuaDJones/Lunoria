@@ -1,4 +1,4 @@
-﻿using Eldoria.Core.Enums;
+using Eldoria.Core.Enums;
 
 namespace Eldoria.Core.Entities.Playthrough.Scene
 {
@@ -22,5 +22,6 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
         public PTCharacterGiveItemAction? CharacterGiveItemAction { get; set; }
         public PTCharacterChangeAlternateFormAction? CharacterChangeAlternateFormAction { get; set; }
         public PTCharacterInAlternateFormAction? CharacterInAlternateFormAction { get; set; }
+        public PTCharacterActivationAction? CharacterActivationAction { get; set; }
     }
 }

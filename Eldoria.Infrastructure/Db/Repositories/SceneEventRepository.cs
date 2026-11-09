@@ -36,6 +36,9 @@ namespace Eldoria.Infrastructure.Db.Repositories
                     .ThenInclude(action => action.CharacterChangeAlternateFormAction)
                         .ThenInclude(change => change!.AlternateForm)
                 .Include(sceneEvent => sceneEvent.SceneEventActions)
+                    .ThenInclude(action => action.CharacterActivationAction)
+                        .ThenInclude(check => check!.Character)
+                .Include(sceneEvent => sceneEvent.SceneEventActions)
                     .ThenInclude(action => action.CharacterInAlternateFormAction)
                         .ThenInclude(check => check!.Character);
 
@@ -113,6 +116,8 @@ namespace Eldoria.Infrastructure.Db.Repositories
                     .ThenInclude(change => change!.Character)
                 .Include(action => action.CharacterChangeAlternateFormAction)
                     .ThenInclude(change => change!.AlternateForm)
+                .Include(action => action.CharacterActivationAction)
+                    .ThenInclude(check => check!.Character)
                 .Include(action => action.CharacterInAlternateFormAction)
                     .ThenInclude(check => check!.Character)
                 .SingleOrDefaultAsync(action => action.Id == actionId && action.SceneEvent.Scene.Journey.UserId == userId, ct);
