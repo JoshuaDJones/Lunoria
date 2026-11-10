@@ -365,8 +365,19 @@ function PublicCharacterView({
 
   return (
     <article className="w-full overflow-hidden rounded-3xl bg-surface/75 backdrop-blur-[2px]">
+      <div className="grid lg:grid-cols-[minmax(17rem,2fr)_minmax(0,3fr)]">
+        <figure className="flex flex-col items-center justify-center bg-canvas/80 p-4">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt=""
+              className={`w-2/5 object-contain rounded-xl ${(canPreview ? viewAlternate : character.isInAlternateForm) ? "ring-1 ring-violet-400/50 shadow-[0_0_18px_rgba(167,139,250,0.3)]" : ""}`}
+            />
+          ) : (
+            <span className="text-content-muted">No image</span>
+          )}
       {canPreview && (
-        <div className="border-b border-border px-4 py-3">
+        <div className="mt-4 w-full max-w-sm">
           <div role="group" aria-label="View character form" className="flex gap-2">
             {([{ alternate: false, label: "Normal form" }, { alternate: true, label: "Alternate form" }] as const).map((form) => (
               <button
@@ -381,22 +392,11 @@ function PublicCharacterView({
             ))}
           </div>
           <p aria-live="polite" className="mt-2 text-center text-xs text-content-muted">
-            {previewing ? "Preview only ? your active form has not changed." : "Viewing your active form."}
+            {previewing ? "Inactive form" : "Active form"}
           </p>
         </div>
       )}
-      <div className="grid lg:grid-cols-[minmax(17rem,2fr)_minmax(0,3fr)]">
-        <figure className="flex flex-col items-center justify-center bg-canvas/80 p-4">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt=""
-              className={`w-2/5 object-contain rounded-xl ${(canPreview ? viewAlternate : character.isInAlternateForm) ? "ring-1 ring-violet-400/50 shadow-[0_0_18px_rgba(167,139,250,0.3)]" : ""}`}
-            />
-          ) : (
-            <span className="text-content-muted">No image</span>
-          )}
-          {character.isInAlternateForm && (
+          {character.isInAlternateForm && !previewing && (
             <figcaption className="mt-2 flex items-center justify-center gap-1 text-xs font-semibold text-violet-300">
               <svg
                 aria-hidden="true"
@@ -410,7 +410,7 @@ function PublicCharacterView({
                 <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" />
                 <path d="M20 2v4m-2-2h4" />
               </svg>
-              <span>{previewing ? "Currently transformed ? viewing normal form" : "Transformed"}</span>
+              <span>Transformed</span>
             </figcaption>
           )}
         </figure>
