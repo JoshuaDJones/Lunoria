@@ -270,7 +270,10 @@ export function PlaythroughGuestPage() {
                   imageUrl:
                     entry.character.portraitUrl?.trim() ||
                     entry.character.photoUrl?.trim(),
-                  content: <PublicCharacterView character={entry.character} />,
+                  content: <PublicCharacterView
+                    key={`${entry.key}:${entry.character.isInAlternateForm}:${entry.character.alternateFormPreview?.id ?? "none"}`}
+                    character={entry.character}
+                  />,
                 }))}
               />
             )}
@@ -351,18 +354,44 @@ function PublicCharacterView({
 }: {
   character: PublicPlaythroughCharacter;
 }) {
-  const imageUrl = character.portraitUrl?.trim() || character.photoUrl?.trim();
+  const [viewAlternate, setViewAlternate] = useState(character.isInAlternateForm);
+  const canPreview = !!character.baseFormPreview && !!character.alternateFormPreview;
+  const displayed = canPreview
+    ? (viewAlternate ? character.alternateFormPreview! : character.baseFormPreview!)
+    : character;
+  const previewing = canPreview && viewAlternate !== character.isInAlternateForm;
+  const imageUrl = displayed.portraitUrl?.trim() || displayed.photoUrl?.trim();
   const consumableGroups = groupPublicConsumables(character.consumableItems);
 
   return (
     <article className="w-full overflow-hidden rounded-3xl bg-surface/75 backdrop-blur-[2px]">
+      {canPreview && (
+        <div className="border-b border-border px-4 py-3">
+          <div role="group" aria-label="View character form" className="flex gap-2">
+            {([{ alternate: false, label: "Normal form" }, { alternate: true, label: "Alternate form" }] as const).map((form) => (
+              <button
+                key={form.label}
+                type="button"
+                aria-pressed={viewAlternate === form.alternate}
+                onClick={() => setViewAlternate(form.alternate)}
+                className={`min-h-11 flex-1 rounded-lg border px-3 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility ${viewAlternate === form.alternate ? "border-violet-400/60 bg-violet-400/15 text-violet-200" : "border-border text-content-secondary hover:bg-surface-raised"}`}
+              >
+                {form.label}
+              </button>
+            ))}
+          </div>
+          <p aria-live="polite" className="mt-2 text-center text-xs text-content-muted">
+            {previewing ? "Preview only ? your active form has not changed." : "Viewing your active form."}
+          </p>
+        </div>
+      )}
       <div className="grid lg:grid-cols-[minmax(17rem,2fr)_minmax(0,3fr)]">
         <figure className="flex flex-col items-center justify-center bg-canvas/80 p-4">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              className={`w-2/5 object-contain rounded-xl ${character.isInAlternateForm ? "ring-1 ring-violet-400/50 shadow-[0_0_18px_rgba(167,139,250,0.3)]" : ""}`}
+              className={`w-2/5 object-contain rounded-xl ${(canPreview ? viewAlternate : character.isInAlternateForm) ? "ring-1 ring-violet-400/50 shadow-[0_0_18px_rgba(167,139,250,0.3)]" : ""}`}
             />
           ) : (
             <span className="text-content-muted">No image</span>
@@ -381,14 +410,14 @@ function PublicCharacterView({
                 <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" />
                 <path d="M20 2v4m-2-2h4" />
               </svg>
-              <span>Transformed</span>
+              <span>{previewing ? "Currently transformed ? viewing normal form" : "Transformed"}</span>
             </figcaption>
           )}
         </figure>
 
         <div className="p-6 sm:p-8">
           <h2 className="text-2xl font-semibold text-content sm:text-3xl">
-            {character.name}
+            {displayed.name}
           </h2>
           <p className="break-words text-content-secondary">
             <span className="font-semibold text-utility-hover">
@@ -396,7 +425,7 @@ function PublicCharacterView({
                 ? getCharacterTypeLabel(character.characterType)
                 : "Player"}
             </span>
-            {character.description && ` - ${character.description}`}
+            {displayed.description && ` - ${displayed.description}`}
           </p>
 
           <div className="flex flex-wrap gap-2">
@@ -414,13 +443,13 @@ function PublicCharacterView({
               label="MP"
               value={`${character.currentMp} / ${character.maxMp}`}
             />
-            <PublicStat label="Movement" value={character.movement} />
+            <PublicStat label="Movement" value={displayed.movement} />
             <PublicStat
               label="Melee"
-              value={character.meleeAttackDamage ?? "—"}
+              value={displayed.meleeAttackDamage ?? "—"}
             />
-            {character.bowAttackDamage !== null && (
-              <PublicStat label="Bow" value={character.bowAttackDamage} />
+            {displayed.bowAttackDamage !== null && (
+              <PublicStat label="Bow" value={displayed.bowAttackDamage} />
             )}
           </dl>
         </div>
@@ -428,9 +457,9 @@ function PublicCharacterView({
 
       <div className="space-y-8 border-t border-border p-6 sm:p-8">
         <PublicSection title="Spells">
-          {character.spells.length > 0 ? (
+          {displayed.spells.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {character.spells.map((spell) => (
+              {displayed.spells.map((spell) => (
                 <SpellCard
                   key={spell.id}
                   spell={spell}

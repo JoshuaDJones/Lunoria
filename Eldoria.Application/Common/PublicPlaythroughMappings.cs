@@ -96,6 +96,13 @@ public static class PublicPlaythroughMappings
             IsDead = false,
             IsInAlternateForm = character.IsInAlternateForm,
             AlternateForm = ToAlternateFormDto(character.AlternateForm),
+            BaseFormPreview = ToFormPreview(character.PlaythroughCharacter, character.Movement,
+                character.MeleeAttackDamage, character.BowAttackDamage,
+                character.Spells.Select(link => link.PlaythroughSpell), equipmentEffects),
+            AlternateFormPreview = character.AlternateForm is { } alternate
+                ? ToFormPreview(alternate, alternate.BaseMovement, alternate.BaseMeleeAttackDamage,
+                    alternate.BaseBowAttackDamage, alternate.Spells.Select(link => link.PlaythroughSpell), equipmentEffects)
+                : null,
             Spells = ScenePlaythroughSpellSelection.For(character)
                 .Concat(equipmentEffects.AddedSpells)
                 .GroupBy(spell => spell.Id)
@@ -159,6 +166,13 @@ public static class PublicPlaythroughMappings
             IsDead = character.IsDead,
             IsInAlternateForm = character.IsInAlternateForm,
             AlternateForm = ToAlternateFormDto(character.AlternateForm),
+            BaseFormPreview = ToFormPreview(character.PlaythroughCharacter, character.Movement,
+                character.MeleeAttackDamage, character.BowAttackDamage,
+                character.Spells.Select(link => link.PlaythroughSpell), equipmentEffects),
+            AlternateFormPreview = character.AlternateForm is { } alternate
+                ? ToFormPreview(alternate, alternate.BaseMovement, alternate.BaseMeleeAttackDamage,
+                    alternate.BaseBowAttackDamage, alternate.Spells.Select(link => link.PlaythroughSpell), equipmentEffects)
+                : null,
             Spells = ScenePlaythroughSpellSelection.For(character)
                 .Concat(equipmentEffects.AddedSpells)
                 .GroupBy(spell => spell.Id)
@@ -179,6 +193,24 @@ public static class PublicPlaythroughMappings
                 .ToList()
         };
     }
+
+    private static PublicCharacterFormPreviewDto ToFormPreview(
+        PlaythroughCharacter character, int movement, int? melee, int? bow,
+        IEnumerable<PlaythroughSpell> spells, ScenePlaythroughEquipmentEffects equipment) => new()
+    {
+        Id = character.Id,
+        Name = character.Name,
+        Description = character.Description,
+        PhotoUrl = character.PhotoUrl,
+        PortraitUrl = character.PortraitUrl,
+        Movement = ScenePlaythroughEquipmentEffects.Apply(movement, equipment.MovementModifier, minimum: int.MinValue),
+        MeleeAttackDamage = ScenePlaythroughEquipmentEffects.Apply(melee, equipment.MeleeAttackDamageModifier, minimum: int.MinValue),
+        BowAttackDamage = ScenePlaythroughEquipmentEffects.Apply(bow, equipment.BowAttackDamageModifier, minimum: int.MinValue),
+        Spells = spells.Concat(equipment.AddedSpells).DistinctBy(spell => spell.Id)
+            .OrderBy(spell => spell.Name)
+            .Select(spell => spell.ToPublicDto(equipment.GetSpellDamageModifier(spell.PlaythroughSpellTypeId)))
+            .ToList()
+    };
 
     private static PublicAlternateFormDto? ToAlternateFormDto(PlaythroughCharacter? character) =>
         character is null ? null : new PublicAlternateFormDto

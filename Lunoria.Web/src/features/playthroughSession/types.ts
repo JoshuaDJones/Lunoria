@@ -51,7 +51,21 @@ export interface PublicPlaythroughEquippableItem {
   addedSpells: PublicPlaythroughSpell[];
 }
 
+export interface PublicCharacterFormPreview {
+  id: number;
+  name: string;
+  description: string;
+  photoUrl: string | null;
+  portraitUrl: string | null;
+  movement: number;
+  meleeAttackDamage: number | null;
+  bowAttackDamage: number | null;
+  spells: PublicPlaythroughSpell[];
+}
+
 export interface PublicPlaythroughCharacter {
+  baseFormPreview?: PublicCharacterFormPreview | null;
+  alternateFormPreview?: PublicCharacterFormPreview | null;
   alternateForm: {
     name: string;
     description: string;

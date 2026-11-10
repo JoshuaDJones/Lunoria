@@ -25,6 +25,8 @@ public sealed class PublicPlaythroughCharacterDto
     public bool IsDead { get; set; }
     public bool IsInAlternateForm { get; set; }
     public PublicAlternateFormDto? AlternateForm { get; set; }
+    public PublicCharacterFormPreviewDto? BaseFormPreview { get; set; }
+    public PublicCharacterFormPreviewDto? AlternateFormPreview { get; set; }
     public List<PublicPlaythroughSpellDto> Spells { get; set; } = [];
     public List<PublicPlaythroughConsumableItemDto> ConsumableItems { get; set; } = [];
     public List<PublicPlaythroughEquippableItemDto> EquippableItems { get; set; } = [];
