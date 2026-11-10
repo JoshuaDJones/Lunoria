@@ -453,7 +453,7 @@ public sealed partial class ScenePlaythroughService(
 
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene);
         if (stateError is not null)
@@ -485,6 +485,9 @@ public sealed partial class ScenePlaythroughService(
             return Result<SceneMovementResultDto>.Fail(actionError);
 
         var baseMovement = SceneActiveCombatStats.For(participant).Movement;
+        if (scene.MovementRecorded)
+            return Result<SceneMovementResultDto>.Fail(new Error(
+                "ScenePlaythrough.MovementAlreadyRecorded", "Movement has already been recorded for this turn. Undo the turn to start again."));
         var equipmentEffects = ScenePlaythroughEquipmentEffects.For(participant);
         var movement = ScenePlaythroughEquipmentEffects.Apply(
             ScenePlaythroughEquipmentEffects.Apply(
@@ -492,6 +495,7 @@ public sealed partial class ScenePlaythroughService(
                 equipmentEffects.MovementModifier, minimum: int.MinValue),
             roll);
 
+        scene.MovementRecorded = true;
         AddEvent(scene, $"{characterName} moved {movement} spaces");
         await playthroughRepository.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
@@ -524,7 +528,7 @@ public sealed partial class ScenePlaythroughService(
 
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene, allowCounterattack: isCounterattack);
         if (stateError is not null)
@@ -877,7 +881,7 @@ public sealed partial class ScenePlaythroughService(
 
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene);
         if (stateError is not null)
@@ -1047,7 +1051,7 @@ public sealed partial class ScenePlaythroughService(
     {
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene);
         if (stateError is not null)
@@ -1185,7 +1189,7 @@ public sealed partial class ScenePlaythroughService(
     {
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene);
         if (stateError is not null)
@@ -1337,7 +1341,7 @@ public sealed partial class ScenePlaythroughService(
     {
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene);
         if (stateError is not null)
@@ -1401,7 +1405,7 @@ public sealed partial class ScenePlaythroughService(
     {
         await using var transaction =
             await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(
+        var scene = await GetSceneForTurnAsync(
             userId, playthroughId, sceneId, ct);
         var stateError = ValidateManageableScene(scene);
         if (stateError is not null)
@@ -2122,6 +2126,8 @@ public sealed partial class ScenePlaythroughService(
         ScenePT scene,
         ScenePTParticipant currentParticipant)
     {
+        scene.TurnStarted = false;
+        scene.MovementRecorded = false;
         currentParticipant.AttacksRemaining = 0;
         currentParticipant.LockedAttackTargetId = null;
         var participants = scene.SceneParticipants

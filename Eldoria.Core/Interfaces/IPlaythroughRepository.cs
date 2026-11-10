@@ -53,6 +53,9 @@ public interface IPlaythroughRepository
         int sceneId,
         CancellationToken ct);
 
+    void CaptureTurnCheckpoint(ScenePT scene);
+    Task RestoreTurnCheckpointAsync(ScenePT scene, CancellationToken ct);
+
     Task AddAsync(Playthrough playthrough, CancellationToken ct);
 
     Task<int> SaveChangesAsync(CancellationToken ct);

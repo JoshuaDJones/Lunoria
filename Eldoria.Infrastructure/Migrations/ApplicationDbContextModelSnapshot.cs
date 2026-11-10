@@ -728,6 +728,9 @@ namespace Eldoria.Infrastructure.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<long>("GameplayRevision")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -1634,6 +1637,9 @@ namespace Eldoria.Infrastructure.Migrations
                     b.Property<Guid?>("InventoryResolutionToken")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("MovementRecorded")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -1663,6 +1669,18 @@ namespace Eldoria.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("TurnCheckpointJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TurnStarted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UndoRevision")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("UndoToken")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 

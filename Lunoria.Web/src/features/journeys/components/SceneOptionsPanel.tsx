@@ -30,6 +30,7 @@ interface SceneOptionsPanelProps {
   ) => void;
   onViewDialog: (dialog: ScenePlaythroughDialog) => void;
   onEndScene: () => void;
+  onUndoTurn: () => void;
 }
 
 export function SceneOptionsPanel({
@@ -42,6 +43,7 @@ export function SceneOptionsPanel({
   onUpdateParticipant,
   onViewDialog,
   onEndScene,
+  onUndoTurn,
 }: SceneOptionsPanelProps) {
   const [page, setPage] = useState<
     "options" | "characters" | "chest" | "stats" | "logs"
@@ -174,6 +176,12 @@ export function SceneOptionsPanel({
 
         <hr className="border-border" />
 
+        <OptionSection title="Undo Turn">
+          <Button disabled={busyAction !== undefined || !scene.undoToken} onClick={onUndoTurn}>
+            {scene.turnStarted ? "Undo current turn" : "Undo last turn"}
+          </Button>
+          {!scene.undoToken && <p className="mt-2 text-sm text-content-muted">No turn is available to undo.</p>}
+        </OptionSection>
         <OptionSection title="End Scene">
           <div className="rounded-xl border border-danger/40 bg-danger/5 p-4">
             <p className="text-sm text-content-secondary">

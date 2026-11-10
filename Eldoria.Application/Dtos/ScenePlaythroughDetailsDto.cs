@@ -5,6 +5,9 @@ namespace Eldoria.Application.Dtos;
 public sealed class ScenePlaythroughDetailsDto
 {
     public int Id { get; set; }
+    public bool TurnStarted { get; set; }
+    public bool MovementRecorded { get; set; }
+    public Guid? UndoToken { get; set; }
     public int PlaythroughId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }

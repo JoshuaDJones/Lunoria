@@ -393,6 +393,9 @@ export interface ScenePlaythroughDialog {
 }
 
 export interface ScenePlaythroughDetails {
+  turnStarted: boolean;
+  movementRecorded: boolean;
+  undoToken: string | null;
   objectives: import("@/features/scenes/objectives").SceneObjective[];
   currentObjectiveIndex: number;
   counterattackerId: number | null;

@@ -434,3 +434,11 @@ export async function removeJourneyCharacterSpell(
     `/journey-characters/${journeyCharacterId}/spells/${spellId}`,
   );
 }
+
+export async function beginSceneTurn(playthroughId: number, sceneId: number, participantId: number): Promise<void> {
+  await apiClient.post(`/playthroughs/${playthroughId}/scenes/${sceneId}/participants/${participantId}/begin-turn`);
+}
+
+export async function undoSceneTurn(playthroughId: number, sceneId: number, token: string): Promise<void> {
+  await apiClient.post(`/playthroughs/${playthroughId}/scenes/${sceneId}/undo-turn`, { token });
+}

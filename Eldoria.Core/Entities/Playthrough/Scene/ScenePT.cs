@@ -6,6 +6,11 @@ namespace Eldoria.Core.Entities.Playthrough.Scene
     public class ScenePT
     {
         public int Id { get; set; }
+        public bool TurnStarted { get; set; }
+        public bool MovementRecorded { get; set; }
+        public Guid? UndoToken { get; set; }
+        public long UndoRevision { get; set; }
+        public string? TurnCheckpointJson { get; set; }
         public int SourceSceneId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; } = string.Empty;

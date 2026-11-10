@@ -12,6 +12,9 @@ public static class ScenePlaythroughMappings
         return new ScenePlaythroughDetailsDto
         {
             Id = scene.Id,
+            TurnStarted = scene.TurnStarted,
+            MovementRecorded = scene.MovementRecorded,
+            UndoToken = scene.UndoRevision == scene.Playthrough.GameplayRevision ? scene.UndoToken : null,
             CurrentObjectiveIndex = scene.CurrentObjectiveIndex,
             Objectives = scene.ToObjectiveDtos(),
             PlaythroughId = scene.PlaythroughId,

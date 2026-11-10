@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Eldoria.Infrastructure.Db.Repositories;
 
-public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
+public sealed partial class PlaythroughRepository(ApplicationDbContext dbContext)
     : IPlaythroughRepository
 {
     public async Task<IPlaythroughTransaction> BeginStartTransactionAsync(
@@ -356,13 +356,13 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
                 ct);
     }
 
-    public Task<ScenePT?> GetSceneForCharacterInstanceAddAsync(
+    public async Task<ScenePT?> GetSceneForCharacterInstanceAddAsync(
         int userId,
         int playthroughId,
         int sceneId,
         CancellationToken ct)
     {
-        return dbContext.ScenePTs
+        var scene = await dbContext.ScenePTs
             .AsSplitQuery()
             .Include(scene => scene.SceneParticipants)
             .Include(scene => scene.SceneCharacters)
@@ -442,6 +442,16 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
                     scene.PlaythroughId == playthroughId &&
                     scene.Playthrough.UserId == userId,
                 ct);
+        if (scene?.TurnStarted == true)
+        {
+            checkpointScene = scene;
+            if (scene.UndoRevision != scene.Playthrough.GameplayRevision)
+            {
+                scene.TurnCheckpointJson = null;
+                scene.UndoToken = null;
+            }
+        }
+        return scene;
     }
 
     public Task AddAsync(Playthrough playthrough, CancellationToken ct)
@@ -451,6 +461,16 @@ public sealed class PlaythroughRepository(ApplicationDbContext dbContext)
 
     public Task<int> SaveChangesAsync(CancellationToken ct)
     {
+        foreach (var entry in dbContext.ChangeTracker.Entries<Playthrough>())
+        {
+            if (entry.State == EntityState.Added) continue;
+            entry.Entity.GameplayRevision++;
+        }
+        if (checkpointScene is { TurnCheckpointJson: not null })
+        {
+            checkpointScene.UndoRevision = checkpointScene.Playthrough.GameplayRevision;
+            checkpointScene.UndoToken = Guid.NewGuid();
+        }
         return dbContext.SaveChangesAsync(ct);
     }
 

@@ -10,9 +10,9 @@ import { GuestEventToast } from "@/features/playthroughSession/components/GuestE
 import type { PublicPlaythroughEventLog } from "@/features/playthroughSession/types";
 import { useParams } from "react-router-dom";
 import AppLayout from "@/app/layouts";
-import { Drawer } from "@/components/ui";
+import { Button, Drawer } from "@/components/ui";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBookOpen, faClockRotateLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { CharacterType } from "@/features/characters";
 import {
   createPlaythroughSessionConnection,
@@ -27,6 +27,8 @@ import { getApiError } from "@/lib/apiClient";
 import { SceneObjectivesPanel } from "@/features/sceneplaythrough/components/SceneObjectivesPanel";
 import { GuestCardDeck } from "@/features/playthroughSession/components/GuestCardDeck";
 
+import { GuestGameRules } from "@/features/playthroughSession/components/GuestGameRules";
+
 type DeckEntry = {
   key: string;
   character: PublicPlaythroughCharacter;
@@ -40,11 +42,11 @@ export function PlaythroughGuestPage() {
   const [error, setError] = useState("");
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
-  const [showEventLogs, setShowEventLogs] = useState(false);
-  const logsButtonRef = useRef<HTMLButtonElement>(null);
-  const closeEventLogs = useCallback(() => {
-    setShowEventLogs(false);
-    logsButtonRef.current?.focus();
+  const [menuPage, setMenuPage] = useState<"menu" | "logs" | "rules" | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMenu = useCallback(() => {
+    setMenuPage(null);
+    menuButtonRef.current?.focus();
   }, []);
   const [eventQueue, setEventQueue] = useState<{
     token: string;
@@ -236,18 +238,19 @@ export function PlaythroughGuestPage() {
             <span className="sr-only" role="status">
               {isRealtimeConnected ? "Live" : "Reconnecting"}
             </span>
-            <button
-              ref={logsButtonRef}
-              type="button"
-              aria-label="Show event logs"
-              aria-haspopup="dialog"
-              aria-expanded={showEventLogs}
-              title="Event logs"
-              onClick={() => setShowEventLogs(true)}
-              className="fixed right-0 top-[env(safe-area-inset-top)] z-40 flex h-11 w-11 items-center justify-center rounded-full bg-transparent text-content drop-shadow-md hover:text-utility-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility"
-            >
-              <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5" />
-            </button>
+            <header className="flex shrink-0 justify-end border-b border-border bg-surface/85 px-2 pt-[env(safe-area-inset-top)] backdrop-blur-sm">
+              <button
+                ref={menuButtonRef}
+                type="button"
+                aria-label="Open playthrough menu"
+                aria-haspopup="dialog"
+                aria-expanded={menuPage !== null}
+                onClick={() => setMenuPage("menu")}
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-content hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility"
+              >
+                <FontAwesomeIcon icon={faBars} className="h-5 w-5" />
+              </button>
+            </header>
 
             {entries.length === 0 ? (
               <div className="p-6">
@@ -271,9 +274,41 @@ export function PlaythroughGuestPage() {
                 }))}
               />
             )}
-            {showEventLogs && (
-              <Drawer title="Event Logs" onClose={closeEventLogs}>
-                <PublicEventLogView snapshot={snapshot} />
+            {menuPage && (
+              <Drawer
+                title={menuPage === "logs" ? "Event Logs" : menuPage === "rules" ? "Game Rules" : "Menu"}
+                onClose={closeMenu}
+              >
+                {menuPage === "menu" ? (
+                  <nav aria-label="Playthrough menu" className="space-y-3">
+                    {([
+                      { page: "logs", label: "Event logs", icon: faClockRotateLeft },
+                      { page: "rules", label: "Game rules", icon: faBookOpen },
+                    ] as const).map((item) => (
+                      <button
+                        key={item.page}
+                        type="button"
+                        onClick={() => setMenuPage(item.page)}
+                        className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-left font-semibold text-content hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-utility"
+                      >
+                        <FontAwesomeIcon icon={item.icon} className="h-5 w-5 text-utility" />
+                        <span className="flex-1">{item.label}</span>
+                        <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
+                      </button>
+                    ))}
+                  </nav>
+                ) : (
+                  <>
+                    <Button className="mb-5" onClick={() => setMenuPage("menu")}>
+                      Back to menu
+                    </Button>
+                    {menuPage === "logs" ? (
+                      <PublicEventLogView snapshot={snapshot} />
+                    ) : (
+                      <GuestGameRules />
+                    )}
+                  </>
+                )}
               </Drawer>
             )}
             <SceneObjectivesPanel
@@ -396,7 +431,11 @@ function PublicCharacterView({
           {character.spells.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {character.spells.map((spell) => (
-                <SpellCard key={spell.id} spell={spell} />
+                <SpellCard
+                  key={spell.id}
+                  spell={spell}
+                  currentMp={character.currentMp}
+                />
               ))}
             </div>
           ) : (
@@ -472,14 +511,27 @@ function PublicEventLogView({
   );
 }
 
-function SpellCard({ spell }: { spell: PublicPlaythroughSpell }) {
+function SpellCard({
+  spell,
+  currentMp,
+}: {
+  spell: PublicPlaythroughSpell;
+  currentMp: number;
+}) {
+  const insufficientMp = spell.mpCost > currentMp;
   return (
     <ItemCard
       imageUrl={spell.photoUrl}
       imageAbove
       name={spell.name}
       description={spell.description}
+      unavailable={insufficientMp}
     >
+      {insufficientMp && (
+        <p className="mb-2 text-xs font-semibold text-content-secondary">
+          Not enough MP
+        </p>
+      )}
       <div className="flex flex-wrap gap-2 text-xs text-content-secondary">
         <ItemValue label="Type" value={spell.spellType} />
         <ItemValue label="MP" value={spell.mpCost} />
@@ -602,18 +654,22 @@ function groupPublicConsumables(items: PublicPlaythroughConsumableItem[]) {
 function ItemCard({
   imageUrl,
   imageAbove = false,
+  unavailable = false,
   name,
   description,
   children,
 }: {
   imageUrl: string | null;
   imageAbove?: boolean;
+  unavailable?: boolean;
   name: string;
   description: string;
   children: ReactNode;
 }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-surface/80">
+    <article
+      className={`overflow-hidden rounded-2xl border border-border bg-surface/80 transition-opacity ${unavailable ? "opacity-50 grayscale" : ""}`}
+    >
       <div className={`flex min-h-36 ${imageAbove ? "flex-col" : ""}`}>
         <div
           className={`flex shrink-0 items-center justify-center bg-canvas/70 p-2 ${imageAbove ? "w-full" : "w-1/3"}`}

@@ -1,3 +1,5 @@
+import { UndoTurnPrompt } from "@/features/sceneplaythrough/components/UndoTurnPrompt";
+import { beginSceneTurn, undoSceneTurn } from "@/features/journeys";
 import { useEffect, useId, useRef, useState } from "react";
 import { SceneObjectivesPanel } from "@/features/sceneplaythrough/components/SceneObjectivesPanel";
 import { selectSceneObjective } from "@/features/scenes/objectives";
@@ -133,11 +135,23 @@ export function ScenePlaythroughPage() {
     }
   };
 
-  const beginParticipantTurn = (
+  const beginTurnPending = useRef(false);
+  const beginParticipantTurn = async (
     roundNumber: number,
     participant: ScenePlaythroughParticipant,
     playthroughCharacters: ScenePlaythroughCharacterOption[],
   ) => {
+    if (beginTurnPending.current) return;
+    beginTurnPending.current = true;
+    try {
+      await beginSceneTurn(playthroughId, sceneId, participant.id);
+      setScene(await getScenePlaythrough(playthroughId, sceneId));
+    } catch (error) {
+      toast.error(getApiError(error).message, "Unable to begin turn");
+      return;
+    } finally {
+      beginTurnPending.current = false;
+    }
     const turnKey = `${roundNumber}:${participant.id}`;
 
     modalStack.push({
@@ -643,6 +657,39 @@ export function ScenePlaythroughPage() {
     }
   };
 
+  const requestUndoTurn = () => {
+    if (!scene?.undoToken) return;
+    const token = scene.undoToken;
+    const id = modalStack.push({
+      title: "Undo Turn",
+      placement: "center",
+      content: (
+        <UndoTurnPrompt
+          inProgress={scene.turnStarted}
+          onCancel={() => modalStack.pop()}
+          onBusyChange={(busy) => modalStack.setDismissible(id, !busy)}
+          onConfirm={async () => {
+            setOptionAction("undo-turn");
+            try {
+              await undoSceneTurn(playthroughId, sceneId, token);
+              setBegunTurnKey("");
+              setAwaitingActionTurnKey("");
+              modalStack.dismissAll();
+              setIsOptionsOpen(false);
+              try {
+                setScene(await getScenePlaythrough(playthroughId, sceneId));
+                toast.success("Turn undone. Move physical pieces back as needed.");
+              } catch {
+                setError("The turn was undone, but the scene could not be refreshed. Reload the page before continuing.");
+                toast.error("Turn undone. Reload the page to see the restored scene.");
+              }
+            } finally { setOptionAction(undefined); }
+          }}
+        />
+      ),
+    });
+  };
+
   const requestEndScene = () => {
     modalStack.push({
       title: "End Scene",
@@ -846,10 +893,11 @@ export function ScenePlaythroughPage() {
                   {scene.participants.map((participant) => {
                     const turnKey = `${scene.roundNumber}:${participant.id}`;
                     const isAwaitingAction =
+                      (participant.isCurrentParticipant && scene.movementRecorded) ||
                       awaitingActionTurnKey === turnKey ||
                       (participant.isCurrentParticipant &&
                         participant.lockedAttackTargetId != null);
-                    const hasBegunTurn = begunTurnKey === turnKey;
+                    const hasBegunTurn = scene.movementRecorded && begunTurnKey === turnKey;
                     const turnPromptLabel = isAwaitingAction
                       ? "Select Action"
                       : !hasBegunTurn
@@ -893,7 +941,7 @@ export function ScenePlaythroughPage() {
       </main>
 
       {isOptionsOpen && entrance.isReady && (
-        <Drawer title="Scene Options" onClose={() => setIsOptionsOpen(false)}>
+        <Drawer title="Scene Options" closeDisabled={optionAction !== undefined} onClose={() => setIsOptionsOpen(false)}>
           {scene && (
             <SceneOptionsPanel
               scene={scene}
@@ -960,6 +1008,7 @@ export function ScenePlaythroughPage() {
                 )
               }
               onViewDialog={setViewingDialog}
+              onUndoTurn={requestUndoTurn}
               onEndScene={requestEndScene}
             />
           )}

@@ -6,6 +6,7 @@ namespace Eldoria.Core.Entities.Playthrough.Base
     public class Playthrough
     {
         public int Id { get; set; }
+        public long GameplayRevision { get; set; }
         public int SourceJourneyId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

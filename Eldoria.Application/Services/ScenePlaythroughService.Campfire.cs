@@ -12,7 +12,7 @@ public sealed partial class ScenePlaythroughService
             return Result.Fail(new Error("ScenePlaythrough.InvalidCampfireResource", "Choose HP or MP to replenish."));
 
         await using var transaction = await playthroughRepository.BeginSceneStartTransactionAsync(ct);
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(userId, playthroughId, sceneId, ct);
+        var scene = await GetSceneForTurnAsync(userId, playthroughId, sceneId, ct);
         var error = ValidateManageableScene(scene);
         if (error is not null) return Result.Fail(error);
 

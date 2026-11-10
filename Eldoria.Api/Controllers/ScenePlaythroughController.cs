@@ -89,6 +89,22 @@ public sealed class ScenePlaythroughController(
         return Ok(result.Value);
     }
 
+    [Authorize]
+    [HttpPost("participants/{participantId:int}/begin-turn")]
+    public async Task<IActionResult> BeginTurn(int playthroughId, int sceneId, int participantId, CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.BeginTurnAsync(User.GetUserId(), playthroughId, sceneId, participantId, ct);
+        return await CompleteMutationAsync(result, playthroughId, "TurnStarted", ct);
+    }
+
+    [Authorize]
+    [HttpPost("undo-turn")]
+    public async Task<IActionResult> UndoTurn(int playthroughId, int sceneId, [FromBody] UndoSceneTurnRequest request, CancellationToken ct)
+    {
+        var result = await scenePlaythroughService.UndoTurnAsync(User.GetUserId(), playthroughId, sceneId, request.Token, ct);
+        return await CompleteMutationAsync(result, playthroughId, "TurnUndone", ct);
+    }
+
     [HttpPost("end")]
     public async Task<IActionResult> End(
         int playthroughId,

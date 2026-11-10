@@ -9,7 +9,7 @@ public sealed partial class ScenePlaythroughService
     {
         await using var transaction = await playthroughRepository.BeginSceneStartTransactionAsync(ct);
 
-        var scene = await playthroughRepository.GetSceneForCharacterInstanceAddAsync(userId, playthroughId, sceneId, ct);
+        var scene = await GetSceneForTurnAsync(userId, playthroughId, sceneId, ct);
         var error = ValidateManageableScene(scene, allowCounterattack: true);
 
         if (error is not null) 
